@@ -2,13 +2,8 @@ use axum::routing::get;
 
 use crate::Router;
 
-use super::placeholder_api;
+use super::api_greeting;
 
 pub fn routes() -> Router {
-    Router::new().route(
-        "/",
-        get(placeholder_api)
-            .post(placeholder_api)
-            .put(placeholder_api),
-    )
+    Router::new().route("/", get(api_greeting).post(api_greeting).put(api_greeting))
 }
