@@ -2,12 +2,14 @@ mod api;
 
 use std::net::{Ipv4Addr, SocketAddr};
 
-use axum::{response::IntoResponse, routing::get, Router};
+use axum::{body::Body, Router as AxumRouter};
 use tower_http::services::{ServeDir, ServeFile};
 
 // Make sure to build the frontend first!
 const STATIC_DIR: &str = "../frontend/dist";
 const INDEX_FILE: &str = "../frontend/dist/index.html";
+
+type Router = AxumRouter<(), Body>;
 
 #[tokio::main]
 async fn main() {
@@ -15,21 +17,10 @@ async fn main() {
         .filter_level(log::LevelFilter::Info)
         .init();
 
-    let v1 = Router::new().route(
-        "/",
-        get(placeholder_api)
-            .post(placeholder_api)
-            .put(placeholder_api),
-    );
-
-    let api = Router::new()
-        .route("/", get(placeholder_api))
-        .nest("/v1", v1);
-
     let static_files = ServeDir::new(STATIC_DIR).not_found_service(ServeFile::new(INDEX_FILE));
 
     let app = Router::new()
-        .nest("/api", api)
+        .nest("/api", api::routes())
         .nest_service("/", static_files);
 
     // TODO improve address handling
@@ -44,8 +35,4 @@ async fn main() {
         .serve(app.into_make_service())
         .await
         .unwrap();
-}
-
-async fn placeholder_api() -> impl IntoResponse {
-    "Egiraffe API goes here (todo)"
 }
