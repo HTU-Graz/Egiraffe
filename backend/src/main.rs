@@ -1,3 +1,5 @@
+mod api;
+
 use std::net::{Ipv4Addr, SocketAddr};
 
 use axum::{response::IntoResponse, routing::get, Router};
@@ -13,17 +15,22 @@ async fn main() {
         .filter_level(log::LevelFilter::Info)
         .init();
 
+    let v1 = Router::new().route(
+        "/",
+        get(placeholder_api)
+            .post(placeholder_api)
+            .put(placeholder_api),
+    );
+
+    let api = Router::new()
+        .route("/", get(placeholder_api))
+        .nest("/v1", v1);
+
+    let static_files = ServeDir::new(STATIC_DIR).not_found_service(ServeFile::new(INDEX_FILE));
+
     let app = Router::new()
-        .route(
-            "/api",
-            get(placeholder_api)
-                .post(placeholder_api)
-                .put(placeholder_api),
-        )
-        .nest_service(
-            "/",
-            ServeDir::new(STATIC_DIR).not_found_service(ServeFile::new(INDEX_FILE)),
-        );
+        .nest("/api", api)
+        .nest_service("/", static_files);
 
     // TODO improve address handling
     let ip = Ipv4Addr::new(0, 0, 0, 0);
