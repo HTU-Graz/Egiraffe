@@ -1,0 +1,7 @@
+target
+private
+node_modules
+dist
+.git
+.gitignore
+*.md

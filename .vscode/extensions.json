@@ -1,0 +1,17 @@
+{
+    "recommendations": [
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "serayuzgur.crates",
+        "bradlc.vscode-tailwindcss",
+        "gruntfuggly.todo-tree",
+        "firefox-devtools.vscode-firefox-debug",
+        "esbenp.prettier-vscode",
+        "ms-azuretools.vscode-docker",
+        "eamodio.gitlens",
+        "streetsidesoftware.code-spell-checker",
+        "streetsidesoftware.code-spell-checker-german",
+        "shd101wyy.markdown-preview-enhanced",
+        "yzhang.markdown-all-in-one"
+    ]
+}
