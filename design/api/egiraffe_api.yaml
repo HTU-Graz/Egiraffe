@@ -1,0 +1,74 @@
+_type: export
+__export_format: 4
+__export_date: 2023-09-15T00:26:44.663Z
+__export_source: insomnia.desktop.app:v2023.4.0
+resources:
+  - _id: req_98102059cb774af894635f9c44374d73
+    parentId: wrk_58b908fd936e4729b56777c31b44d1ab
+    modified: 1694737121962
+    created: 1694735948204
+    url: "{{host}}/api/v1/auth/login"
+    name: Login
+    description: ""
+    method: PUT
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"email": "ann@example.com",
+        	"password": "heyThere"
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+    authentication: {}
+    metaSortKey: -1694735948204
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: wrk_58b908fd936e4729b56777c31b44d1ab
+    parentId: null
+    modified: 1694735849550
+    created: 1694735849550
+    name: Egiraffe v1 API
+    description: ""
+    scope: collection
+    _type: workspace
+  - _id: env_479e0bd4ff286e596debda957cd50d3a00e46990
+    parentId: wrk_58b908fd936e4729b56777c31b44d1ab
+    modified: 1694735849552
+    created: 1694735849552
+    name: Base Environment
+    data: {}
+    dataPropertyOrder: null
+    color: null
+    isPrivate: false
+    metaSortKey: 1694735849552
+    _type: environment
+  - _id: jar_479e0bd4ff286e596debda957cd50d3a00e46990
+    parentId: wrk_58b908fd936e4729b56777c31b44d1ab
+    modified: 1694735849554
+    created: 1694735849554
+    name: Default Jar
+    cookies: []
+    _type: cookie_jar
+  - _id: env_8153a8c4224540d5a26954721f3a30aa
+    parentId: env_479e0bd4ff286e596debda957cd50d3a00e46990
+    modified: 1694736247332
+    created: 1694736215247
+    name: Egiraffe
+    data:
+      host: http://127.0.0.1:42002
+    dataPropertyOrder:
+      "&":
+        - host
+    color: null
+    isPrivate: false
+    metaSortKey: 1694736215247
+    _type: environment
