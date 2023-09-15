@@ -27,7 +27,7 @@ Use [rustup](https://rustup.rs/) to install Rust and Cargo, if you haven't alrea
 
 [![GNU Affero General Public License v3.0](https://www.gnu.org/graphics/agplv3-with-text-162x68.png)](https://www.gnu.org/licenses/agpl-3.0.html)
 
-Copyright (C) 2023 [HTU Graz](https://htugraz.at/)
+Egiraffe, "the software" (code, assets, design documents, and documentation) copyright (C) 2023 [HTU Graz](https://htugraz.at/)
 
 Egiraffe is free software: you can redistribute it and/or modify it under the terms of the [GNU Affero General Public License](/LICENSE.md) as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
