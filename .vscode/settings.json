@@ -5,7 +5,9 @@
         "egiraffe",
         "Egiraffe",
         "pgerd",
+        "postgres",
         "rustup",
+        "sqlx",
         "totp"
     ],
     "files.associations": {
