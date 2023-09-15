@@ -1,4 +1,5 @@
 mod api;
+mod data;
 mod db;
 
 use std::{

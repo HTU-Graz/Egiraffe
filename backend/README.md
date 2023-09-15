@@ -23,6 +23,15 @@ as the dependencies are cached, and incremental compilation is enabled.
 
 Use [rustup](https://rustup.rs/) to install Rust and Cargo, if you haven't already.
 
+You may also need to define the database URL in the environment variable `DATABASE_URL`.
+
+```zsh
+# For example
+export DATABASE_URL=postgres://postgres@127.0.0.1/egiraffe # define the database URL
+code # open VSCode
+# then open the repo in VSCode
+```
+
 ## License
 
 [![GNU Affero General Public License v3.0](https://www.gnu.org/graphics/agplv3-with-text-162x68.png)](https://www.gnu.org/licenses/agpl-3.0.html)
