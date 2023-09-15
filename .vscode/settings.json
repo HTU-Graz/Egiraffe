@@ -5,7 +5,8 @@
         "egiraffe",
         "Egiraffe",
         "pgerd",
-        "rustup"
+        "rustup",
+        "totp"
     ],
     "files.associations": {
         "*.pgerd": "json"
