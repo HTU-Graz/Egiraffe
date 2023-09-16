@@ -54,15 +54,17 @@ pub async fn register_user(db_pool: &Pool<Postgres>, user: User) -> Result<(), U
         emails,
     } = user;
 
+    // TODO make this parallel
+    // HACK this is not properly executed in a transaction
     for email in &*emails {
         let email_taken = sqlx::query_as!(
             SelectExistsTmp,
             r#"
-            SELECT EXISTS (
-                SELECT 1
-                FROM email
-                WHERE address = $1
-            )
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM email
+                    WHERE address = $1
+                )
         "#,
             email
         )
@@ -75,6 +77,21 @@ pub async fn register_user(db_pool: &Pool<Postgres>, user: User) -> Result<(), U
             return Err(UserError::EmailTaken(Arc::from(email.as_str())));
         }
     }
+
+    sqlx::query!(
+        r#"
+            INSERT INTO "user" (id, first_names, last_name, password_hash, totp_secret)
+            VALUES ($1, $2, $3, $4, $5)
+        "#,
+        id,
+        &*first_names,
+        &*last_name,
+        &*password_hash,
+        totp_secret.as_deref()
+    )
+    .execute(db_pool)
+    .await
+    .map_err(UserError::QueryError)?;
 
     Ok(())
 }
