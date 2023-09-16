@@ -1,5 +1,9 @@
 use std::sync::Arc;
 
+use argon2::{
+    password_hash::{rand_core::OsRng, SaltString},
+    Argon2, PasswordHasher,
+};
 use axum::{
     extract::State,
     response::IntoResponse,
@@ -74,13 +78,23 @@ async fn handle_register(
         password,
     } = register_data;
 
+    // HACK the call to `unwrap` must be replaced with an error handling mechanism (return a 500 error)
+    let salt = SaltString::generate(&mut OsRng);
+    let argon2 = &Argon2::default();
+    let password_hash: Arc<str> = argon2
+        .hash_password(&password.as_bytes(), &salt) // Allocates twice (once for the `String`)
+        .unwrap()
+        .serialize()
+        .as_str()
+        .into(); // Allocates once (for the `Arc`) // TODO attempt to avoid this allocation
+
     // TODO reconsider if `Arc` is the right choice here
     //  does it perform an atomic reference count increment on creation?
     let user = User {
         id: Uuid::new_v4(),
         first_names: first_names.into(),
         last_name: last_name.into(),
-        password_hash: password.into(),
+        password_hash,
         totp_secret: None,
         emails: Arc::new(vec![email]),
     };
