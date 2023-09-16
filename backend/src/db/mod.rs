@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use justerror::Error;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
@@ -25,7 +27,7 @@ pub(crate) async fn demo(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
 
 #[Error]
 pub enum UserError {
-    EmailTaken,
+    EmailTaken(Arc<str>), // Zero-copy string; gotta go fast
     QueryError(sqlx::Error),
 }
 
@@ -70,7 +72,7 @@ pub async fn register_user(db_pool: &Pool<Postgres>, user: User) -> Result<(), U
 
         // TODO I'd rather have this be an `.into()` call after `map_err` but I can't figure out how to do that right now
         if SelectExists::from(email_taken).0 {
-            return Err(UserError::EmailTaken);
+            return Err(UserError::EmailTaken(Arc::from(email.as_str())));
         }
     }
 
