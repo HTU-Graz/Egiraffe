@@ -26,11 +26,20 @@ pub(crate) async fn demo(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
 #[Error]
 pub enum UserError {
     EmailTaken,
+    QueryError(sqlx::Error),
 }
 
 #[derive(sqlx::FromRow)]
-struct SelectExists {
-    exists: bool,
+struct SelectExistsTmp {
+    exists: Option<bool>,
+}
+
+struct SelectExists(bool);
+
+impl From<SelectExistsTmp> for SelectExists {
+    fn from(tmp: SelectExistsTmp) -> Self {
+        Self(tmp.exists.unwrap_or(false))
+    }
 }
 
 pub async fn register_user(db_pool: &Pool<Postgres>, user: User) -> Result<(), UserError> {
@@ -43,19 +52,27 @@ pub async fn register_user(db_pool: &Pool<Postgres>, user: User) -> Result<(), U
         emails,
     } = user;
 
-    let primary_email = &emails[0];
-
-    let email_taken = sqlx::query_as!(
-        bool,
-        r#"
+    for email in &*emails {
+        let email_taken = sqlx::query_as!(
+            SelectExistsTmp,
+            r#"
             SELECT EXISTS (
                 SELECT 1
                 FROM email
                 WHERE address = $1
             )
         "#,
-        &[*primary_email]
-    );
+            email
+        )
+        .fetch_one(db_pool)
+        .await
+        .map_err(UserError::QueryError)?;
+
+        // TODO I'd rather have this be an `.into()` call after `map_err` but I can't figure out how to do that right now
+        if SelectExists::from(email_taken).0 {
+            return Err(UserError::EmailTaken);
+        }
+    }
 
     Ok(())
 }
