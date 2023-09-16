@@ -7,7 +7,8 @@ use std::{
     net::{Ipv4Addr, SocketAddr},
 };
 
-use axum::{body::Body, Router as AxumRouter};
+use axum::Router as AxumRouter;
+use sqlx::{Pool, Postgres};
 use tower_http::services::{ServeDir, ServeFile};
 
 // Make sure to build the frontend first!
@@ -18,7 +19,8 @@ const INDEX_FILE: &str = "../frontend/dist/index.html";
 const IP: Ipv4Addr = Ipv4Addr::new(0, 0, 0, 0);
 const PORT: u16 = 42002;
 
-type Router = AxumRouter<(), Body>;
+type AppState = Pool<Postgres>;
+type Router = AxumRouter<AppState>;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -39,7 +41,8 @@ async fn main() -> anyhow::Result<()> {
 
     let app = Router::new()
         .nest("/api", api::routes())
-        .nest_service("/", static_files);
+        .nest_service("/", static_files)
+        .with_state(db_pool.clone());
 
     let addr = SocketAddr::from((IP, PORT));
 

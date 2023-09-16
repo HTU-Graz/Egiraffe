@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use email_address::EmailAddress;
 use justerror::Error;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
@@ -27,6 +28,7 @@ pub(crate) async fn demo(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
 
 #[Error]
 pub enum UserError {
+    EmailInvalid(Arc<str>),
     EmailTaken(Arc<str>), // Zero-copy string; gotta go fast
     QueryError(sqlx::Error),
 }
@@ -44,6 +46,17 @@ impl From<SelectExistsTmp> for SelectExists {
     }
 }
 
+/// Register a user in the database with checks for email validity and uniqueness.
+///
+/// # Errors
+///
+/// - [`UserError::EmailInvalid`] if the email is invalid
+/// - [`UserError::EmailTaken`] if the email is already taken
+/// - [`UserError::QueryError`] if the query fails (including the underlying database error)
+///
+/// # Panics
+///
+/// This function panics if the database connection pool is full.
 pub async fn register_user(db_pool: &Pool<Postgres>, user: User) -> Result<(), UserError> {
     let User {
         id,
@@ -56,7 +69,11 @@ pub async fn register_user(db_pool: &Pool<Postgres>, user: User) -> Result<(), U
 
     // TODO make this parallel
     // HACK this is not properly executed in a transaction
-    for email in &*emails {
+    for email in emails.iter() {
+        if !EmailAddress::is_valid(email) {
+            return Err(UserError::EmailInvalid(Arc::from(email.as_str())));
+        }
+
         let email_taken = sqlx::query_as!(
             SelectExistsTmp,
             r#"

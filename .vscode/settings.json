@@ -4,6 +4,7 @@
         "corepack",
         "egiraffe",
         "Egiraffe",
+        "justerror",
         "pgerd",
         "postgres",
         "rustup",
