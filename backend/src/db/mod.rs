@@ -68,10 +68,10 @@ pub async fn register_user(db_pool: &Pool<Postgres>, user: User) -> Result<(), U
         )
         .fetch_one(db_pool)
         .await
-        .map_err(UserError::QueryError)?;
+        .map_err(UserError::QueryError)
+        .map(|tmp| SelectExists::from(tmp).0)?;
 
-        // TODO I'd rather have this be an `.into()` call after `map_err` but I can't figure out how to do that right now
-        if SelectExists::from(email_taken).0 {
+        if email_taken {
             return Err(UserError::EmailTaken(Arc::from(email.as_str())));
         }
     }
