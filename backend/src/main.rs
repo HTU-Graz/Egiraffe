@@ -48,8 +48,6 @@ async fn main() -> anyhow::Result<()> {
 
     let addr = SocketAddr::from((IP, PORT));
 
-    // db::demo(&db_pool).await?;
-
     log::info!("Listening on http://127.0.0.1:{PORT}");
     axum::Server::bind(&addr)
         .serve(app.into_make_service())

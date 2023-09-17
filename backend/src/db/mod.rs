@@ -2,9 +2,7 @@ pub mod init;
 pub mod user;
 
 use sqlx::{postgres::PgPoolOptions, Acquire, Executor, PgConnection, Pool, Postgres};
-use tokio::{
-    fs::{read_to_string},
-};
+use tokio::fs::read_to_string;
 
 pub async fn connect() -> anyhow::Result<Pool<Postgres>> {
     let pool = PgPoolOptions::new()
@@ -50,7 +48,7 @@ pub async fn reset_and_init(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
 async fn create_schema(db_con: &mut PgConnection) -> Result<(), anyhow::Error> {
     log::info!("Creating schema");
 
-    let query = read_to_string("../../../design/database/egiraffe-schema-generated.sql").await?;
+    let query = read_to_string("../design/database/egiraffe-schema-generated.sql").await?;
     db_con.execute(&*query).await?;
 
     Ok(())
