@@ -29,10 +29,13 @@ impl From<SelectExistsTmp> for SelectExists {
 pub async fn reset_and_init(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
     log::info!("Resetting and initializing database");
 
+    let pool_connection = &mut db_pool.acquire().await?;
+    let db_con = pool_connection.acquire().await?;
+    yeet_everything(db_con).await?;
+
     let mut tx = db_pool.begin().await?;
     let db_con = tx.acquire().await?;
 
-    yeet_everything(db_con).await?;
     create_schema(db_con).await?;
 
     init::create_universities(db_con).await?;
