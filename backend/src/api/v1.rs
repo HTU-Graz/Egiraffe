@@ -11,12 +11,15 @@ use axum::{
     routing::{get, put},
     Json, Router,
 };
+use axum_extra::extract::{cookie::Cookie, CookieJar};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{data::User, db, AppState};
+use crate::{data::UserWithEmails, db, AppState};
 
 use super::api_greeting;
+
+const SESSION_COOKIE_NAME: &str = "session";
 
 pub fn routes() -> Router<AppState> {
     Router::new()
@@ -43,13 +46,30 @@ pub struct LoginRes {
     pub email: String,
 }
 
-async fn handle_login(Json(login_data): Json<LoginReq>) -> impl IntoResponse {
+async fn handle_login(
+    State(db_pool): State<AppState>,
+    cookie_jar: CookieJar,
+    Json(login_data): Json<LoginReq>,
+) -> impl IntoResponse {
     log::info!("Login attempt for email {}", login_data.email);
 
-    Json(LoginRes {
-        success: true,
-        email: login_data.email,
-    })
+    // TODO validate login:
+    //  1. fetch user from database
+    //  2. check password hash
+
+    let token = db::session::create_session(&db_pool, Uuid::new_v4()).await;
+
+    let mut session_cookie = Cookie::new(SESSION_COOKIE_NAME, token);
+    session_cookie.make_permanent();
+    session_cookie.set_http_only(true);
+
+    (
+        cookie_jar.add(session_cookie),
+        Json(LoginRes {
+            success: true,
+            email: login_data.email,
+        }),
+    )
 }
 
 #[derive(Deserialize, Debug)]
@@ -91,7 +111,7 @@ async fn handle_register(
 
     // TODO reconsider if `Arc` is the right choice here
     //  does it perform an atomic reference count increment on creation?
-    let user = User {
+    let user = UserWithEmails {
         id: Uuid::new_v4(),
         first_names: first_names.into(),
         last_name: last_name.into(),
@@ -124,6 +144,16 @@ pub struct LogoutRes {
     pub success: bool,
 }
 
-async fn handle_logout() -> impl IntoResponse {
-    Json(LogoutRes { success: true })
+async fn handle_logout(
+    State(_db_pool): State<AppState>,
+    cookie_jar: CookieJar,
+) -> impl IntoResponse {
+    // TODO remove the session from the database
+
+    log::info!("Logout");
+
+    (
+        cookie_jar.remove(Cookie::named(SESSION_COOKIE_NAME)),
+        Json(LogoutRes { success: true }),
+    )
 }

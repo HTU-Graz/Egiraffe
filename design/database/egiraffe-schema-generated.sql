@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS public.session
 (
     id uuid,
     of_user uuid,
-    token bit(256) NOT NULL,
+    token character(43) NOT NULL,
     initial_user_agent character varying(275),
     latest_user_agent character varying(275),
     initial_ip inet,

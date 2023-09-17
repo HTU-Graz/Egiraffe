@@ -1,4 +1,5 @@
 pub mod init;
+pub mod session;
 pub mod user;
 
 use sqlx::{postgres::PgPoolOptions, Acquire, Executor, PgConnection, Pool, Postgres};

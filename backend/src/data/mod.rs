@@ -10,15 +10,26 @@ pub struct User {
     pub last_name: Arc<str>,
     pub password_hash: Arc<str>,
     pub totp_secret: Option<Arc<str>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserWithEmails {
+    pub id: Uuid,
+    pub first_names: Arc<str>,
+    pub last_name: Arc<str>,
+    pub password_hash: Arc<str>,
+    pub totp_secret: Option<Arc<str>>,
     pub emails: Arc<Vec<String>>,
 }
+
+pub type Token = [u8; 32];
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Session {
     pub id: Uuid,
     /// Named `of_user` in the database
     pub user_id: Uuid,
-    pub token: [u8; 32],
+    pub token: Token,
 }
 
 #[derive(Debug, Serialize)]

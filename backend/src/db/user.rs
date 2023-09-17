@@ -5,7 +5,7 @@ use justerror::Error;
 use sqlx::{self, Acquire, Pool, Postgres};
 use uuid::Uuid;
 
-use crate::{data::User, db::SelectExistsTmp};
+use crate::{data::UserWithEmails, db::SelectExistsTmp};
 
 use super::SelectExists;
 
@@ -27,8 +27,8 @@ pub enum UserError {
 /// # Panics
 ///
 /// This function panics if the database connection pool is full.
-pub async fn register(db_pool: &Pool<Postgres>, user: User) -> Result<(), UserError> {
-    let User {
+pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<(), UserError> {
+    let UserWithEmails {
         id,
         first_names,
         last_name,
@@ -131,4 +131,29 @@ pub async fn register(db_pool: &Pool<Postgres>, user: User) -> Result<(), UserEr
         .unwrap();
 
     Ok(())
+}
+
+pub async fn get_user_by_email(db_pool: &Pool<Postgres>, email: &str) -> Option<UserWithEmails> {
+    let db_con = db_pool
+        .acquire()
+        .await
+        .expect("Failed to acquire database connection");
+
+    // let user = sqlx::query_as!(
+    //     User,
+    //     r#"
+    //         SELECT id, first_names, last_name, password_hash, totp_secret
+    //         FROM "user"
+    //         INNER JOIN email ON primary_email = email.id
+    //         WHERE primary_email = $1
+    //     "#,
+    //     email
+    // )
+    // .fetch_optional(db_con)
+    // .await
+    // .expect("Failed to query user");
+
+    // user
+
+    todo!("Implement get_user_by_email")
 }
