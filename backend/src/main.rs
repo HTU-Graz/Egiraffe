@@ -32,6 +32,9 @@ async fn main() -> anyhow::Result<()> {
     let db_pool = db::connect().await?;
     log::info!("Connected to database");
 
+    log::info!("Creating universities");
+    db::create_universities(&db_pool).await?;
+
     let static_files = ServeDir::new(STATIC_DIR).not_found_service(ServeFile::new(INDEX_FILE));
     log::info!(
         "Serving static files from {}, canonicalized to {}",
@@ -42,11 +45,11 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         .nest("/api", api::routes())
         .nest_service("/", static_files)
-        .with_state(db_pool.clone());
+        .with_state(db_pool);
 
     let addr = SocketAddr::from((IP, PORT));
 
-    db::demo(&db_pool).await?;
+    // db::demo(&db_pool).await?;
 
     log::info!("Listening on http://127.0.0.1:{PORT}");
     axum::Server::bind(&addr)

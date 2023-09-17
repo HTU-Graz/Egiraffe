@@ -19,3 +19,12 @@ pub struct Session {
     pub user_id: Uuid,
     pub token: String,
 }
+
+#[derive(Debug, Serialize)]
+pub struct University<'a> {
+    pub id: Uuid,
+    pub full_name: &'static str,
+    pub mid_name: &'static str,
+    pub short_name: &'static str,
+    pub domain_names: &'a [String],
+}
