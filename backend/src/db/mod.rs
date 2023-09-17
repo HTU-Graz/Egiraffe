@@ -3,8 +3,7 @@ pub mod user;
 
 use sqlx::{postgres::PgPoolOptions, Acquire, Executor, PgConnection, Pool, Postgres};
 use tokio::{
-    fs::{read_to_string, File},
-    io::AsyncReadExt,
+    fs::{read_to_string},
 };
 
 pub async fn connect() -> anyhow::Result<Pool<Postgres>> {

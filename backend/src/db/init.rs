@@ -1,4 +1,4 @@
-use sqlx::{self, Acquire, PgConnection, Pool, Postgres};
+use sqlx::{self, PgConnection};
 use uuid::Uuid;
 
 use crate::data::University;
