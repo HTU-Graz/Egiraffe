@@ -133,8 +133,8 @@ pub async fn register_user(db_pool: &Pool<Postgres>, user: User) -> Result<(), U
                 INSERT INTO email (id, address, belongs_to_user, of_university, status)
                 VALUES ($2, $3, $4, (SELECT id FROM matching_university), 'unverified')
             )
-            INSERT INTO "user" (id, first_names, last_name, password_hash, totp_secret)
-            VALUES ($5, $6, $7, $8, $9)
+            INSERT INTO "user" (id, first_names, last_name, primary_email, password_hash, totp_secret)
+            VALUES ($5, $6, $7, $8, $9, $10)
         "#,
         // University
         email_address.domain(),
@@ -146,6 +146,7 @@ pub async fn register_user(db_pool: &Pool<Postgres>, user: User) -> Result<(), U
         id,
         &*first_names,
         &*last_name,
+        mail_uuid,
         &*password_hash,
         totp_secret.as_deref(),
     )
@@ -218,6 +219,30 @@ pub async fn create_universities(db_pool: &Pool<Postgres>) -> anyhow::Result<()>
             mid_name,
             short_name,
             &domain_names
+        )
+        .execute(&mut *db_con)
+        .await?;
+    }
+
+    tx.commit().await?;
+
+    Ok(())
+}
+
+pub async fn create_email_states(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
+    let mut tx = db_pool.begin().await?;
+
+    let db_con = tx.acquire().await?;
+
+    let email_states = ["unverified", "verified"];
+
+    for state in email_states {
+        sqlx::query!(
+            r#"
+            INSERT INTO email_status (status)
+            VALUES ($1)
+        "#,
+            state
         )
         .execute(&mut *db_con)
         .await?;

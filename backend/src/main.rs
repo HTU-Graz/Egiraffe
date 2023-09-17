@@ -35,6 +35,9 @@ async fn main() -> anyhow::Result<()> {
     log::info!("Creating universities");
     db::create_universities(&db_pool).await?;
 
+    log::info!("Creating email states");
+    db::create_email_states(&db_pool).await?;
+
     let static_files = ServeDir::new(STATIC_DIR).not_found_service(ServeFile::new(INDEX_FILE));
     log::info!(
         "Serving static files from {}, canonicalized to {}",
