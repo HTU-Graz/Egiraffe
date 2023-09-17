@@ -1,11 +1,11 @@
 _type: export
 __export_format: 4
-__export_date: 2023-09-15T00:26:44.663Z
+__export_date: 2023-09-17T20:19:09.932Z
 __export_source: insomnia.desktop.app:v2023.4.0
 resources:
-  - _id: req_98102059cb774af894635f9c44374d73
-    parentId: wrk_58b908fd936e4729b56777c31b44d1ab
-    modified: 1694737121962
+  - _id: req_ebb2cfd78e854ca687fa26de9660538f
+    parentId: wrk_1f5b7c7c35d34183a7a111e31d6b1776
+    modified: 1694981922449
     created: 1694735948204
     url: "{{host}}/api/v1/auth/login"
     name: Login
@@ -15,8 +15,8 @@ resources:
       mimeType: application/json
       text: |-
         {
-        	"email": "ann@example.com",
-        	"password": "heyThere"
+        	"email": "john.doe@student.tugraz.at",
+        	"password": "abc123"
         }
     parameters: []
     headers:
@@ -32,16 +32,47 @@ resources:
     settingRebuildPath: true
     settingFollowRedirects: global
     _type: request
-  - _id: wrk_58b908fd936e4729b56777c31b44d1ab
+  - _id: wrk_1f5b7c7c35d34183a7a111e31d6b1776
     parentId: null
-    modified: 1694735849550
-    created: 1694735849550
+    modified: 1694963241723
+    created: 1694963241723
     name: Egiraffe v1 API
     description: ""
     scope: collection
     _type: workspace
-  - _id: env_479e0bd4ff286e596debda957cd50d3a00e46990
-    parentId: wrk_58b908fd936e4729b56777c31b44d1ab
+  - _id: req_5ec1ea026a4b4396b6c16c59c4c237c5
+    parentId: wrk_1f5b7c7c35d34183a7a111e31d6b1776
+    modified: 1694964236281
+    created: 1694964090922
+    url: "{{host}}/api/v1/auth/register"
+    name: Register
+    description: ""
+    method: PUT
+    body:
+      mimeType: application/json
+      text: |
+        {
+          "first_names": "John",
+          "last_name": "Doe",
+          "password": "abc123",
+          "email": "john.doe@student.tugraz.at"
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+    authentication: {}
+    metaSortKey: -1693699467764.5
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: env_96f8d1ba203648e289554752ab4dcdcd
+    parentId: wrk_1f5b7c7c35d34183a7a111e31d6b1776
     modified: 1694735849552
     created: 1694735849552
     name: Base Environment
@@ -51,15 +82,15 @@ resources:
     isPrivate: false
     metaSortKey: 1694735849552
     _type: environment
-  - _id: jar_479e0bd4ff286e596debda957cd50d3a00e46990
-    parentId: wrk_58b908fd936e4729b56777c31b44d1ab
+  - _id: jar_f04a7d38962a467b82098d7f0a5527bc
+    parentId: wrk_1f5b7c7c35d34183a7a111e31d6b1776
     modified: 1694735849554
     created: 1694735849554
     name: Default Jar
     cookies: []
     _type: cookie_jar
-  - _id: env_8153a8c4224540d5a26954721f3a30aa
-    parentId: env_479e0bd4ff286e596debda957cd50d3a00e46990
+  - _id: env_712fe6bbe4194d4f8739154907de969d
+    parentId: env_96f8d1ba203648e289554752ab4dcdcd
     modified: 1694736247332
     created: 1694736215247
     name: Egiraffe
