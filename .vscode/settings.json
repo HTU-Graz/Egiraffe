@@ -13,5 +13,14 @@
     ],
     "files.associations": {
         "*.pgerd": "json"
-    }
+    },
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "driver": "PostgreSQL",
+            "name": "Egiraffe local dev",
+            "connectString": "postgres://postgres@127.0.0.1/egiraffe"
+        }
+    ]
 }
