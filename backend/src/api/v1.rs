@@ -6,6 +6,7 @@ use argon2::{
 };
 use axum::{
     extract::State,
+    http::StatusCode,
     response::IntoResponse,
     routing::{get, put},
     Json, Router,
@@ -100,12 +101,22 @@ async fn handle_register(
     };
 
     // TODO handle errors (see https://docs.rs/axum/latest/axum/error_handling/index.html#axums-error-handling-model)
-    db::user::register(&db_pool, user).await.unwrap();
+    let registration_result = db::user::register(&db_pool, user).await;
 
-    Json(RegisterRes {
-        success: true,
-        // email: user.emails[0].clone(),
-    })
+    match registration_result {
+        Ok(_) => {
+            log::info!("Registration successful");
+            (StatusCode::OK, Json(RegisterRes { success: true }))
+        }
+        Err(e) => {
+            log::error!("Registration failed: {:?}", e);
+
+            (
+                StatusCode::BAD_REQUEST,
+                Json(RegisterRes { success: false }),
+            )
+        }
+    }
 }
 
 #[derive(Serialize, Debug)]
