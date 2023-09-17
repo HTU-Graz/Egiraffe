@@ -100,7 +100,7 @@ async fn handle_register(
     };
 
     // TODO handle errors (see https://docs.rs/axum/latest/axum/error_handling/index.html#axums-error-handling-model)
-    db::register_user(&db_pool, user).await.unwrap();
+    db::user::register(&db_pool, user).await.unwrap();
 
     Json(RegisterRes {
         success: true,

@@ -32,11 +32,7 @@ async fn main() -> anyhow::Result<()> {
     let db_pool = db::connect().await?;
     log::info!("Connected to database");
 
-    log::info!("Creating universities");
-    db::create_universities(&db_pool).await?;
-
-    log::info!("Creating email states");
-    db::create_email_states(&db_pool).await?;
+    db::reset_and_init(&db_pool).await?;
 
     let static_files = ServeDir::new(STATIC_DIR).not_found_service(ServeFile::new(INDEX_FILE));
     log::info!(

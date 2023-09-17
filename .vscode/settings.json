@@ -9,7 +9,8 @@
         "postgres",
         "rustup",
         "sqlx",
-        "totp"
+        "totp",
+        "yeet"
     ],
     "files.associations": {
         "*.pgerd": "json"

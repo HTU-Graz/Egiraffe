@@ -1,11 +1,11 @@
-use std::{str::FromStr, sync::Arc};
+pub mod init;
+pub mod user;
 
-use email_address::EmailAddress;
-use justerror::Error;
-use sqlx::{postgres::PgPoolOptions, Acquire, Pool, Postgres};
-use uuid::Uuid;
-
-use crate::data::{University, User};
+use sqlx::{postgres::PgPoolOptions, Acquire, Executor, PgConnection, Pool, Postgres};
+use tokio::{
+    fs::{read_to_string, File},
+    io::AsyncReadExt,
+};
 
 pub async fn connect() -> anyhow::Result<Pool<Postgres>> {
     let pool = PgPoolOptions::new()
@@ -14,25 +14,6 @@ pub async fn connect() -> anyhow::Result<Pool<Postgres>> {
         .await?;
 
     Ok(pool)
-}
-
-// TODO remove this
-pub(crate) async fn demo(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
-    let row: (i64,) = sqlx::query_as("SELECT $1")
-        .bind(42_i64)
-        .fetch_one(db_pool)
-        .await?;
-
-    assert_eq!(row.0, 42);
-
-    Ok(())
-}
-
-#[Error]
-pub enum UserError {
-    EmailInvalid(Arc<str>),
-    EmailTaken(Arc<str>), // Zero-copy string; gotta go fast
-    QueryError(sqlx::Error),
 }
 
 #[derive(sqlx::FromRow)]
@@ -48,207 +29,47 @@ impl From<SelectExistsTmp> for SelectExists {
     }
 }
 
-/// Register a user in the database with checks for email validity and uniqueness.
-///
-/// # Errors
-///
-/// - [`UserError::EmailInvalid`] if the email is invalid
-/// - [`UserError::EmailTaken`] if the email is already taken
-/// - [`UserError::QueryError`] if the query fails (including the underlying database error)
-///
-/// # Panics
-///
-/// This function panics if the database connection pool is full.
-pub async fn register_user(db_pool: &Pool<Postgres>, user: User) -> Result<(), UserError> {
-    let User {
-        id,
-        first_names,
-        last_name,
-        password_hash,
-        totp_secret,
-        emails,
-    } = user;
+pub async fn reset_and_init(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
+    log::info!("Resetting and initializing database");
 
-    let mut tx = db_pool
-        .begin()
-        .await
-        .map_err(UserError::QueryError)
-        // ?
-        .unwrap();
+    let mut tx = db_pool.begin().await?;
+    let db_con = tx.acquire().await?;
 
-    // TODO make this parallel
-    for email in emails.iter() {
-        if !EmailAddress::is_valid(email) {
-            return Err(UserError::EmailInvalid(Arc::from(email.as_str())));
-        }
+    yeet_everything(db_con).await?;
+    create_schema(db_con).await?;
 
-        let db_con = tx
-            .acquire()
-            .await
-            .map_err(UserError::QueryError)
-            // ?
-            .unwrap();
+    init::create_universities(db_con).await?;
+    init::create_email_states(db_con).await?;
 
-        let email_taken = sqlx::query_as!(
-            SelectExistsTmp,
-            r#"
-                SELECT EXISTS (
-                    SELECT 1
-                    FROM email
-                    WHERE address = $1
-                )
-        "#,
-            email
-        )
-        .fetch_one(db_con)
-        .await
-        .map_err(UserError::QueryError)
-        .map(|tmp| SelectExists::from(tmp).0)
-        // ?;
-        .unwrap();
+    tx.commit().await?;
 
-        if email_taken {
-            return Err(UserError::EmailTaken(Arc::from(email.as_str())));
-        }
-    }
-
-    let db_con = tx
-        .acquire()
-        .await
-        .map_err(UserError::QueryError)
-        // ?
-        .unwrap();
-
-    let mail_uuid = Uuid::new_v4();
-    let email_address = EmailAddress::from_str(&emails[0]).unwrap();
-
-    sqlx::query!(
-        r#"
-            WITH matching_university AS (
-                SELECT id
-                FROM university
-                WHERE $1 = ANY (domain_names)
-            ),
-            new_email AS (
-                INSERT INTO email (id, address, belongs_to_user, of_university, status)
-                VALUES ($2, $3, $4, (SELECT id FROM matching_university), 'unverified')
-            )
-            INSERT INTO "user" (id, first_names, last_name, primary_email, password_hash, totp_secret)
-            VALUES ($5, $6, $7, $8, $9, $10)
-        "#,
-        // University
-        email_address.domain(),
-        // Email
-        mail_uuid,
-        &*emails[0],
-        id,
-        // User
-        id,
-        &*first_names,
-        &*last_name,
-        mail_uuid,
-        &*password_hash,
-        totp_secret.as_deref(),
-    )
-    .execute(db_con)
-    .await
-    .map_err(UserError::QueryError)
-    // ?;
-    .unwrap();
-
-    tx.commit()
-        .await
-        .map_err(UserError::QueryError)
-        // ?
-        .unwrap();
+    log::info!("Database reset and initialized");
 
     Ok(())
 }
 
-/*
-CREATE TABLE IF NOT EXISTS public.university
-(
-    id uuid,
-    name_full character varying(100) NOT NULL,
-    name_mid character varying(50) NOT NULL,
-    name_short character varying(50) NOT NULL,
-    domain_names character varying(100)[] NOT NULL,
-    PRIMARY KEY (id)
-);
+async fn create_schema(db_con: &mut PgConnection) -> Result<(), anyhow::Error> {
+    log::info!("Creating schema");
 
-*/
+    let query = read_to_string("../../../design/database/egiraffe-schema-generated.sql").await?;
+    db_con.execute(&*query).await?;
 
-pub async fn create_universities(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
-    let mut tx = db_pool.begin().await?;
+    Ok(())
+}
 
-    let db_con = tx.acquire().await?;
+async fn yeet_everything(db_con: &mut PgConnection) -> Result<(), anyhow::Error> {
+    log::warn!("Dropping everything (yeet)");
 
-    let unis = [
-        University {
-            id: Uuid::new_v4(),
-            full_name: "Technische Universität Graz",
-            mid_name: "TU Graz",
-            short_name: "TUG",
-            domain_names: &["tugraz.at".to_string(), "student.tugraz.at".to_string()],
-        },
-        University {
-            id: Uuid::new_v4(),
-            full_name: "Karl Franzens Universität Graz",
-            mid_name: "Uni Graz",
-            short_name: "KFU",
-            domain_names: &["uni-graz.at".to_string()],
-        },
+    const RESET_SEQUENCE: [&str; 4] = [
+        "DROP SCHEMA public CASCADE;",
+        "CREATE SCHEMA public;",
+        "GRANT ALL ON SCHEMA public TO postgres;",
+        "GRANT ALL ON SCHEMA public TO public;",
     ];
 
-    for uni in unis {
-        let University {
-            id,
-            full_name,
-            mid_name,
-            short_name,
-            domain_names,
-        } = uni;
-
-        sqlx::query!(
-            r#"
-            INSERT INTO university (id, name_full, name_mid, name_short, domain_names)
-            VALUES ($1, $2, $3, $4, $5)
-        "#,
-            id,
-            full_name,
-            mid_name,
-            short_name,
-            &domain_names
-        )
-        .execute(&mut *db_con)
-        .await?;
+    for query in RESET_SEQUENCE {
+        sqlx::query(query).execute(&mut *db_con).await?;
     }
-
-    tx.commit().await?;
-
-    Ok(())
-}
-
-pub async fn create_email_states(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
-    let mut tx = db_pool.begin().await?;
-
-    let db_con = tx.acquire().await?;
-
-    let email_states = ["unverified", "verified"];
-
-    for state in email_states {
-        sqlx::query!(
-            r#"
-            INSERT INTO email_status (status)
-            VALUES ($1)
-        "#,
-            state
-        )
-        .execute(&mut *db_con)
-        .await?;
-    }
-
-    tx.commit().await?;
 
     Ok(())
 }

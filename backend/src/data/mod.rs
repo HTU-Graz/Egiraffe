@@ -16,8 +16,9 @@ pub struct User {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Session {
     pub id: Uuid,
+    /// Named `of_user` in the database
     pub user_id: Uuid,
-    pub token: String,
+    pub token: [u8; 32],
 }
 
 #[derive(Debug, Serialize)]
