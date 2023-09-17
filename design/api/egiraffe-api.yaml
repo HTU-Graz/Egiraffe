@@ -1,6 +1,6 @@
 _type: export
 __export_format: 4
-__export_date: 2023-09-17T20:19:09.932Z
+__export_date: 2023-09-17T21:47:54.169Z
 __export_source: insomnia.desktop.app:v2023.4.0
 resources:
   - _id: req_ebb2cfd78e854ca687fa26de9660538f
@@ -71,6 +71,31 @@ resources:
     settingRebuildPath: true
     settingFollowRedirects: global
     _type: request
+  - _id: req_7a8697b3351b45acbb0fabc41a9b7d04
+    parentId: wrk_1f5b7c7c35d34183a7a111e31d6b1776
+    modified: 1694986953058
+    created: 1694986944122
+    url: "{{host}}/api/v1/auth/logout"
+    name: Logout
+    description: ""
+    method: PUT
+    body:
+      mimeType: application/json
+      text: ""
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+    authentication: {}
+    metaSortKey: -1694217707984.25
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
   - _id: env_96f8d1ba203648e289554752ab4dcdcd
     parentId: wrk_1f5b7c7c35d34183a7a111e31d6b1776
     modified: 1694735849552
@@ -84,10 +109,20 @@ resources:
     _type: environment
   - _id: jar_f04a7d38962a467b82098d7f0a5527bc
     parentId: wrk_1f5b7c7c35d34183a7a111e31d6b1776
-    modified: 1694735849554
+    modified: 1694987227262
     created: 1694735849554
     name: Default Jar
-    cookies: []
+    cookies:
+      - key: session
+        expires: 2022-09-17T21:47:07.000Z
+        maxAge: 0
+        domain: 127.0.0.1
+        path: /api/v1/auth
+        hostOnly: true
+        pathIsDefault: true
+        creation: 2023-09-17T21:41:08.086Z
+        lastAccessed: 2023-09-17T21:47:07.262Z
+        id: "9191332427068422"
     _type: cookie_jar
   - _id: env_712fe6bbe4194d4f8739154907de969d
     parentId: env_96f8d1ba203648e289554752ab4dcdcd
