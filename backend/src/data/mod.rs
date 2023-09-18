@@ -22,6 +22,10 @@ pub struct UserWithEmails {
     pub emails: Arc<Vec<String>>,
 }
 
+/// A token is a 256-bit (32-byte) value of random data.
+///
+/// It's used in a URL-safe base64 encoding in the database
+/// and in a cookie called `session_token` in the browser.
 pub type Token = [u8; 32];
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -19,7 +19,7 @@ use crate::{data::UserWithEmails, db, AppState};
 
 use super::api_greeting;
 
-const SESSION_COOKIE_NAME: &str = "session";
+const SESSION_COOKIE_NAME: &str = "session_token";
 
 pub fn routes() -> Router<AppState> {
     Router::new()
