@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS public."user"
     primary_email uuid NOT NULL,
     password_hash character varying(250) NOT NULL,
     totp_secret character varying(50),
+    nick character varying(100),
     PRIMARY KEY (id)
 );
 
@@ -50,6 +51,7 @@ CREATE TABLE IF NOT EXISTS public.upload
     upload_date timestamp without time zone NOT NULL,
     last_modified_date timestamp without time zone NOT NULL,
     belongs_to uuid,
+    held_by uuid[],
     PRIMARY KEY (id)
 );
 
@@ -88,6 +90,13 @@ CREATE TABLE IF NOT EXISTS public.session
     latest_user_agent character varying(275),
     initial_ip inet,
     latest_ip inet,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.prof
+(
+    id uuid,
+    prof_name character varying(500),
     PRIMARY KEY (id)
 );
 
@@ -134,6 +143,14 @@ ALTER TABLE IF EXISTS public.upload
 ALTER TABLE IF EXISTS public.upload
     ADD FOREIGN KEY (belongs_to)
     REFERENCES public.course (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS public.upload
+    ADD FOREIGN KEY (held_by)
+    REFERENCES public.prof (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
     NOT VALID;
