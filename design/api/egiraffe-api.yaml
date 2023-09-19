@@ -1,11 +1,42 @@
 _type: export
 __export_format: 4
-__export_date: 2023-09-17T21:47:54.169Z
-__export_source: insomnia.desktop.app:v2023.4.0
+__export_date: 2023-09-19T01:56:19.819Z
+__export_source: insomnia.desktop.app:v2023.5.8
 resources:
-  - _id: req_ebb2cfd78e854ca687fa26de9660538f
-    parentId: wrk_1f5b7c7c35d34183a7a111e31d6b1776
-    modified: 1694981922449
+  - _id: req_4ec3f63b8d96452ab47642abe08f3279
+    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
+    modified: 1695088556603
+    created: 1695086841983
+    url: "{{host}}/api/v1/demo-protected-route"
+    name: Protected demo route
+    description: ""
+    method: GET
+    body: {}
+    parameters: []
+    headers:
+      - name: User-Agent
+        value: insomnia/2023.5.8
+    authentication: {}
+    metaSortKey: -1695086841983
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: wrk_b34f3ade8a9f4554af9faf574313413b
+    parentId: null
+    modified: 1695081056492
+    created: 1695081056492
+    name: Egiraffe v1 API
+    description: ""
+    scope: collection
+    _type: workspace
+  - _id: req_a542d9f7b20b4fd291bd01888d8b06a2
+    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
+    modified: 1695084893347
     created: 1694735948204
     url: "{{host}}/api/v1/auth/login"
     name: Login
@@ -32,16 +63,33 @@ resources:
     settingRebuildPath: true
     settingFollowRedirects: global
     _type: request
-  - _id: wrk_1f5b7c7c35d34183a7a111e31d6b1776
-    parentId: null
-    modified: 1694963241723
-    created: 1694963241723
-    name: Egiraffe v1 API
+  - _id: req_36aff7e1b44c4f71b34dd850e17c9be8
+    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
+    modified: 1694986953058
+    created: 1694986944122
+    url: "{{host}}/api/v1/auth/logout"
+    name: Logout
     description: ""
-    scope: collection
-    _type: workspace
-  - _id: req_5ec1ea026a4b4396b6c16c59c4c237c5
-    parentId: wrk_1f5b7c7c35d34183a7a111e31d6b1776
+    method: PUT
+    body:
+      mimeType: application/json
+      text: ""
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+    authentication: {}
+    metaSortKey: -1694217707984.25
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_47f8c132ae02405f98af1133b981bb3a
+    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
     modified: 1694964236281
     created: 1694964090922
     url: "{{host}}/api/v1/auth/register"
@@ -71,33 +119,8 @@ resources:
     settingRebuildPath: true
     settingFollowRedirects: global
     _type: request
-  - _id: req_7a8697b3351b45acbb0fabc41a9b7d04
-    parentId: wrk_1f5b7c7c35d34183a7a111e31d6b1776
-    modified: 1694986953058
-    created: 1694986944122
-    url: "{{host}}/api/v1/auth/logout"
-    name: Logout
-    description: ""
-    method: PUT
-    body:
-      mimeType: application/json
-      text: ""
-    parameters: []
-    headers:
-      - name: Content-Type
-        value: application/json
-    authentication: {}
-    metaSortKey: -1694217707984.25
-    isPrivate: false
-    settingStoreCookies: true
-    settingSendCookies: true
-    settingDisableRenderRequestBody: false
-    settingEncodeUrl: true
-    settingRebuildPath: true
-    settingFollowRedirects: global
-    _type: request
-  - _id: env_96f8d1ba203648e289554752ab4dcdcd
-    parentId: wrk_1f5b7c7c35d34183a7a111e31d6b1776
+  - _id: env_ac98a1bdd7de4032bb65de367f97b6ee
+    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
     modified: 1694735849552
     created: 1694735849552
     name: Base Environment
@@ -107,25 +130,24 @@ resources:
     isPrivate: false
     metaSortKey: 1694735849552
     _type: environment
-  - _id: jar_f04a7d38962a467b82098d7f0a5527bc
-    parentId: wrk_1f5b7c7c35d34183a7a111e31d6b1776
-    modified: 1694987227262
+  - _id: jar_9a9ba3e9fcfc4c3a9135bfda5e83f88d
+    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
+    modified: 1695088420788
     created: 1694735849554
     name: Default Jar
     cookies:
-      - key: session
-        expires: 2022-09-17T21:47:07.000Z
+      - key: session_token
         maxAge: 0
         domain: 127.0.0.1
-        path: /api/v1/auth
+        path: /
+        httpOnly: true
         hostOnly: true
-        pathIsDefault: true
-        creation: 2023-09-17T21:41:08.086Z
-        lastAccessed: 2023-09-17T21:47:07.262Z
-        id: "9191332427068422"
+        creation: 2023-09-19T01:53:22.294Z
+        lastAccessed: 2023-09-19T01:53:40.788Z
+        id: "18489273715655052"
     _type: cookie_jar
-  - _id: env_712fe6bbe4194d4f8739154907de969d
-    parentId: env_96f8d1ba203648e289554752ab4dcdcd
+  - _id: env_31b8aecef81a4e02ba824bc1fa17ed9b
+    parentId: env_ac98a1bdd7de4032bb65de367f97b6ee
     modified: 1694736247332
     created: 1694736215247
     name: Egiraffe
