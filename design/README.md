@@ -12,8 +12,39 @@ For the time being, the old design documents are still available in the [`old`](
   - [`egiraffe-erd.pgerd`](database/egiraffe-erd.pgerd): ERD diagram of the database schema made with pgAdmin
   - [`egiraffe-schema-generated.sql`](database/egiraffe-schema-generated.sql): SQL script to generate the database schema
 - [`api`](api): HTTP API design documents
-  - [`egiraffe-api.yaml`](api/egiraffe-api.yaml): Insomnia API design document (see [Insomnia client](https://insomnia.rest/))
 - [`old`](old): Old design documents, which are no longer maintained
+
+## API design
+
+The API design is documented in the [`api`](api) directory.
+
+Since [Insomnia](https://insomnia.rest/) has the rather bizarre habit of saving files in a ✨ _mystery_ ✨ format/location,
+and doesn't have a built-in way to meaningfully save & load files to a specific location,
+an Insomnia plugin, called [_Git integration_](https://github.com/Its-treason/insomnia-plugin-git-integration), is used to save
+and load the API design documents, requests, and other data to/from the [`api`](api) directory.
+
+At least that's the plan for when it's finished.
+For now, Insomnia's built-in import/export functionality is used to save the API design documents to the [`api`](api) directory
+as `api/egiraffe-api.yaml`.
+
+<!--
+### Working with the plugin
+
+1. Open [Insomnia](https://insomnia.rest/)
+2. Go to `Application` > `Preferences` > `Plugins`
+3. Copy and paste `insomnia-plugin-free-sync` into the `npm package name` field
+4. Click `Install Plugin`
+5. Close the `Preferences` window
+6. Open or create a collection called `Egiraffe v1 API`
+   <!-- (its contents will be replaced/overwritten by the plugin) - ->
+   (the import will create a duplicate collection, the old one can be deleted)
+7. In the middle of the top bar, click the _Egiraffe v1 API_ dropdown
+8. Click _Free sync: Configuration_
+9. Paste `$REPO_ROOT/design/api`, where `$REPO_ROOT` is the root directory of the repository, into the path field
+10. Close the dialog
+11. Open the dropdown from step 7 again
+12. Click
+-->
 
 ## License
 
