@@ -6,22 +6,29 @@ use argon2::{
 };
 use axum::{
     extract::State,
-    http::StatusCode,
-    response::IntoResponse,
+    http::{Request, StatusCode},
+    middleware::{self, Next},
+    response::{IntoResponse, Response},
     routing::{get, put},
     Json, Router,
 };
 use axum_extra::extract::{cookie::Cookie, CookieJar};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
+use time::Duration;
 use uuid::Uuid;
 
-use crate::{data::UserWithEmails, db, AppState};
+use crate::{
+    data::UserWithEmails,
+    db::{self, session::ValidationResult},
+    AppState,
+};
 
 use super::api_greeting;
 
 const SESSION_COOKIE_NAME: &str = "session_token";
 
-pub fn routes() -> Router<AppState> {
+pub fn routes(state: &AppState) -> Router<AppState> {
     Router::new()
         .route("/", get(api_greeting).post(api_greeting).put(api_greeting))
         .nest(
@@ -30,6 +37,11 @@ pub fn routes() -> Router<AppState> {
                 .route("/login", put(handle_login))
                 .route("/register", put(handle_register))
                 .route("/logout", put(handle_logout)),
+        )
+        .route(
+            "/demo-protected-route",
+            get(handle_demo_protected_route)
+                .layer(middleware::from_fn_with_state(state.clone(), auth)),
         )
 }
 
@@ -92,6 +104,7 @@ async fn handle_login(
     let mut session_cookie = Cookie::new(SESSION_COOKIE_NAME, token);
     session_cookie.make_permanent();
     session_cookie.set_http_only(true);
+    session_cookie.set_path("/");
 
     (
         StatusCode::OK,
@@ -183,8 +196,51 @@ async fn handle_logout(
 
     log::info!("Logout");
 
+    let mut dead_cookie = Cookie::named(SESSION_COOKIE_NAME);
+    dead_cookie.set_value("");
+    dead_cookie.set_http_only(true);
+    dead_cookie.set_path("/");
+    dead_cookie.set_max_age(Some(Duration::ZERO));
+
     (
-        cookie_jar.remove(Cookie::named(SESSION_COOKIE_NAME)),
+        cookie_jar.add(dead_cookie),
         Json(LogoutRes { success: true }),
     )
+}
+
+pub async fn handle_demo_protected_route() -> impl IntoResponse {
+    log::info!("Demo protected route");
+
+    (StatusCode::OK, "Hello, world!")
+}
+
+async fn auth<B>(
+    State(db_pool): State<AppState>,
+    cookie_jar: CookieJar,
+    request: Request<B>,
+    next: Next<B>,
+) -> Result<Response, (StatusCode, Json<serde_json::Value>)> {
+    let unauthorized = (
+        StatusCode::UNAUTHORIZED,
+        Json(json!({ "error": "Unauthorized" })),
+    );
+
+    let session_cookie = match cookie_jar.get(SESSION_COOKIE_NAME) {
+        Some(session_cookie) => session_cookie,
+        None => {
+            log::info!("No session cookie");
+            return Err(unauthorized);
+        }
+    };
+
+    match db::session::validate_session(&db_pool, &session_cookie.value().to_string()).await {
+        ValidationResult::Valid { user_id } => {
+            let response = next.run(request).await;
+            Ok(response)
+        }
+        ValidationResult::Invalid => {
+            log::info!("Invalid session");
+            Err(unauthorized)
+        }
+    }
 }

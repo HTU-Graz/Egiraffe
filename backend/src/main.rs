@@ -42,7 +42,7 @@ async fn main() -> anyhow::Result<()> {
     );
 
     let app = Router::new()
-        .nest("/api", api::routes())
+        .nest("/api", api::routes(&db_pool))
         .nest_service("/", static_files)
         .with_state(db_pool);
 
