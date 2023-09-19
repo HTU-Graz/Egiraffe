@@ -40,8 +40,10 @@ pub fn routes(state: &AppState) -> Router<AppState> {
         )
         .route(
             "/demo-protected-route",
-            get(handle_demo_protected_route)
-                .layer(middleware::from_fn_with_state(state.clone(), auth)),
+            get(handle_demo_protected_route).layer(middleware::from_fn_with_state(
+                state.clone(),
+                auth::<_, { AuthLevel::RegularUser }>,
+            )),
         )
 }
 
@@ -231,12 +233,29 @@ pub async fn handle_demo_protected_route() -> impl IntoResponse {
     (StatusCode::OK, "Hello, world!")
 }
 
-async fn auth<B>(
+// Just pretend it's an enum, ok?
+mod AuthLevel {
+    #![allow(non_upper_case_globals)]
+    pub const Anyone: u8 = 0;
+    pub const RegularUser: u8 = 1;
+    pub const Moderator: u8 = 2;
+    pub const Admin: u8 = 3;
+}
+
+async fn auth<B, const auth_level: u8>(
     State(db_pool): State<AppState>,
     cookie_jar: CookieJar,
     request: Request<B>,
     next: Next<B>,
 ) -> Result<Response, (StatusCode, Json<serde_json::Value>)> {
+    if auth_level > AuthLevel::Admin {
+        panic!("Invalid auth level");
+    }
+
+    if auth_level == AuthLevel::Anyone {
+        return Ok(next.run(request).await);
+    }
+
     let unauthorized = (
         StatusCode::UNAUTHORIZED,
         Json(json!({ "error": "Unauthorized" })),
