@@ -5,7 +5,10 @@ use justerror::Error;
 use sqlx::{self, Acquire, Pool, Postgres};
 use uuid::Uuid;
 
-use crate::{data::UserWithEmails, db::SelectExistsTmp};
+use crate::{
+    data::{User, UserWithEmails},
+    db::SelectExistsTmp,
+};
 
 use super::SelectExists;
 
@@ -133,27 +136,20 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
     Ok(())
 }
 
-pub async fn get_user_by_email(db_pool: &Pool<Postgres>, email: &str) -> Option<UserWithEmails> {
-    let db_con = db_pool
-        .acquire()
-        .await
-        .expect("Failed to acquire database connection");
+pub async fn get_user_by_email(db_pool: &Pool<Postgres>, email: &str) -> Option<User> {
+    let user = sqlx::query_as!(
+        User,
+        r#"
+            SELECT u.id, first_names, last_name, password_hash, totp_secret
+            FROM "user" AS u
+            INNER JOIN email ON primary_email = email.id
+            WHERE email.address = $1
+        "#,
+        email
+    )
+    .fetch_optional(db_pool)
+    .await
+    .expect("Failed to query user");
 
-    // let user = sqlx::query_as!(
-    //     User,
-    //     r#"
-    //         SELECT id, first_names, last_name, password_hash, totp_secret
-    //         FROM "user"
-    //         INNER JOIN email ON primary_email = email.id
-    //         WHERE primary_email = $1
-    //     "#,
-    //     email
-    // )
-    // .fetch_optional(db_con)
-    // .await
-    // .expect("Failed to query user");
-
-    // user
-
-    todo!("Implement get_user_by_email")
+    user
 }

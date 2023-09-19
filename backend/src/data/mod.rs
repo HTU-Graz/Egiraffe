@@ -3,13 +3,23 @@ use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+// #[derive(Debug, Serialize, Deserialize)]
+// pub struct User {
+//     pub id: Uuid,
+//     pub first_names: Arc<str>,
+//     pub last_name: Arc<str>,
+//     pub password_hash: Arc<str>,
+//     pub totp_secret: Option<Arc<str>>,
+// }
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
     pub id: Uuid,
-    pub first_names: Arc<str>,
-    pub last_name: Arc<str>,
-    pub password_hash: Arc<str>,
-    pub totp_secret: Option<Arc<str>>,
+    pub first_names: Option<String>,
+    pub last_name: Option<String>,
+    pub password_hash: String,
+    pub totp_secret: Option<String>,
+    // pub emails: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

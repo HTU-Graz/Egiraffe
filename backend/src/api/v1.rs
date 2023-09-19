@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use argon2::{
     password_hash::{rand_core::OsRng, SaltString},
-    Argon2, PasswordHasher,
+    Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
 };
 use axum::{
     extract::State,
@@ -51,19 +51,50 @@ async fn handle_login(
     cookie_jar: CookieJar,
     Json(login_data): Json<LoginReq>,
 ) -> impl IntoResponse {
-    log::info!("Login attempt for email {}", login_data.email);
+    let user = match db::user::get_user_by_email(&db_pool, &login_data.email).await {
+        Some(user) => user,
+        None => {
+            log::info!("Login failed: no user with email {}", login_data.email);
+            return (
+                StatusCode::BAD_REQUEST,
+                cookie_jar,
+                Json(LoginRes {
+                    success: false,
+                    email: login_data.email,
+                }),
+            );
+        }
+    };
 
-    // TODO validate login:
-    //  1. fetch user from database
-    //  2. check password hash
+    let argon2 = Argon2::default();
+    let password_hash = PasswordHash::new(&user.password_hash).unwrap();
+    let password_valid = argon2.verify_password(login_data.password.as_bytes(), &password_hash);
 
-    let token = db::session::create_session(&db_pool, Uuid::new_v4()).await;
+    if password_valid.is_err() {
+        log::info!(
+            "Login failed: wrong password for email {}",
+            login_data.email
+        );
+        return (
+            StatusCode::BAD_REQUEST,
+            cookie_jar,
+            Json(LoginRes {
+                success: false,
+                email: login_data.email,
+            }),
+        );
+    }
+
+    let token = db::session::create_session(&db_pool, user.id).await;
+
+    log::info!("Login successful for email {}", login_data.email);
 
     let mut session_cookie = Cookie::new(SESSION_COOKIE_NAME, token);
     session_cookie.make_permanent();
     session_cookie.set_http_only(true);
 
     (
+        StatusCode::OK,
         cookie_jar.add(session_cookie),
         Json(LoginRes {
             success: true,
