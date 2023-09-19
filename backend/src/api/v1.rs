@@ -189,10 +189,26 @@ pub struct LogoutRes {
 }
 
 async fn handle_logout(
-    State(_db_pool): State<AppState>,
+    State(db_pool): State<AppState>,
     cookie_jar: CookieJar,
 ) -> impl IntoResponse {
-    // TODO remove the session from the database
+    let cookie = match cookie_jar.get(SESSION_COOKIE_NAME) {
+        Some(cookie) => cookie,
+        None => {
+            log::info!("Logout failed: no session cookie");
+            return (
+                StatusCode::OK, // We consider logouts to be idempotent
+                cookie_jar,
+                Json(LogoutRes { success: true }), // Thus we return success
+            );
+        }
+    };
+
+    let db_session_deletion_status = db::session::delete_session(&db_pool, &cookie.value()).await;
+
+    if db_session_deletion_status.is_err() {
+        log::error!("Failed to delete session from database");
+    }
 
     log::info!("Logout");
 
@@ -203,6 +219,7 @@ async fn handle_logout(
     dead_cookie.set_max_age(Some(Duration::ZERO));
 
     (
+        StatusCode::OK,
         cookie_jar.add(dead_cookie),
         Json(LogoutRes { success: true }),
     )

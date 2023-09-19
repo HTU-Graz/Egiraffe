@@ -1,3 +1,4 @@
+use anyhow::Context;
 use base64::{engine::general_purpose, Engine as _};
 use sqlx::{Acquire, Pool, Postgres};
 use uuid::Uuid;
@@ -50,9 +51,9 @@ pub async fn create_session(db_pool: &Pool<Postgres>, user_id: Uuid) -> String {
 
     sqlx::query!(
         r#"
-                INSERT INTO session (id, token, of_user)
-                VALUES ($1, $2, $3)
-            "#,
+            INSERT INTO session (id, token, of_user)
+            VALUES ($1, $2, $3)
+        "#,
         Uuid::new_v4(),
         token,
         user_id
@@ -62,4 +63,21 @@ pub async fn create_session(db_pool: &Pool<Postgres>, user_id: Uuid) -> String {
     .expect("Failed to create session");
 
     token
+}
+
+pub async fn delete_session(db_pool: &Pool<Postgres>, value: &str) -> anyhow::Result<()> {
+    log::info!("Deleting a session");
+
+    sqlx::query!(
+        r#"
+            DELETE FROM session
+            WHERE token = $1
+        "#,
+        value
+    )
+    .execute(db_pool)
+    .await
+    .context("Failed to delete session")?;
+
+    Ok(())
 }
