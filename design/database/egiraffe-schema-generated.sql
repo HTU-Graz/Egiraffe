@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS public."user"
     password_hash character varying(250) NOT NULL,
     totp_secret character varying(50),
     nick character varying(100),
+    user_role smallint NOT NULL DEFAULT 1,
     PRIMARY KEY (id)
 );
 

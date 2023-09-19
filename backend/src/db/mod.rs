@@ -41,6 +41,7 @@ pub async fn reset_and_init(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
 
     init::create_universities(db_con).await?;
     init::create_email_states(db_con).await?;
+    init::create_admin_users(db_pool).await?;
 
     tx.commit().await?;
 

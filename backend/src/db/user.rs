@@ -1,7 +1,9 @@
 use std::{str::FromStr, sync::Arc};
 
+use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
 use email_address::EmailAddress;
 use justerror::Error;
+use rand::rngs::OsRng;
 use sqlx::{self, Acquire, Pool, Postgres};
 use uuid::Uuid;
 
@@ -38,6 +40,7 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
         password_hash,
         totp_secret,
         emails,
+        user_role,
     } = user;
 
     let mut tx = db_pool
@@ -104,8 +107,8 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
                 INSERT INTO email (id, address, belongs_to_user, of_university, status)
                 VALUES ($2, $3, $4, (SELECT id FROM matching_university), 'unverified')
             )
-            INSERT INTO "user" (id, first_names, last_name, primary_email, password_hash, totp_secret)
-            VALUES ($5, $6, $7, $8, $9, $10)
+            INSERT INTO "user" (id, first_names, last_name, primary_email, password_hash, totp_secret, user_role)
+            VALUES ($5, $6, $7, $8, $9, $10, $11)
         "#,
         // University
         email_address.domain(),
@@ -120,6 +123,7 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
         mail_uuid,
         &*password_hash,
         totp_secret.as_deref(),
+        user_role,
     )
     .execute(db_con)
     .await
@@ -137,10 +141,9 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
 }
 
 pub async fn get_user_by_email(db_pool: &Pool<Postgres>, email: &str) -> Option<User> {
-    let user = sqlx::query_as!(
-        User,
+    let user = sqlx::query!(
         r#"
-            SELECT u.id, first_names, last_name, password_hash, totp_secret
+            SELECT u.id, first_names, last_name, password_hash, totp_secret, user_role
             FROM "user" AS u
             INNER JOIN email ON primary_email = email.id
             WHERE email.address = $1
@@ -149,7 +152,29 @@ pub async fn get_user_by_email(db_pool: &Pool<Postgres>, email: &str) -> Option<
     )
     .fetch_optional(db_pool)
     .await
-    .expect("Failed to query user");
+    .expect("Failed to query user")
+    .map(|user| User {
+        id: user.id,
+        first_names: user.first_names.into(),
+        last_name: user.last_name.into(),
+        password_hash: user.password_hash.into(),
+        totp_secret: user.totp_secret,
+        user_role: user.user_role,
+    });
 
     user
+}
+
+pub fn make_pwd_hash(pwd: &str) -> String {
+    let salt = SaltString::generate(&mut OsRng);
+    let argon2 = &Argon2::default();
+
+    let password_hash = argon2
+        .hash_password(&pwd.as_bytes(), &salt) // Allocates twice (once for the `String`)
+        .unwrap()
+        .serialize()
+        .as_str()
+        .into();
+
+    password_hash
 }

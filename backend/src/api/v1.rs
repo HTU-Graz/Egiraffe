@@ -38,6 +38,24 @@ pub fn routes(state: &AppState) -> Router<AppState> {
                 .route("/register", put(handle_register))
                 .route("/logout", put(handle_logout)),
         )
+        .nest(
+            "/mod",
+            Router::new()
+                .route("/demo-mod-route", get(handle_demo_protected_route))
+                .route_layer(middleware::from_fn_with_state(
+                    state.clone(),
+                    auth::<_, { AuthLevel::Moderator }>,
+                )),
+        )
+        .nest(
+            "/admin",
+            Router::new()
+                .route("/demo-admin-route", get(handle_demo_protected_route))
+                .layer(middleware::from_fn_with_state(
+                    state.clone(),
+                    auth::<_, { AuthLevel::Admin }>,
+                )),
+        )
         .route(
             "/demo-protected-route",
             get(handle_demo_protected_route).layer(middleware::from_fn_with_state(
@@ -164,6 +182,7 @@ async fn handle_register(
         password_hash,
         totp_secret: None,
         emails: Arc::new(vec![email]),
+        user_role: AuthLevel::RegularUser,
     };
 
     // TODO handle errors (see https://docs.rs/axum/latest/axum/error_handling/index.html#axums-error-handling-model)
@@ -234,25 +253,27 @@ pub async fn handle_demo_protected_route() -> impl IntoResponse {
 }
 
 // Just pretend it's an enum, ok?
-mod AuthLevel {
-    #![allow(non_upper_case_globals)]
-    pub const Anyone: u8 = 0;
-    pub const RegularUser: u8 = 1;
-    pub const Moderator: u8 = 2;
-    pub const Admin: u8 = 3;
+pub mod AuthLevel {
+    #![allow(non_upper_case_globals, non_snake_case, dead_code)]
+    pub const Anyone: i16 = 0;
+    pub const RegularUser: i16 = 1;
+    pub const Moderator: i16 = 2;
+    pub const Admin: i16 = 3;
 }
 
-async fn auth<B, const auth_level: u8>(
+async fn auth<B, const REQUIRED_AUTH_LEVEL: i16>(
     State(db_pool): State<AppState>,
     cookie_jar: CookieJar,
     request: Request<B>,
     next: Next<B>,
 ) -> Result<Response, (StatusCode, Json<serde_json::Value>)> {
-    if auth_level > AuthLevel::Admin {
+    if REQUIRED_AUTH_LEVEL > AuthLevel::Admin {
         panic!("Invalid auth level");
     }
 
-    if auth_level == AuthLevel::Anyone {
+    log::info!("Auth level required: {}", REQUIRED_AUTH_LEVEL);
+
+    if REQUIRED_AUTH_LEVEL == AuthLevel::Anyone {
         return Ok(next.run(request).await);
     }
 
@@ -270,11 +291,11 @@ async fn auth<B, const auth_level: u8>(
     };
 
     match db::session::validate_session(&db_pool, &session_cookie.value().to_string()).await {
-        ValidationResult::Valid { user_id } => {
+        ValidationResult::Valid { auth_level, .. } if auth_level >= REQUIRED_AUTH_LEVEL => {
             let response = next.run(request).await;
             Ok(response)
         }
-        ValidationResult::Invalid => {
+        ValidationResult::Invalid | ValidationResult::Valid { .. } => {
             log::info!("Invalid session");
             Err(unauthorized)
         }

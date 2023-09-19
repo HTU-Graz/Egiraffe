@@ -6,7 +6,7 @@ use uuid::Uuid;
 use crate::data::Token;
 
 pub enum ValidationResult {
-    Valid { user_id: Uuid },
+    Valid { user_id: Uuid, auth_level: i16 },
     Invalid,
 }
 
@@ -19,8 +19,10 @@ pub async fn validate_session(db_pool: &Pool<Postgres>, token: &String) -> Valid
 
     let session = sqlx::query!(
         r#"
-            SELECT of_user
-            FROM session
+            SELECT s.of_user, u.user_role AS "auth_level"
+            FROM session AS s
+            INNER JOIN "user" AS u
+                ON s.of_user = u.id
             WHERE token = $1
         "#,
         token
@@ -28,12 +30,15 @@ pub async fn validate_session(db_pool: &Pool<Postgres>, token: &String) -> Valid
     .fetch_optional(db_pool)
     .await
     .expect("Failed to query session")
-    .map(|session| session.of_user);
+    .map(|session| (session.of_user, session.auth_level));
 
     match session {
-        Some(Some(user_id)) => {
+        Some((Some(user_id), auth_level)) => {
             log::info!("Session is valid for user {}", user_id);
-            ValidationResult::Valid { user_id }
+            ValidationResult::Valid {
+                user_id,
+                auth_level,
+            }
         }
         _ => {
             log::info!("Session is invalid");

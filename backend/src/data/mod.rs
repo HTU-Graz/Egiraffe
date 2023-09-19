@@ -20,6 +20,18 @@ pub struct User {
     pub password_hash: String,
     pub totp_secret: Option<String>,
     // pub emails: Vec<String>,
+    /// The user's role in the system.
+    ///
+    /// Value | Meaning       | Notes
+    /// :---- | :------------ | :--------------------------------
+    /// 0     | Not logged in | Not for use in `user_role` column
+    /// 1     | User          | Default, can self-register
+    /// 2     | Moderator     | Can delete posts
+    /// 3     | Admin         | Can delete users & edit user roles
+    ///
+    /// An `enum` would be better, but it's not supported by SQLx,
+    /// at least not in a meaningful/simple way.
+    pub user_role: i16,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -30,6 +42,18 @@ pub struct UserWithEmails {
     pub password_hash: Arc<str>,
     pub totp_secret: Option<Arc<str>>,
     pub emails: Arc<Vec<String>>,
+    /// The user's role in the system.  
+    ///
+    /// Value | Meaning       | Notes
+    /// :---- | :------------ | :--------------------------------
+    /// 0     | Not logged in | Not for use in `user_role` column
+    /// 1     | User          | Default, can self-register
+    /// 2     | Moderator     | Can delete posts
+    /// 3     | Admin         | Can delete users & edit user roles
+    ///
+    /// An `enum` would be better, but it's not supported by SQLx,
+    /// at least not in a meaningful/simple way.
+    pub user_role: i16,
 }
 
 /// A token is a 256-bit (32-byte) value of random data.

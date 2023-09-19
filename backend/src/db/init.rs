@@ -1,7 +1,14 @@
-use sqlx::{self, PgConnection};
+use std::sync::Arc;
+
+use sqlx::{self, PgConnection, Pool, Postgres};
 use uuid::Uuid;
 
-use crate::data::University;
+use crate::{
+    api::v1::AuthLevel,
+    data::{University, User, UserWithEmails},
+};
+
+use super::user::make_pwd_hash;
 
 pub async fn create_universities(db_con: &mut PgConnection) -> anyhow::Result<()> {
     log::info!("Creating universities");
@@ -66,6 +73,52 @@ pub async fn create_email_states(db_con: &mut PgConnection) -> anyhow::Result<()
         .execute(&mut *db_con)
         .await?;
     }
+
+    Ok(())
+}
+
+pub async fn create_admin_users(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
+    log::info!("Creating admin users");
+
+    let users = [
+        UserWithEmails {
+            id: Uuid::new_v4(),
+            first_names: "Admin".to_string().into(),
+            last_name: "Admin".to_string().into(),
+            password_hash: make_pwd_hash("admin").into(),
+            totp_secret: None,
+            emails: vec!["admin@tugraz.at".to_string()].into(),
+            user_role: AuthLevel::Admin,
+        },
+        UserWithEmails {
+            id: Uuid::new_v4(),
+            first_names: "Moderator".to_string().into(),
+            last_name: "Moderator".to_string().into(),
+            password_hash: make_pwd_hash("mod").into(),
+            totp_secret: None,
+            emails: vec!["mod@tugraz.at".to_string()].into(),
+            user_role: AuthLevel::Moderator,
+        },
+        UserWithEmails {
+            id: Uuid::new_v4(),
+            first_names: "User".to_string().into(),
+            last_name: "User".to_string().into(),
+            password_hash: make_pwd_hash("user").into(),
+            totp_secret: None,
+            emails: vec!["user@tugraz.at".to_string()].into(),
+            user_role: AuthLevel::RegularUser,
+        },
+    ];
+
+    for user in users.into_iter() {
+        crate::db::user::register(db_pool, user).await?;
+    }
+
+    // TODO await them all at the same time
+    // let creations = users
+    //     .into_iter()
+    //     .map(|user| super::user::register(db_pool, user))
+    //     .collect();
 
     Ok(())
 }
