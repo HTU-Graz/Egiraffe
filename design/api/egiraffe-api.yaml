@@ -1,71 +1,11 @@
 _type: export
 __export_format: 4
-__export_date: 2023-09-19T01:56:19.819Z
+__export_date: 2023-09-20T01:09:53.862Z
 __export_source: insomnia.desktop.app:v2023.5.8
 resources:
-  - _id: req_4ec3f63b8d96452ab47642abe08f3279
-    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
-    modified: 1695088556603
-    created: 1695086841983
-    url: "{{host}}/api/v1/demo-protected-route"
-    name: Protected demo route
-    description: ""
-    method: GET
-    body: {}
-    parameters: []
-    headers:
-      - name: User-Agent
-        value: insomnia/2023.5.8
-    authentication: {}
-    metaSortKey: -1695086841983
-    isPrivate: false
-    settingStoreCookies: true
-    settingSendCookies: true
-    settingDisableRenderRequestBody: false
-    settingEncodeUrl: true
-    settingRebuildPath: true
-    settingFollowRedirects: global
-    _type: request
-  - _id: wrk_b34f3ade8a9f4554af9faf574313413b
-    parentId: null
-    modified: 1695081056492
-    created: 1695081056492
-    name: Egiraffe v1 API
-    description: ""
-    scope: collection
-    _type: workspace
-  - _id: req_a542d9f7b20b4fd291bd01888d8b06a2
-    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
-    modified: 1695084893347
-    created: 1694735948204
-    url: "{{host}}/api/v1/auth/login"
-    name: Login
-    description: ""
-    method: PUT
-    body:
-      mimeType: application/json
-      text: |-
-        {
-        	"email": "john.doe@student.tugraz.at",
-        	"password": "abc123"
-        }
-    parameters: []
-    headers:
-      - name: Content-Type
-        value: application/json
-    authentication: {}
-    metaSortKey: -1694735948204
-    isPrivate: false
-    settingStoreCookies: true
-    settingSendCookies: true
-    settingDisableRenderRequestBody: false
-    settingEncodeUrl: true
-    settingRebuildPath: true
-    settingFollowRedirects: global
-    _type: request
   - _id: req_36aff7e1b44c4f71b34dd850e17c9be8
-    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
-    modified: 1694986953058
+    parentId: fld_72a53c2a8f9f470e8deb7863e0be0b3e
+    modified: 1695164685089
     created: 1694986944122
     url: "{{host}}/api/v1/auth/logout"
     name: Logout
@@ -79,7 +19,7 @@ resources:
       - name: Content-Type
         value: application/json
     authentication: {}
-    metaSortKey: -1694217707984.25
+    metaSortKey: -1695164574742
     isPrivate: false
     settingStoreCookies: true
     settingSendCookies: true
@@ -88,9 +28,27 @@ resources:
     settingRebuildPath: true
     settingFollowRedirects: global
     _type: request
-  - _id: req_47f8c132ae02405f98af1133b981bb3a
+  - _id: fld_72a53c2a8f9f470e8deb7863e0be0b3e
     parentId: wrk_b34f3ade8a9f4554af9faf574313413b
-    modified: 1694964236281
+    modified: 1695164641535
+    created: 1695164554643
+    name: Auth
+    description: ""
+    environment: {}
+    environmentPropertyOrder: null
+    metaSortKey: -1695164554843
+    _type: request_group
+  - _id: wrk_b34f3ade8a9f4554af9faf574313413b
+    parentId: null
+    modified: 1695081056492
+    created: 1695081056492
+    name: Egiraffe v1 API
+    description: ""
+    scope: collection
+    _type: workspace
+  - _id: req_47f8c132ae02405f98af1133b981bb3a
+    parentId: fld_e6c1b21f050248139c4d4e53f7a91099
+    modified: 1695164593339
     created: 1694964090922
     url: "{{host}}/api/v1/auth/register"
     name: Register
@@ -110,7 +68,193 @@ resources:
       - name: Content-Type
         value: application/json
     authentication: {}
-    metaSortKey: -1693699467764.5
+    metaSortKey: -1695164586873
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: fld_e6c1b21f050248139c4d4e53f7a91099
+    parentId: fld_72a53c2a8f9f470e8deb7863e0be0b3e
+    modified: 1695164615012
+    created: 1695164574442
+    name: John Doe
+    description: ""
+    environment: {}
+    environmentPropertyOrder: null
+    metaSortKey: -1695164574642
+    _type: request_group
+  - _id: req_a542d9f7b20b4fd291bd01888d8b06a2
+    parentId: fld_e6c1b21f050248139c4d4e53f7a91099
+    modified: 1695164586822
+    created: 1694735948204
+    url: "{{host}}/api/v1/auth/login"
+    name: Login
+    description: ""
+    method: PUT
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"email": "john.doe@student.tugraz.at",
+        	"password": "abc123"
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+    authentication: {}
+    metaSortKey: -1695164586773
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_406c74086e514229b092334fd40ab813
+    parentId: fld_215575f4575f4de39b5f4186fd51a264
+    modified: 1695164862662
+    created: 1695164659316
+    url: "{{host}}/api/v1/auth/login"
+    name: Login
+    description: ""
+    method: PUT
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"email": "admin@tugraz.at",
+        	"password": "admin"
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+    authentication: {}
+    metaSortKey: -1695164586773
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: fld_215575f4575f4de39b5f4186fd51a264
+    parentId: fld_72a53c2a8f9f470e8deb7863e0be0b3e
+    modified: 1695164659314
+    created: 1695164659314
+    name: Admin
+    description: ""
+    environment: {}
+    environmentPropertyOrder: null
+    metaSortKey: -1695164564742.5
+    _type: request_group
+  - _id: req_1bf94fcd46814d029d5dc8eaa8eee1ad
+    parentId: fld_45857ed632584d33923e4e94093a920e
+    modified: 1695164925534
+    created: 1695164887240
+    url: "{{host}}/api/v1/auth/login"
+    name: Login
+    description: ""
+    method: PUT
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"email": "mod@tugraz.at",
+        	"password": "mod"
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+    authentication: {}
+    metaSortKey: -1695164586773
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: fld_45857ed632584d33923e4e94093a920e
+    parentId: fld_72a53c2a8f9f470e8deb7863e0be0b3e
+    modified: 1695164887238
+    created: 1695164887238
+    name: Moderator
+    description: ""
+    environment: {}
+    environmentPropertyOrder: null
+    metaSortKey: -1695164559792.75
+    _type: request_group
+  - _id: req_4ec3f63b8d96452ab47642abe08f3279
+    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
+    modified: 1695164991111
+    created: 1695086841983
+    url: "{{host}}/api/v1/demo-protected-route"
+    name: Protected user demo route
+    description: ""
+    method: GET
+    body: {}
+    parameters: []
+    headers:
+      - name: User-Agent
+        value: insomnia/2023.5.8
+    authentication: {}
+    metaSortKey: -1695164554743
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_620a6f8118b3453bb736c95222a2a267
+    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
+    modified: 1695165031039
+    created: 1695164975006
+    url: "{{host}}/api/v1/mod/demo-mod-route"
+    name: Protected mod demo route
+    description: ""
+    method: GET
+    body: {}
+    parameters: []
+    headers:
+      - name: User-Agent
+        value: insomnia/2023.5.8
+    authentication: {}
+    metaSortKey: -1693913771034
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_18ecd5fe6d1e4b91bdc8f6061dda7214
+    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
+    modified: 1695165047697
+    created: 1695164983098
+    url: "{{host}}/api/v1/admin/demo-admin-route"
+    name: Protected admin demo route
+    description: ""
+    method: GET
+    body: {}
+    parameters: []
+    headers:
+      - name: User-Agent
+        value: insomnia/2023.5.8
+    authentication: {}
+    metaSortKey: -1693288379179.5
     isPrivate: false
     settingStoreCookies: true
     settingSendCookies: true
@@ -132,19 +276,21 @@ resources:
     _type: environment
   - _id: jar_9a9ba3e9fcfc4c3a9135bfda5e83f88d
     parentId: wrk_b34f3ade8a9f4554af9faf574313413b
-    modified: 1695088420788
+    modified: 1695169546299
     created: 1694735849554
     name: Default Jar
     cookies:
       - key: session_token
-        maxAge: 0
+        value: gQ6E-ClhXz8z5sPw9W8IVNvLFDErwuwDkWFnMeAac_w
+        expires: 2043-09-15T00:25:46.000Z
+        maxAge: 630720000
         domain: 127.0.0.1
         path: /
         httpOnly: true
         hostOnly: true
         creation: 2023-09-19T01:53:22.294Z
-        lastAccessed: 2023-09-19T01:53:40.788Z
-        id: "18489273715655052"
+        lastAccessed: 2023-09-20T00:25:46.299Z
+        id: "14177024970340124"
     _type: cookie_jar
   - _id: env_31b8aecef81a4e02ba824bc1fa17ed9b
     parentId: env_ac98a1bdd7de4032bb65de367f97b6ee
