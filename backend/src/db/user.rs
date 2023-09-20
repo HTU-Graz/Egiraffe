@@ -43,12 +43,7 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
         user_role,
     } = user;
 
-    let mut tx = db_pool
-        .begin()
-        .await
-        .map_err(UserError::QueryError)
-        // ?
-        .unwrap();
+    let mut tx = db_pool.begin().await.map_err(UserError::QueryError)?;
 
     // TODO make this parallel
     for email in emails.iter() {
@@ -56,12 +51,7 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
             return Err(UserError::EmailInvalid(Arc::from(email.as_str())));
         }
 
-        let db_con = tx
-            .acquire()
-            .await
-            .map_err(UserError::QueryError)
-            // ?
-            .unwrap();
+        let db_con = tx.acquire().await.map_err(UserError::QueryError)?;
 
         let email_taken = sqlx::query_as!(
             SelectExistsTmp,
@@ -71,30 +61,23 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
                     FROM email
                     WHERE address = $1
                 )
-        "#,
+            "#,
             email
         )
         .fetch_one(db_con)
         .await
         .map_err(UserError::QueryError)
-        .map(|tmp| SelectExists::from(tmp).0)
-        // ?;
-        .unwrap();
+        .map(|tmp| SelectExists::from(tmp).0)?;
 
         if email_taken {
             return Err(UserError::EmailTaken(Arc::from(email.as_str())));
         }
     }
 
-    let db_con = tx
-        .acquire()
-        .await
-        .map_err(UserError::QueryError)
-        // ?
-        .unwrap();
+    let db_con = tx.acquire().await.map_err(UserError::QueryError)?;
 
     let mail_uuid = Uuid::new_v4();
-    let email_address = EmailAddress::from_str(&emails[0]).unwrap();
+    let email_address = EmailAddress::from_str(&emails[0]).unwrap(); // We validated this earlier
 
     sqlx::query!(
         r#"
@@ -127,15 +110,9 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
     )
     .execute(db_con)
     .await
-    .map_err(UserError::QueryError)
-    // ?;
-    .unwrap();
+    .map_err(UserError::QueryError)?;
 
-    tx.commit()
-        .await
-        .map_err(UserError::QueryError)
-        // ?
-        .unwrap();
+    tx.commit().await.map_err(UserError::QueryError)?;
 
     Ok(())
 }
