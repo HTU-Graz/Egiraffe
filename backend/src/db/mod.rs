@@ -1,3 +1,4 @@
+pub mod course;
 pub mod init;
 pub mod session;
 pub mod user;

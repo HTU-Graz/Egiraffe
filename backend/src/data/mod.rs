@@ -78,3 +78,12 @@ pub struct University<'a> {
     pub short_name: &'static str,
     pub domain_names: &'a [String],
 }
+
+#[derive(Debug, Serialize)]
+pub struct Course {
+    pub id: Uuid,
+    pub name: String,
+
+    /// The ID of the university this course belongs to
+    pub held_at: Uuid,
+}

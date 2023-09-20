@@ -1,4 +1,5 @@
 mod auth;
+mod course;
 
 use axum::{
     extract::State,
@@ -34,6 +35,7 @@ pub fn routes(state: &AppState) -> Router<AppState> {
             "/mod",
             Router::new()
                 .route("/demo-mod-route", get(handle_demo_protected_route))
+                .nest("/courses", course::routes(state))
                 .route_layer(middleware::from_fn_with_state(
                     state.clone(),
                     auth::<_, { AuthLevel::Moderator }>,
