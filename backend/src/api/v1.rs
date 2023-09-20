@@ -185,7 +185,6 @@ async fn handle_register(
         user_role: AuthLevel::RegularUser,
     };
 
-    // TODO handle errors (see https://docs.rs/axum/latest/axum/error_handling/index.html#axums-error-handling-model)
     let registration_result = db::user::register(&db_pool, user).await;
 
     match registration_result {
