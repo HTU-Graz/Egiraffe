@@ -13,9 +13,7 @@ pub enum ValidationResult {
 // pub async fn validate_session(db_pool: &Pool<Postgres>, token: &Token) -> ValidationResult {
 //     let token: String = general_purpose::STANDARD_NO_PAD.encode(token);
 pub async fn validate_session(db_pool: &Pool<Postgres>, token: &String) -> ValidationResult {
-    // let token: String = general_purpose::STANDARD_NO_PAD.encode(token);
-
-    log::info!("Validating session with token {}", token);
+    log::info!("Validating session with a token");
 
     let session = sqlx::query!(
         r#"
