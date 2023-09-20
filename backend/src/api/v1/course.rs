@@ -5,7 +5,7 @@ use axum::{
     routing::{get, put},
     Json, Router,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use uuid::Uuid;
 
@@ -15,9 +15,10 @@ pub fn routes(state: &AppState) -> Router<AppState> {
     Router::new()
         .route("/", get(api_greeting).post(api_greeting).put(api_greeting))
         .route("/create", put(handle_create_course))
+        .route("/replace", put(handle_replace_course))
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize)]
 pub struct CreateCourseReq {
     pub name: String,
 
@@ -35,14 +36,33 @@ async fn handle_create_course(
         held_at: course.held_at,
     };
 
-    let course_creation_status = db::course::create_course(&db_pool, course).await;
+    let db_action_result = db::course::create_course(&db_pool, course).await;
 
-    if course_creation_status.is_err() {
+    if let Err(error) = db_action_result {
         return (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(json!({
                 "success": false,
-                "message": course_creation_status.unwrap_err().to_string(),
+                "message": error.to_string(),
+            })),
+        );
+    }
+
+    (StatusCode::OK, Json(json!({ "success": true })))
+}
+
+async fn handle_replace_course(
+    State(db_pool): State<AppState>,
+    Json(course): Json<Course>,
+) -> impl IntoResponse {
+    let db_action_result = db::course::replace_course(&db_pool, course).await;
+
+    if let Err(error) = db_action_result {
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({
+                "success": false,
+                "message": error.to_string(),
             })),
         );
     }

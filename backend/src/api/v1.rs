@@ -1,5 +1,6 @@
 mod auth;
 mod course;
+mod get;
 
 use axum::{
     extract::State,
@@ -31,6 +32,7 @@ pub fn routes(state: &AppState) -> Router<AppState> {
                 .route("/register", put(auth::handle_register))
                 .route("/logout", put(auth::handle_logout)),
         )
+        .nest("/get", get::routes(state))
         .nest(
             "/mod",
             Router::new()

@@ -79,7 +79,7 @@ pub struct University<'a> {
     pub domain_names: &'a [String],
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Course {
     pub id: Uuid,
     pub name: String,
