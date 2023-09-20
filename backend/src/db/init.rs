@@ -1,12 +1,10 @@
-use std::sync::Arc;
-
 use sqlx::{self, PgConnection, Pool, Postgres};
 use tokio::task::JoinSet;
 use uuid::Uuid;
 
 use crate::{
     api::v1::AuthLevel,
-    data::{University, User, UserWithEmails},
+    data::{University, UserWithEmails},
 };
 
 use super::user::make_pwd_hash;
@@ -113,7 +111,7 @@ pub async fn create_admin_users(db_pool: &Pool<Postgres>) -> anyhow::Result<()> 
 
     let mut join_set = JoinSet::new();
 
-    for user in users.into_iter() {
+    for user in users {
         let db_pool = db_pool.clone();
         join_set.spawn(async move { crate::db::user::register(&db_pool, user).await });
     }

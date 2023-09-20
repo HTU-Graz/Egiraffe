@@ -1,6 +1,6 @@
 use anyhow::Context;
 use base64::{engine::general_purpose, Engine as _};
-use sqlx::{Acquire, Pool, Postgres};
+use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
 use crate::data::Token;
@@ -30,18 +30,15 @@ pub async fn validate_session(db_pool: &Pool<Postgres>, token: &String) -> Valid
     .expect("Failed to query session")
     .map(|session| (session.of_user, session.auth_level));
 
-    match session {
-        Some((Some(user_id), auth_level)) => {
-            log::info!("Session is valid for user {}", user_id);
-            ValidationResult::Valid {
-                user_id,
-                auth_level,
-            }
+    if let Some((Some(user_id), auth_level)) = session {
+        log::info!("Session is valid for user {}", user_id);
+        ValidationResult::Valid {
+            user_id,
+            auth_level,
         }
-        _ => {
-            log::info!("Session is invalid");
-            ValidationResult::Invalid
-        }
+    } else {
+        log::info!("Session is invalid");
+        ValidationResult::Invalid
     }
 }
 
@@ -50,7 +47,7 @@ pub async fn create_session(db_pool: &Pool<Postgres>, user_id: Uuid) -> String {
     // 32 bytes of random data
     let token: Token = rand::random();
 
-    let token: String = general_purpose::URL_SAFE_NO_PAD.encode(&token);
+    let token: String = general_purpose::URL_SAFE_NO_PAD.encode(token);
 
     sqlx::query!(
         r#"

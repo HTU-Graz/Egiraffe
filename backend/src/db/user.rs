@@ -118,7 +118,7 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
 }
 
 pub async fn get_user_by_email(db_pool: &Pool<Postgres>, email: &str) -> Option<User> {
-    let user = sqlx::query!(
+    sqlx::query!(
         r#"
             SELECT u.id, first_names, last_name, password_hash, totp_secret, user_role
             FROM "user" AS u
@@ -132,14 +132,12 @@ pub async fn get_user_by_email(db_pool: &Pool<Postgres>, email: &str) -> Option<
     .expect("Failed to query user")
     .map(|user| User {
         id: user.id,
-        first_names: user.first_names.into(),
-        last_name: user.last_name.into(),
-        password_hash: user.password_hash.into(),
+        first_names: user.first_names,
+        last_name: user.last_name,
+        password_hash: user.password_hash,
         totp_secret: user.totp_secret,
         user_role: user.user_role,
-    });
-
-    user
+    })
 }
 
 pub fn make_pwd_hash(pwd: &str) -> String {
@@ -147,7 +145,7 @@ pub fn make_pwd_hash(pwd: &str) -> String {
     let argon2 = &Argon2::default();
 
     let password_hash = argon2
-        .hash_password(&pwd.as_bytes(), &salt) // Allocates twice (once for the `String`)
+        .hash_password(pwd.as_bytes(), &salt) // Allocates twice (once for the `String`)
         .unwrap()
         .serialize()
         .as_str()
