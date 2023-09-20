@@ -1,3 +1,10 @@
+#![warn(clippy::all, clippy::pedantic)]
+#![allow(
+    clippy::items_after_statements,
+    clippy::module_name_repetitions,
+    clippy::unused_async
+)]
+
 mod api;
 mod data;
 mod db;
