@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -79,6 +80,16 @@ pub struct University<'a> {
     pub domain_names: &'a [String],
 }
 
+// HACK this should not exist twice
+#[derive(Debug, Serialize)]
+pub struct OwnedUniversity {
+    pub id: Uuid,
+    pub full_name: String,
+    pub mid_name: String,
+    pub short_name: String,
+    pub domain_names: Vec<String>,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Course {
     pub id: Uuid,
@@ -86,4 +97,46 @@ pub struct Course {
 
     /// The ID of the university this course belongs to
     pub held_at: Uuid,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Upload {
+    pub id: Uuid,
+    pub name: String,
+    pub description: String,
+    pub price: i16,
+    pub uploader: Uuid,
+    pub upload_date: NaiveDateTime,
+    pub last_modified_date: NaiveDateTime,
+
+    /// The ID of the course this upload belongs to
+    pub belongs_to: Uuid,
+
+    /// The ID of the prof that held the course this upload belongs to
+    pub held_by: Option<Uuid>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Prof {
+    pub id: Uuid,
+    pub name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Purchase {
+    pub id: Uuid,
+    pub buyer: Uuid,
+    pub upload: Uuid,
+    pub ecs_spent: i16,
+    pub purchase_date: NaiveDateTime,
+    pub rating: Option<i16>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SystemTransaction {
+    pub affected_user: Uuid,
+    pub transaction_date: NaiveDateTime,
+
+    /// The amount of ECS the user gained or lost
+    pub delta_ec: i16,
 }
