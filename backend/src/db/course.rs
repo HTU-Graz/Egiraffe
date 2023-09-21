@@ -25,9 +25,9 @@ pub async fn create_course(db_pool: &PgPool, course: Course) -> anyhow::Result<(
 pub async fn replace_course(db_pool: &PgPool, course: Course) -> anyhow::Result<()> {
     sqlx::query!(
         r#"
-        UPDATE course
-        SET held_at = $2, course_name = $3
-        WHERE id = $1
+            UPDATE course
+            SET held_at = $2, course_name = $3
+            WHERE id = $1
         "#,
         course.id,
         course.held_at,

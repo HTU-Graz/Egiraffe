@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS public.upload
     uploader uuid NOT NULL,
     upload_date timestamp without time zone NOT NULL,
     last_modified_date timestamp without time zone NOT NULL,
-    belongs_to uuid,
+    belongs_to uuid NOT NULL,
     held_by uuid,
     PRIMARY KEY (id)
 );

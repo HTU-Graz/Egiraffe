@@ -1,6 +1,8 @@
 pub mod course;
 pub mod init;
 pub mod session;
+pub mod university;
+pub mod upload;
 pub mod user;
 
 use sqlx::{postgres::PgPoolOptions, Acquire, Executor, PgConnection, Pool, Postgres};
