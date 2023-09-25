@@ -5,12 +5,15 @@ import { Router } from '@solidjs/router';
 import 'solid-devtools';
 import { render } from 'solid-js/web';
 import App from './app';
+import { AuthContextProvider } from './context/AuthContext';
 
 render(
   () => (
-    <Router>
-      <App />
-    </Router>
+    <AuthContextProvider>
+      <Router>
+        <App />
+      </Router>
+    </AuthContextProvider>
   ),
   document.getElementById('root')!
 );
