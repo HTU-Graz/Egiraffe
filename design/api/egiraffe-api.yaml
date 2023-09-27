@@ -1,8 +1,209 @@
 _type: export
 __export_format: 4
-__export_date: 2023-09-20T01:09:53.862Z
-__export_source: insomnia.desktop.app:v2023.5.8
+__export_date: 2023-09-27T21:15:16.732Z
+__export_source: insomnia.desktop.app:v2023.1.0
 resources:
+  - _id: req_5e9756a952b3427cb0daabf8793791e3
+    parentId: wrk_6aa20c328b59456f92d80f92f1a46324
+    modified: 1692649603188
+    created: 1692649582059
+    url: http://licht.realraum.at:4242/sounds
+    name: New Request
+    description: ""
+    method: GET
+    body: {}
+    parameters: []
+    headers: []
+    authentication: {}
+    metaSortKey: -1692649582059
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: wrk_6aa20c328b59456f92d80f92f1a46324
+    parentId: null
+    modified: 1692649582052
+    created: 1692649582052
+    name: New Document
+    description: ""
+    scope: design
+    _type: workspace
+  - _id: req_f195690b2e154085b9c3df12c85f203e
+    parentId: wrk_6aa20c328b59456f92d80f92f1a46324
+    modified: 1692649677816
+    created: 1692649608615
+    url: http://licht.realraum.at:4242/play/asdad
+    name: New Request
+    description: ""
+    method: GET
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"name" : "IronRod-NG.wav"
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+    authentication: {}
+    metaSortKey: -1692649608615
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_5f1f4e59ebac4437a5bfe8d5b3b4406a
+    parentId: wrk_6aa20c328b59456f92d80f92f1a46324
+    modified: 1693945031205
+    created: 1693942959530
+    url: http://licht.realraum.at:4201/api/v1/power/on
+    name: Projector on
+    description: ""
+    method: GET
+    body: {}
+    parameters: []
+    headers: []
+    authentication: {}
+    metaSortKey: -1693942959530
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_c481565172a04ed8ab298f0e69f1ff03
+    parentId: wrk_6aa20c328b59456f92d80f92f1a46324
+    modified: 1693944530057
+    created: 1693943213922
+    url: http://licht.realraum.at:4201/api/v1/menu/menu_button
+    name: New Request
+    description: ""
+    method: GET
+    body: {}
+    parameters: []
+    headers:
+      - id: pair_6e074f232a184b6a8e7c4613dcce4127
+        name: Hoat
+        value: ""
+        description: ""
+    authentication: {}
+    metaSortKey: -1693943213922
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_4ec3f63b8d96452ab47642abe08f3279
+    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
+    modified: 1695164991111
+    created: 1695086841983
+    url: "{{host}}/api/v1/demo-protected-route"
+    name: Protected user demo route
+    description: ""
+    method: GET
+    body: {}
+    parameters: []
+    headers:
+      - name: User-Agent
+        value: insomnia/2023.5.8
+    authentication: {}
+    metaSortKey: -1695164554743
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: wrk_b34f3ade8a9f4554af9faf574313413b
+    parentId: null
+    modified: 1695081056492
+    created: 1695081056492
+    name: Egiraffe v1 API
+    description: ""
+    scope: collection
+    _type: workspace
+  - _id: req_620a6f8118b3453bb736c95222a2a267
+    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
+    modified: 1695165031039
+    created: 1695164975006
+    url: "{{host}}/api/v1/mod/demo-mod-route"
+    name: Protected mod demo route
+    description: ""
+    method: GET
+    body: {}
+    parameters: []
+    headers:
+      - name: User-Agent
+        value: insomnia/2023.5.8
+    authentication: {}
+    metaSortKey: -1693913771034
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_18ecd5fe6d1e4b91bdc8f6061dda7214
+    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
+    modified: 1695165047697
+    created: 1695164983098
+    url: "{{host}}/api/v1/admin/demo-admin-route"
+    name: Protected admin demo route
+    description: ""
+    method: GET
+    body: {}
+    parameters: []
+    headers:
+      - name: User-Agent
+        value: insomnia/2023.5.8
+    authentication: {}
+    metaSortKey: -1693288379179.5
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_4d89242972ef4b31b786e46c8b819875
+    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
+    modified: 1695849266819
+    created: 1695848992158
+    url: "{{host}}/api/v1/get/courses"
+    name: Get courses
+    description: ""
+    method: PUT
+    body: {}
+    parameters: []
+    headers: []
+    authentication: {}
+    metaSortKey: -1695848992158
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
   - _id: req_36aff7e1b44c4f71b34dd850e17c9be8
     parentId: fld_72a53c2a8f9f470e8deb7863e0be0b3e
     modified: 1695164685089
@@ -38,14 +239,84 @@ resources:
     environmentPropertyOrder: null
     metaSortKey: -1695164554843
     _type: request_group
-  - _id: wrk_b34f3ade8a9f4554af9faf574313413b
-    parentId: null
-    modified: 1695081056492
-    created: 1695081056492
-    name: Egiraffe v1 API
+  - _id: req_038d301a5e9b49ccb0b392ec27c3ef91
+    parentId: fld_50a4ff6fe8604ebc81e48dd8e89835e9
+    modified: 1695848928439
+    created: 1695848747912
+    url: "{{host}}/api/v1/mod/courses/create"
+    name: New Request
     description: ""
-    scope: collection
-    _type: workspace
+    method: PUT
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"name": "Introduction to Egiraffe",
+        	"held_at": "4e5f6c68-b966-4be1-9bf3-1ba9632deb74"
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+    authentication: {}
+    metaSortKey: -1695848747912
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: fld_50a4ff6fe8604ebc81e48dd8e89835e9
+    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
+    modified: 1695848745010
+    created: 1695848745010
+    name: Course-Mod
+    description: ""
+    environment: {}
+    environmentPropertyOrder: null
+    metaSortKey: -1695848745010
+    _type: request_group
+  - _id: req_a542d9f7b20b4fd291bd01888d8b06a2
+    parentId: fld_e6c1b21f050248139c4d4e53f7a91099
+    modified: 1695164586822
+    created: 1694735948204
+    url: "{{host}}/api/v1/auth/login"
+    name: Login
+    description: ""
+    method: PUT
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"email": "john.doe@student.tugraz.at",
+        	"password": "abc123"
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+    authentication: {}
+    metaSortKey: -1695164586773
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: fld_e6c1b21f050248139c4d4e53f7a91099
+    parentId: fld_72a53c2a8f9f470e8deb7863e0be0b3e
+    modified: 1695164615012
+    created: 1695164574442
+    name: John Doe
+    description: ""
+    environment: {}
+    environmentPropertyOrder: null
+    metaSortKey: -1695164574642
+    _type: request_group
   - _id: req_47f8c132ae02405f98af1133b981bb3a
     parentId: fld_e6c1b21f050248139c4d4e53f7a91099
     modified: 1695164593339
@@ -69,45 +340,6 @@ resources:
         value: application/json
     authentication: {}
     metaSortKey: -1695164586873
-    isPrivate: false
-    settingStoreCookies: true
-    settingSendCookies: true
-    settingDisableRenderRequestBody: false
-    settingEncodeUrl: true
-    settingRebuildPath: true
-    settingFollowRedirects: global
-    _type: request
-  - _id: fld_e6c1b21f050248139c4d4e53f7a91099
-    parentId: fld_72a53c2a8f9f470e8deb7863e0be0b3e
-    modified: 1695164615012
-    created: 1695164574442
-    name: John Doe
-    description: ""
-    environment: {}
-    environmentPropertyOrder: null
-    metaSortKey: -1695164574642
-    _type: request_group
-  - _id: req_a542d9f7b20b4fd291bd01888d8b06a2
-    parentId: fld_e6c1b21f050248139c4d4e53f7a91099
-    modified: 1695164586822
-    created: 1694735948204
-    url: "{{host}}/api/v1/auth/login"
-    name: Login
-    description: ""
-    method: PUT
-    body:
-      mimeType: application/json
-      text: |-
-        {
-        	"email": "john.doe@student.tugraz.at",
-        	"password": "abc123"
-        }
-    parameters: []
-    headers:
-      - name: Content-Type
-        value: application/json
-    authentication: {}
-    metaSortKey: -1695164586773
     isPrivate: false
     settingStoreCookies: true
     settingSendCookies: true
@@ -194,75 +426,38 @@ resources:
     environmentPropertyOrder: null
     metaSortKey: -1695164559792.75
     _type: request_group
-  - _id: req_4ec3f63b8d96452ab47642abe08f3279
-    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
-    modified: 1695164991111
-    created: 1695086841983
-    url: "{{host}}/api/v1/demo-protected-route"
-    name: Protected user demo route
-    description: ""
-    method: GET
-    body: {}
-    parameters: []
-    headers:
-      - name: User-Agent
-        value: insomnia/2023.5.8
-    authentication: {}
-    metaSortKey: -1695164554743
+  - _id: env_9b7b28e6fe681aac4c1237d415bbf3315e843c4c
+    parentId: wrk_6aa20c328b59456f92d80f92f1a46324
+    modified: 1692649582055
+    created: 1692649582055
+    name: Base Environment
+    data: {}
+    dataPropertyOrder: null
+    color: null
     isPrivate: false
-    settingStoreCookies: true
-    settingSendCookies: true
-    settingDisableRenderRequestBody: false
-    settingEncodeUrl: true
-    settingRebuildPath: true
-    settingFollowRedirects: global
-    _type: request
-  - _id: req_620a6f8118b3453bb736c95222a2a267
-    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
-    modified: 1695165031039
-    created: 1695164975006
-    url: "{{host}}/api/v1/mod/demo-mod-route"
-    name: Protected mod demo route
-    description: ""
-    method: GET
-    body: {}
-    parameters: []
-    headers:
-      - name: User-Agent
-        value: insomnia/2023.5.8
-    authentication: {}
-    metaSortKey: -1693913771034
-    isPrivate: false
-    settingStoreCookies: true
-    settingSendCookies: true
-    settingDisableRenderRequestBody: false
-    settingEncodeUrl: true
-    settingRebuildPath: true
-    settingFollowRedirects: global
-    _type: request
-  - _id: req_18ecd5fe6d1e4b91bdc8f6061dda7214
-    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
-    modified: 1695165047697
-    created: 1695164983098
-    url: "{{host}}/api/v1/admin/demo-admin-route"
-    name: Protected admin demo route
-    description: ""
-    method: GET
-    body: {}
-    parameters: []
-    headers:
-      - name: User-Agent
-        value: insomnia/2023.5.8
-    authentication: {}
-    metaSortKey: -1693288379179.5
-    isPrivate: false
-    settingStoreCookies: true
-    settingSendCookies: true
-    settingDisableRenderRequestBody: false
-    settingEncodeUrl: true
-    settingRebuildPath: true
-    settingFollowRedirects: global
-    _type: request
+    metaSortKey: 1692649582055
+    _type: environment
+  - _id: jar_9b7b28e6fe681aac4c1237d415bbf3315e843c4c
+    parentId: wrk_6aa20c328b59456f92d80f92f1a46324
+    modified: 1692649582056
+    created: 1692649582056
+    name: Default Jar
+    cookies: []
+    _type: cookie_jar
+  - _id: spc_b13dab0fb7cd42c28481e982a94fa391
+    parentId: wrk_6aa20c328b59456f92d80f92f1a46324
+    modified: 1695848537145
+    created: 1692649582052
+    fileName: New Document
+    contents: ""
+    contentType: yaml
+    _type: api_spec
+  - _id: uts_8d5e791e55ee4af8931fdbcd26e2bdc3
+    parentId: wrk_6aa20c328b59456f92d80f92f1a46324
+    modified: 1692649582060
+    created: 1692649582060
+    name: Example Test Suite
+    _type: unit_test_suite
   - _id: env_ac98a1bdd7de4032bb65de367f97b6ee
     parentId: wrk_b34f3ade8a9f4554af9faf574313413b
     modified: 1694735849552
@@ -276,22 +471,30 @@ resources:
     _type: environment
   - _id: jar_9a9ba3e9fcfc4c3a9135bfda5e83f88d
     parentId: wrk_b34f3ade8a9f4554af9faf574313413b
-    modified: 1695169546299
+    modified: 1695849224698
     created: 1694735849554
     name: Default Jar
     cookies:
       - key: session_token
-        value: gQ6E-ClhXz8z5sPw9W8IVNvLFDErwuwDkWFnMeAac_w
-        expires: 2043-09-15T00:25:46.000Z
+        value: FVz701O49ymE0hmqbyiaByUWL1CG9b3VzGkHA8yZHQo
+        expires: 2043-09-22T21:13:44.000Z
         maxAge: 630720000
         domain: 127.0.0.1
         path: /
         httpOnly: true
         hostOnly: true
         creation: 2023-09-19T01:53:22.294Z
-        lastAccessed: 2023-09-20T00:25:46.299Z
-        id: "14177024970340124"
+        lastAccessed: 2023-09-27T21:13:44.698Z
+        id: "8711756625889409"
     _type: cookie_jar
+  - _id: spc_873e305c4d8c40f4a4656dd0df3d6e04
+    parentId: wrk_b34f3ade8a9f4554af9faf574313413b
+    modified: 1695131405284
+    created: 1695131405284
+    fileName: Egiraffe v1 API
+    contents: ""
+    contentType: yaml
+    _type: api_spec
   - _id: env_31b8aecef81a4e02ba824bc1fa17ed9b
     parentId: env_ac98a1bdd7de4032bb65de367f97b6ee
     modified: 1694736247332

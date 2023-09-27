@@ -40,7 +40,13 @@ async fn handle_get_courses(State(db_pool): State<AppState>) -> impl IntoRespons
         );
     }
 
-    (StatusCode::OK, Json(json!({ "success": true })))
+    (
+        StatusCode::OK,
+        Json(json!({
+            "success": true,
+            "courses": db_action_result.unwrap(),
+        })),
+    )
 }
 
 async fn handle_get_uploads(

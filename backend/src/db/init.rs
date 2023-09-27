@@ -14,7 +14,7 @@ pub async fn create_universities(db_con: &mut PgConnection) -> anyhow::Result<()
 
     let unis = [
         University {
-            id: Uuid::new_v4(),
+            id: "4e5f6c68-b966-4be1-9bf3-1ba9632deb74".try_into().unwrap(),
             full_name: "Technische Universität Graz",
             mid_name: "TU Graz",
             short_name: "TUG",
