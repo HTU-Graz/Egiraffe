@@ -63,6 +63,8 @@ pub async fn handle_login(
         );
     };
 
+    // FIXME timing side channel
+
     let argon2 = Argon2::default();
     let password_hash = PasswordHash::new(&user.password_hash).unwrap();
     let password_valid = argon2.verify_password(login_data.password.as_bytes(), &password_hash);
@@ -110,7 +112,7 @@ pub async fn handle_register(
     let RegisterReq {
         first_names,
         last_name,
-        email,
+        email, // TODO verify email
         password,
     } = register_data;
 
