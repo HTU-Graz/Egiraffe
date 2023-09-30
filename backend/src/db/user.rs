@@ -153,3 +153,29 @@ pub fn make_pwd_hash(pwd: &str) -> String {
 
     password_hash
 }
+
+pub async fn get_user_by_session(
+    db_pool: &Pool<Postgres>,
+    session_cookie: &str,
+) -> anyhow::Result<User> {
+    let user = sqlx::query!(
+        r#"
+            SELECT u.id, first_names, last_name, password_hash, totp_secret, user_role
+            FROM "user" AS u
+            INNER JOIN session ON u.id = session.of_user
+            WHERE session.token = $1
+        "#,
+        session_cookie
+    )
+    .fetch_one(db_pool)
+    .await?;
+
+    Ok(User {
+        id: user.id,
+        first_names: user.first_names,
+        last_name: user.last_name,
+        password_hash: user.password_hash,
+        totp_secret: user.totp_secret,
+        user_role: user.user_role,
+    })
+}

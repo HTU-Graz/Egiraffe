@@ -36,6 +36,39 @@ pub struct User {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct RedactedUser {
+    pub id: Uuid,
+    pub first_names: Option<String>,
+    pub last_name: Option<String>,
+    pub totp_enabled: bool,
+    // pub emails: Vec<String>,
+    /// The user's role in the system.
+    ///
+    /// Value | Meaning       | Notes
+    /// :---- | :------------ | :--------------------------------
+    /// 0     | Not logged in | Not for use in `user_role` column
+    /// 1     | User          | Default, can self-register
+    /// 2     | Moderator     | Can delete posts
+    /// 3     | Admin         | Can delete users & edit user roles
+    ///
+    /// An `enum` would be better, but it's not supported by SQLx,
+    /// at least not in a meaningful/simple way.
+    pub user_role: i16,
+}
+
+impl From<User> for RedactedUser {
+    fn from(user: User) -> Self {
+        Self {
+            id: user.id,
+            first_names: user.first_names,
+            last_name: user.last_name,
+            totp_enabled: user.totp_secret.is_some(),
+            user_role: user.user_role,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UserWithEmails {
     pub id: Uuid,
     pub first_names: Arc<str>,
