@@ -1,0 +1,27 @@
+# WARNING This file is only meant to be used for local development. It is not used in production.
+
+version: "3"
+services:
+  egiraffe_dev_db:
+    image: postgres:latest
+    environment:
+      # Here is not point in changing this, as it is only used for local development
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=egiraffe
+    volumes:
+      # The DB does not persist data to the host, so it is not necessary to mount a volume
+      #  for the data directory. However, it is useful to mount a volume for the init.sql
+      #  file, so that it is easy to make changes to the schema and have them reflected
+      #  in the DB.
+      - ./design/database/egiraffe-schema-generated.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - 5433:5432
+    network_mode: host
+  # egiraffe_dev:
+  #   image: egiraffe:latest
+  #   ports:
+  #     - 42003:42002
+#
+#
+# WARNING Again, do not use this file in production. It is only meant for local development.
