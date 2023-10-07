@@ -9,11 +9,11 @@ import { AuthContextProvider } from './context/AuthContext';
 
 render(
   () => (
-    <AuthContextProvider>
-      <Router>
+    <Router>
+      <AuthContextProvider>
         <App />
-      </Router>
-    </AuthContextProvider>
+      </AuthContextProvider>
+    </Router>
   ),
   document.getElementById('root')!
 );

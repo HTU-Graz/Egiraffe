@@ -86,7 +86,7 @@ export default function LoginModal(props: Props) {
           </div>
 
           <div class="modal-action w-full max-w-xs justify-between">
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-primary flex-grow">
               Anmelden
             </button>
             <Link href="/register" state={form} onClick={close} class="btn">
