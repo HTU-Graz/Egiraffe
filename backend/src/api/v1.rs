@@ -1,3 +1,4 @@
+mod action;
 mod auth;
 mod course;
 mod get;
@@ -33,6 +34,7 @@ pub fn routes(state: &AppState) -> Router<AppState> {
                 .route("/logout", put(auth::handle_logout)),
         )
         .nest("/get", get::routes(state))
+        .nest("/do", action::routes(state))
         .nest(
             "/mod",
             Router::new()
