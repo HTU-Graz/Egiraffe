@@ -1,5 +1,5 @@
 import { Link } from '@solidjs/router';
-import { onMount } from 'solid-js';
+import { createSignal, onMount, Show } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { useAuthContext } from '../context/AuthContext';
 
@@ -10,6 +10,8 @@ interface Props {
 export default function LoginModal(props: Props) {
   const { login } = useAuthContext();
   const [form, setForm] = createStore({ email: '', password: '' });
+  const [error, setError] = createSignal<string | undefined>();
+  const [loading, setLoading] = createSignal(false);
 
   let dialog: HTMLDialogElement | undefined;
 
@@ -24,8 +26,14 @@ export default function LoginModal(props: Props) {
 
   async function submit(event: SubmitEvent) {
     event.preventDefault();
-    close();
-    await login(form);
+    setLoading(true);
+    try {
+      await login(form);
+      close();
+    } catch (error) {
+      if (error instanceof Error) setError(error.message);
+    }
+    setLoading(false);
   }
 
   return (
@@ -49,6 +57,13 @@ export default function LoginModal(props: Props) {
             Bei Egiraffe Anmelden
           </h3>
 
+          <Show when={error()}>
+            <div class="w-full max-w-xs">
+              <span class="text-error">{error()}</span>
+              <div class="divider" />
+            </div>
+          </Show>
+
           <div class="form-control w-full max-w-xs">
             <label for="login-email" class="label">
               <span class="label-text">Email</span>
@@ -59,6 +74,7 @@ export default function LoginModal(props: Props) {
               autocomplete="email"
               autofocus
               required
+              disabled={loading()}
               onInput={e => setForm('email', e.currentTarget.value)}
               class="input input-bordered w-full max-w-xs"
             />
@@ -71,6 +87,7 @@ export default function LoginModal(props: Props) {
               id="login-password"
               autocomplete="current-password"
               required
+              disabled={loading()}
               onInput={e => setForm('password', e.currentTarget.value)}
               class="input input-bordered w-full max-w-xs"
             />
@@ -86,10 +103,14 @@ export default function LoginModal(props: Props) {
           </div>
 
           <div class="modal-action w-full max-w-xs justify-between">
-            <button type="submit" class="btn btn-primary flex-grow">
+            <button
+              type="submit"
+              class="btn btn-primary flex-grow"
+              disabled={loading()}
+            >
               Anmelden
             </button>
-            <Link href="/register" state={form} onClick={close} class="btn">
+            <Link href="/register" onClick={close} class="btn">
               Account erstellen
             </Link>
           </div>

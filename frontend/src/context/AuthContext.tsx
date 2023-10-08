@@ -1,10 +1,4 @@
-import {
-  ParentProps,
-  Show,
-  createContext,
-  createSignal,
-  useContext,
-} from 'solid-js';
+import { ParentProps, createContext, createSignal, useContext } from 'solid-js';
 import { put } from '../api';
 import {
   LoginRequest,
@@ -12,7 +6,6 @@ import {
   RegisterRequest,
   RegisterResponse,
 } from '../api/auth';
-import LoginModal from '../components/LoginModal';
 
 interface User {
   email: string;
@@ -20,7 +13,7 @@ interface User {
 
 function useProviderValue() {
   // TODO: fetch own user data when already logged in (session cookie)
-  const [user, setUser] = createSignal<User>();
+  const [user, setUser] = createSignal<User | undefined>();
   const [loginModal, setLoginModal] = createSignal(false);
 
   return {
@@ -28,11 +21,16 @@ function useProviderValue() {
     loginModal,
     setLoginModal,
     async login(req: LoginRequest) {
-      const data = await put<LoginResponse>('/api/v1/auth/login', req);
-      setUser({ email: data.email });
+      const response = await put<LoginResponse>('/api/v1/auth/login', req);
+      if (!response.success) throw new Error('Email oder Passwort falsch');
+      setUser({ email: response.email });
     },
     async register(req: RegisterRequest) {
-      await put<RegisterResponse>('/api/v1/auth/register', req);
+      const response = await put<RegisterResponse>(
+        '/api/v1/auth/register',
+        req
+      );
+      if (!response.success) throw new Error('Registrierung fehlgeschlagen');
     },
     async logout() {
       setUser(undefined);
@@ -46,12 +44,7 @@ const AuthContext = createContext<ReturnType<typeof useProviderValue>>();
 export function AuthContextProvider(props: ParentProps) {
   const value = useProviderValue();
   return (
-    <AuthContext.Provider value={value}>
-      {props.children}
-      <Show when={value.loginModal()}>
-        <LoginModal onClose={() => value.setLoginModal(false)} />
-      </Show>
-    </AuthContext.Provider>
+    <AuthContext.Provider value={value}>{props.children}</AuthContext.Provider>
   );
 }
 
