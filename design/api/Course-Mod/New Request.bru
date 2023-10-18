@@ -1,0 +1,22 @@
+meta {
+  name: New Request
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{host}}/api/v1/mod/courses/create
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+  	"name": "Introduction to Egiraffe",
+  	"held_at": "4e5f6c68-b966-4be1-9bf3-1ba9632deb74"
+  }
+}
