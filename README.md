@@ -22,6 +22,17 @@ The backend of Egiraffe is written in [Rust](https://www.rust-lang.org/) using t
 
 See its code in the [`backend`](backend) directory, and its README in [`backend/README.md`](backend/README.md).
 
+> [!IMPORTANT]  
+> 
+> **Notice: currently, you need to have a db running _WITH AN ENVIRONMENT VARIABLE WITH THE DB URL_ because the framework needs it**
+> 
+> We're planing to alleviate this, but for now, it helps validate queries against the db schema in the IDE, and at compile time.
+> 
+> ```zsh
+> # For example, this code prepares the environment, launches VS Code(ium), and exits the shell
+> export DATABASE_URL=postgres://postgres@127.0.0.1/egiraffe && code ~/Repos/egiraffe-ng && exit
+> ```
+
 ## Devops
 
 You can create a Docker image with both the frontend and the backend using the Dockerfile in the root directory of the project.
