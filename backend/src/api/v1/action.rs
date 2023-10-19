@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use uuid::Uuid;
 
-use crate::{api::api_greeting, db, AppState};
+use crate::{api::api_greeting, data::Upload, db, AppState};
 
 // Handles resource-modifying requests from authenticated users
 pub fn routes(state: &AppState) -> Router<AppState> {
@@ -43,6 +43,7 @@ async fn handle_do_upload(
 ) -> impl IntoResponse {
     // log::info!("Create/alter upload for course {}", req.belongs_to.unwrap_or("default"));
 
+    // TODO handle updating the description
     // 0. Check if a new upload is being created or an existing one is being modified
     if let Some(id) = req.id {
         // 1. Get the upload from the database
@@ -141,8 +142,66 @@ async fn handle_do_upload(
         }
     } else {
         // Case 2: new upload is being created
-        // 1. Check if the user is allowed to create a new upload
 
-        todo!("Case 2: new upload is being created");
+        // 1. Create the upload
+        let upload = {
+            let DoUploadReq {
+                name,
+                price,
+                belongs_to,
+                held_by, // This actually is optional
+                ..
+            } = req;
+
+            let (Some(name), Some(price), Some(belongs_to)) = (name, price, belongs_to) else {
+                return (
+                    StatusCode::BAD_REQUEST,
+                    Json(json!({
+                        "success": false,
+                        "message": "Missing required fields",
+                    })),
+                );
+            };
+
+            let now = chrono::Utc::now().naive_utc();
+
+            Upload {
+                id: Uuid::new_v4(),
+                name,
+                description: String::new(),
+                price,
+                uploader: current_user_id,
+                upload_date: now.clone(),
+                last_modified_date: now,
+                belongs_to,
+                held_by,
+            }
+        };
+
+        // 2. Insert the upload into the database
+        let create_result = db::upload::create_upload(&db_pool, &upload).await;
+
+        if create_result.is_ok() {
+            log::info!("Upload created successfully, id: {}", upload.id);
+
+            (
+                StatusCode::OK,
+                Json(json!({
+                    "success": true,
+                    "message": "Upload created successfully",
+                    "upload": upload,
+                })),
+            )
+        } else {
+            log::error!("Failed to create upload: {}", create_result.unwrap_err());
+
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({
+                    "success": false,
+                    "message": "Failed to create upload",
+                })),
+            )
+        }
     }
 }

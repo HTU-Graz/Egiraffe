@@ -79,3 +79,39 @@ pub async fn update_upload(
 
     Ok(())
 }
+
+pub async fn create_upload(
+    db_pool: &sqlx::Pool<sqlx::Postgres>,
+    upload: &Upload,
+) -> anyhow::Result<()> {
+    sqlx::query!(
+        r#"
+            INSERT INTO upload (
+                    id,
+                    upload_name,
+                    description,
+                    price,
+                    uploader,
+                    upload_date,
+                    last_modified_date,
+                    belongs_to,
+                    held_by
+                )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        "#,
+        upload.id,
+        upload.name,
+        upload.description,
+        upload.price,
+        upload.uploader,
+        upload.upload_date,
+        upload.last_modified_date,
+        upload.belongs_to,
+        upload.held_by,
+    )
+    .execute(db_pool)
+    .await
+    .context("Failed to create upload")?;
+
+    Ok(())
+}
