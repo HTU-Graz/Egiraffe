@@ -34,7 +34,13 @@ pub fn routes(state: &AppState) -> Router<AppState> {
                 .route("/logout", put(auth::handle_logout)),
         )
         .nest("/get", get::routes(state))
-        .nest("/do", action::routes(state))
+        .nest(
+            "/do",
+            action::routes(state).layer(middleware::from_fn_with_state(
+                state.clone(),
+                auth::<_, { AuthLevel::RegularUser }>,
+            )),
+        )
         .nest(
             "/mod",
             Router::new()
@@ -81,7 +87,7 @@ pub mod AuthLevel {
 async fn auth<B, const REQUIRED_AUTH_LEVEL: i16>(
     State(db_pool): State<AppState>,
     cookie_jar: CookieJar,
-    request: Request<B>,
+    mut request: Request<B>,
     next: Next<B>,
 ) -> Result<Response, (StatusCode, Json<serde_json::Value>)> {
     assert!(
@@ -106,7 +112,11 @@ async fn auth<B, const REQUIRED_AUTH_LEVEL: i16>(
     };
 
     match db::session::validate_session(&db_pool, &session_cookie.value().to_string()).await {
-        ValidationResult::Valid { auth_level, .. } if auth_level >= REQUIRED_AUTH_LEVEL => {
+        ValidationResult::Valid {
+            auth_level,
+            user_id,
+        } if auth_level >= REQUIRED_AUTH_LEVEL => {
+            request.extensions_mut().insert(user_id);
             let response = next.run(request).await;
             Ok(response)
         }
