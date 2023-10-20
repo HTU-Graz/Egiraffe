@@ -1,5 +1,6 @@
 use std::{str::FromStr, sync::Arc};
 
+use anyhow::Context;
 use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
 use email_address::EmailAddress;
 use justerror::Error;
@@ -8,6 +9,7 @@ use sqlx::{self, Acquire, Pool, Postgres};
 use uuid::Uuid;
 
 use crate::{
+    api::v1::action::DoMeReq,
     data::{User, UserWithEmails},
     db::SelectExistsTmp,
 };
@@ -178,4 +180,46 @@ pub async fn get_user_by_session(
         totp_secret: user.totp_secret,
         user_role: user.user_role,
     })
+}
+
+// TODO remove this?
+// /// Update first_names, last_name, and password (gets hashed) for a user
+// pub async fn update_user_safe(
+//     db_pool: &Pool<Postgres>,
+//     user: DoMeReq,
+// ) -> anyhow::Result<UserWithEmails> {
+//     let DoMeReq {
+//         first_names,
+//         last_name,
+//         password,
+//     } = user;
+//     Ok(user)
+// }
+
+pub async fn get_user_by_id(
+    db_pool: &Pool<Postgres>,
+    current_user_id: Uuid,
+) -> anyhow::Result<Option<UserWithEmails>> {
+    let user = sqlx::query!(
+        r#"
+            SELECT u.id, first_names, last_name, password_hash, totp_secret, user_role, email.address AS "emails: Vec<String>"
+            FROM "user" AS u
+            INNER JOIN email ON primary_email = email.id
+            WHERE u.id = $1
+        "#,
+        current_user_id
+    )
+    .fetch_one(db_pool)
+    .await
+    .map(|user| UserWithEmails {
+        id: user.id,
+        first_names: user.first_names.expect("User has no first name").into(),
+        last_name: user.last_name.expect("User has no last name").into(),
+        password_hash: user.password_hash.into(),
+        totp_secret: user.totp_secret.map(|s| s.into()),
+        emails: user.emails.expect("User has no emails").into(),
+        user_role: user.user_role,
+    });
+
+    Ok(Some(user?))
 }

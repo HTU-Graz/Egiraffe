@@ -1,4 +1,4 @@
-mod action;
+pub mod action;
 mod auth;
 mod course;
 mod get;

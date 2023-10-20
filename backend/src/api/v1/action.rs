@@ -17,8 +17,8 @@ pub fn routes(state: &AppState) -> Router<AppState> {
         .route("/", get(api_greeting).post(api_greeting).put(api_greeting))
         // .route("/courses", put(handle_get_courses))
         .route("/uploads", put(handle_do_upload))
-    // .route("/universities", put(handle_get_universities))
-    // .route("/me", put(handle_get_me))
+        // .route("/universities", put(handle_get_universities))
+        .route("/me", put(handle_do_me))
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -204,4 +204,64 @@ async fn handle_do_upload(
             )
         }
     }
+}
+
+pub struct DoMeReq {
+    pub first_names: Option<String>,
+    pub last_name: Option<String>,
+    pub password: Option<String>,
+    // TODO handle updating the email address
+
+    // TODO handle updating the TOTP secret
+    // totp_secret: Option<String>,
+}
+
+/// Handle updates to the current user's profile
+///
+/// Also: UwU
+async fn handle_do_me(
+    State(db_pool): State<AppState>,
+    Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
+) -> impl IntoResponse {
+    // 1. Get the user from the database
+    let maybe_user = db::user::get_user_by_id(&db_pool, current_user_id).await;
+    let Ok(user) = maybe_user else {
+        log::error!(
+            "Failed to get user from database: {}",
+            maybe_user.unwrap_err()
+        );
+
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({
+                "success": false,
+                "message": "Failed to get user from database",
+            })),
+        );
+    };
+
+    // TODO consider merging these `let else`s
+    let Some(user) = user else {
+        log::error!("Cannot modify: no such user: {current_user_id}");
+
+        return (
+            StatusCode::NOT_FOUND,
+            Json(json!({
+                "success": false,
+                "message": "No such user",
+            })),
+        );
+    };
+
+    todo!("Handle updates to the current user's profile");
+
+    // 2. Return the user
+    (
+        StatusCode::OK,
+        Json(json!({
+            "success": true,
+            "message": "User retrieved successfully",
+            "user": user,
+        })),
+    )
 }

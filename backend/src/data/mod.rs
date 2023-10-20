@@ -71,7 +71,7 @@ impl From<User> for RedactedUser {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserWithEmails {
     pub id: Uuid,
-    pub first_names: Arc<str>,
+    pub first_names: Arc<str>, // TODO those darn `Arc`s again; do we really need them?
     pub last_name: Arc<str>,
     pub password_hash: Arc<str>,
     pub totp_secret: Option<Arc<str>>,
