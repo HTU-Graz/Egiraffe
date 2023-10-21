@@ -1,5 +1,5 @@
 use axum::{
-    extract::State,
+    extract::{Multipart, State},
     http::StatusCode,
     response::IntoResponse,
     routing::{get, put},
@@ -23,7 +23,8 @@ pub fn routes(state: &AppState) -> Router<AppState> {
         // .route("/courses", put(handle_get_courses))
         .route("/uploads", put(handle_do_upload))
         // .route("/universities", put(handle_get_universities))
-        .route("/me", put(handle_do_me)) // FIXME uncomment this
+        .route("/me", put(handle_do_me))
+        .route("/file", put(handle_do_file))
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -297,6 +298,50 @@ async fn handle_do_me(
             "success": true,
             "message": "User retrieved successfully",
             "user": RedactedUser::from(user),
+        })),
+    )
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct DoFileReq {
+    /// The ID of the upload this file belongs to
+    upload_id: Uuid,
+
+    /// The file's name
+    name: String,
+
+    /// The file's MIME type
+    mime_type: String,
+
+    /// The file's contents, byte buffer
+    contents: Vec<u8>,
+}
+
+async fn handle_do_file(
+    State(db_pool): State<AppState>,
+    Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
+    mut multipart: Multipart,
+) -> impl IntoResponse {
+    while let Some(mut field) = multipart.next_field().await.unwrap() {
+        let name = field.name().unwrap().to_owned();
+        let filename = field.file_name().unwrap().to_owned();
+        let content_type = field.content_type().unwrap().to_owned();
+        let mut bytes = Vec::new();
+        while let Some(chunk) = field.chunk().await.unwrap() {
+            bytes.extend_from_slice(&chunk);
+        }
+        println!("{} {} {} {}", name, filename, content_type, bytes.len());
+    }
+
+    // TODO finish this
+
+    todo!("Complete file upload");
+
+    (
+        StatusCode::OK,
+        Json(json!({
+            "success": true,
+            "message": "File uploaded successfully",
         })),
     )
 }

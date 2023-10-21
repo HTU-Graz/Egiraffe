@@ -9,13 +9,7 @@ license = "AGPL-3.0-or-later"
 [dependencies]
 anyhow = "1.0.75"
 argon2 = { version = "0.5.2", features = ["std", "simple"] }
-axum = { version = "0.6.20", features = [
-    "http2",
-    "macros",
-    "ws",
-    "tracing",
-    "headers",
-] }
+axum = { version = "0.6.20", features = ["http2", "macros", "ws", "tracing", "headers", "multipart"] }
 axum-extra = { version = "0.8.0", features = ["cookie"] }
 base64 = "0.21.4"
 chrono = { version = "0.4.31", features = ["serde"] }
