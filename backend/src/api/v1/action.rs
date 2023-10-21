@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 use crate::{
     api::api_greeting,
-    data::Upload,
+    data::{RedactedUser, Upload},
     db::{self, user::make_pwd_hash},
     AppState,
 };
@@ -22,8 +22,8 @@ pub fn routes(state: &AppState) -> Router<AppState> {
         .route("/", get(api_greeting).post(api_greeting).put(api_greeting))
         // .route("/courses", put(handle_get_courses))
         .route("/uploads", put(handle_do_upload))
-    // .route("/universities", put(handle_get_universities))
-    // .route("/me", put(handle_do_me)) // FIXME uncomment this
+        // .route("/universities", put(handle_get_universities))
+        .route("/me", put(handle_do_me)) // FIXME uncomment this
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -211,6 +211,7 @@ async fn handle_do_upload(
     }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DoMeReq {
     pub first_names: Option<String>,
     pub last_name: Option<String>,
@@ -275,13 +276,27 @@ async fn handle_do_me(
     // 3. Update the user in the database
     let update_result = db::user::update_user(&db_pool, user.clone()).await;
 
+    if update_result.is_ok() {
+        log::info!("User updated successfully, id: {}", user.id);
+    } else {
+        log::error!("Failed to update user: {}", update_result.unwrap_err());
+
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({
+                "success": false,
+                "message": "Failed to update user",
+            })),
+        );
+    }
+
     // 4. Return the updated user
     (
         StatusCode::OK,
         Json(json!({
             "success": true,
             "message": "User retrieved successfully",
-            "user": user,
+            "user": RedactedUser::from(user),
         })),
     )
 }

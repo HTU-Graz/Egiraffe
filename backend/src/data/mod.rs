@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{ops::Deref, sync::Arc};
 
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
@@ -64,6 +64,18 @@ impl From<User> for RedactedUser {
             last_name: user.last_name,
             totp_enabled: user.totp_secret.is_some(),
             user_role: user.user_role,
+        }
+    }
+}
+
+impl From<UserWithEmails> for RedactedUser {
+    fn from(value: UserWithEmails) -> Self {
+        Self {
+            id: value.id,
+            first_names: Some(value.first_names.deref().into()),
+            last_name: Some(value.last_name.deref().into()),
+            totp_enabled: value.totp_secret.is_some(),
+            user_role: value.user_role,
         }
     }
 }
