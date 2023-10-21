@@ -9,7 +9,12 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use uuid::Uuid;
 
-use crate::{api::api_greeting, data::Upload, db, AppState};
+use crate::{
+    api::api_greeting,
+    data::Upload,
+    db::{self, user::make_pwd_hash},
+    AppState,
+};
 
 // Handles resource-modifying requests from authenticated users
 pub fn routes(state: &AppState) -> Router<AppState> {
@@ -17,8 +22,8 @@ pub fn routes(state: &AppState) -> Router<AppState> {
         .route("/", get(api_greeting).post(api_greeting).put(api_greeting))
         // .route("/courses", put(handle_get_courses))
         .route("/uploads", put(handle_do_upload))
-        // .route("/universities", put(handle_get_universities))
-        .route("/me", put(handle_do_me))
+    // .route("/universities", put(handle_get_universities))
+    // .route("/me", put(handle_do_me)) // FIXME uncomment this
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -222,6 +227,7 @@ pub struct DoMeReq {
 async fn handle_do_me(
     State(db_pool): State<AppState>,
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
+    Json(req): Json<DoMeReq>,
 ) -> impl IntoResponse {
     // 1. Get the user from the database
     let maybe_user = db::user::get_user_by_id(&db_pool, current_user_id).await;
@@ -241,7 +247,7 @@ async fn handle_do_me(
     };
 
     // TODO consider merging these `let else`s
-    let Some(user) = user else {
+    let Some(mut user) = user else {
         log::error!("Cannot modify: no such user: {current_user_id}");
 
         return (
@@ -253,9 +259,23 @@ async fn handle_do_me(
         );
     };
 
-    todo!("Handle updates to the current user's profile");
+    // 2. Modify the user
+    if let Some(first_names) = req.first_names {
+        user.first_names = first_names.into();
+    }
 
-    // 2. Return the user
+    if let Some(last_name) = req.last_name {
+        user.last_name = last_name.into();
+    }
+
+    if let Some(password) = req.password {
+        user.password_hash = make_pwd_hash(&password).into();
+    }
+
+    // 3. Update the user in the database
+    let update_result = db::user::update_user(&db_pool, user.clone()).await;
+
+    // 4. Return the updated user
     (
         StatusCode::OK,
         Json(json!({

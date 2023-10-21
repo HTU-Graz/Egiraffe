@@ -68,7 +68,7 @@ impl From<User> for RedactedUser {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UserWithEmails {
     pub id: Uuid,
     pub first_names: Arc<str>, // TODO those darn `Arc`s again; do we really need them?

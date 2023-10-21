@@ -223,3 +223,43 @@ pub async fn get_user_by_id(
 
     Ok(Some(user?))
 }
+
+/// Update an existing user in the database.
+pub async fn update_user(db_pool: &Pool<Postgres>, user: UserWithEmails) -> anyhow::Result<()> {
+    let UserWithEmails {
+        id,
+        first_names,
+        last_name,
+        password_hash,
+        totp_secret,
+        // emails,
+        user_role,
+        ..
+    } = user;
+
+    let mut tx = db_pool.begin().await?;
+
+    // TODO handle email updates
+
+    let db_con = tx.acquire().await?;
+
+    sqlx::query!(
+        r#"
+            UPDATE "user"
+            SET first_names = $1, last_name = $2, password_hash = $3, totp_secret = $4, user_role = $5
+            WHERE id = $6
+        "#,
+        &*first_names,
+        &*last_name,
+        &*password_hash,
+        totp_secret.as_deref(),
+        user_role,
+        id,
+    )
+    .execute(db_con)
+    .await?;
+
+    tx.commit().await?;
+
+    Ok(())
+}
