@@ -35,7 +35,9 @@ export default function Sidebar() {
             </div>
           </label>
           <li>
-            <p class="font-semibold">{user()!.email}</p>
+            <p class="font-semibold">
+              {user()!.first_names} {user()!.last_name}
+            </p>
           </li>
           <div class="divider"></div>
           <li>

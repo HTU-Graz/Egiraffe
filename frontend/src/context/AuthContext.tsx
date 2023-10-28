@@ -1,19 +1,23 @@
-import { ParentProps, createContext, createSignal, useContext } from 'solid-js';
-import { put } from '../api';
+import {
+  ParentProps,
+  createContext,
+  createResource,
+  createSignal,
+  useContext,
+} from 'solid-js';
 import {
   LoginRequest,
-  LoginResponse,
   RegisterRequest,
-  RegisterResponse,
+  login,
+  logout,
+  register,
 } from '../api/auth';
-
-interface User {
-  email: string;
-}
+import { getMe } from '../api/users';
 
 function useProviderValue() {
-  // TODO: fetch own user data when already logged in (session cookie)
-  const [user, setUser] = createSignal<User | undefined>();
+  const [user, { mutate: mutateUser, refetch: refetchUser }] = createResource(
+    () => getMe().catch(console.warn)
+  );
   const [loginModal, setLoginModal] = createSignal(false);
 
   return {
@@ -21,20 +25,15 @@ function useProviderValue() {
     loginModal,
     setLoginModal,
     async login(req: LoginRequest) {
-      const response = await put<LoginResponse>('/api/v1/auth/login', req);
-      if (!response.success) throw new Error('Email oder Passwort falsch');
-      setUser({ email: response.email });
+      await login(req);
+      await refetchUser();
     },
     async register(req: RegisterRequest) {
-      const response = await put<RegisterResponse>(
-        '/api/v1/auth/register',
-        req
-      );
-      if (!response.success) throw new Error('Registrierung fehlgeschlagen');
+      await register(req);
     },
     async logout() {
-      setUser(undefined);
-      await put('/api/v1/auth/logout');
+      mutateUser(undefined);
+      await logout();
     },
   };
 }

@@ -76,7 +76,9 @@ export default function Navbar() {
                     class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
                   >
                     <li>
-                      <span class="font-semibold">{user()!.email}</span>
+                      <span class="font-semibold">
+                        {user()!.first_names} {user()!.last_name}
+                      </span>
                     </li>
                     <div class="divider my-0" />
                     <li>

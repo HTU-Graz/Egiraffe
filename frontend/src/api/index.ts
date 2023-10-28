@@ -9,3 +9,8 @@ export async function put<Response>(
   });
   return response.json();
 }
+
+export interface ErrorResponse {
+  success: false;
+  message: string;
+}
