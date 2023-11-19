@@ -24,11 +24,11 @@ else
     DOCKER_NEEDS_SUDO=1
 fi
 
-docker() {
+egng-docker() {
     if [[ "$DOCKER_NEEDS_SUDO" -eq 1 ]]; then
-        sudo command docker "$@"
+        sudo docker "$@"
     else
-        command docker "$@"
+        docker "$@"
     fi
 }
 
@@ -45,15 +45,15 @@ not() {
 # --- container management functions ---
 
 egng-has-container() {
-    [[ -n $(docker ps -a -q -f name="$EGNG_CONTAINER_NAME") ]]
+    [[ -n $(egng-docker ps -a -q -f name="$EGNG_CONTAINER_NAME") ]]
 }
 
 egng-is-running() {
-    egng-has-container && [[ $(docker container inspect -f '{{.State.Running}}' "$EGNG_CONTAINER_NAME") == "true" ]]
+    egng-has-container && [[ $(egng-docker container inspect -f '{{.State.Running}}' "$EGNG_CONTAINER_NAME") == "true" ]]
 }
 
 egng-get-container-ip() {
-    EGNG_CONTAINER_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$EGNG_CONTAINER_NAME")
+    EGNG_CONTAINER_IP=$(egng-docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$EGNG_CONTAINER_NAME")
 }
 
 egng-set-database-url() {
@@ -64,7 +64,7 @@ egng-set-database-url() {
 egng-create-container() {
     if not egng-has-container; then
         echo ">> creating container"
-        docker create -e POSTGRES_PASSWORD=test --name="$EGNG_CONTAINER_NAME" "$EGNG_CONTAINER_IMAGE"
+        egng-docker create -e POSTGRES_PASSWORD=test --name="$EGNG_CONTAINER_NAME" "$EGNG_CONTAINER_IMAGE"
     fi
 }
 
@@ -75,7 +75,7 @@ egng-start-container() {
 
     if not egng-is-running; then
         echo ">> starting container"
-        docker start "$EGNG_CONTAINER_NAME"
+        egng-docker start "$EGNG_CONTAINER_NAME"
         egng-set-database-url
     fi
 }
@@ -83,7 +83,7 @@ egng-start-container() {
 egng-stop-container() {
     if egng-is-running; then
         echo ">> stopping container"
-        docker stop "$EGNG_CONTAINER_NAME"
+        egng-docker stop "$EGNG_CONTAINER_NAME"
     fi
 }
 
@@ -94,7 +94,7 @@ egng-remove-container() {
 
     if egng-has-container; then
         echo ">> removing container"
-        docker rm "$EGNG_CONTAINER_NAME"
+        egng-docker rm "$EGNG_CONTAINER_NAME"
     fi
 }
 
