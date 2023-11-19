@@ -5,13 +5,14 @@ pub mod university;
 pub mod upload;
 pub mod user;
 
+use std::env;
 use sqlx::{postgres::PgPoolOptions, Acquire, Executor, PgConnection, Pool, Postgres};
 use tokio::fs::read_to_string;
 
 pub async fn connect() -> anyhow::Result<Pool<Postgres>> {
     let pool = PgPoolOptions::new()
         .max_connections(5)
-        .connect("postgres://postgres@127.0.0.1/egiraffe")
+        .connect(&env::var("DATABASE_URL")?)
         .await?;
 
     Ok(pool)
