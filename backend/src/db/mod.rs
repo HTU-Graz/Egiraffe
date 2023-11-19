@@ -5,15 +5,19 @@ pub mod university;
 pub mod upload;
 pub mod user;
 
-use std::env;
+use anyhow::Context;
 use sqlx::{postgres::PgPoolOptions, Acquire, Executor, PgConnection, Pool, Postgres};
+use std::env;
 use tokio::fs::read_to_string;
 
 pub async fn connect() -> anyhow::Result<Pool<Postgres>> {
-    let pool = PgPoolOptions::new()
-        .max_connections(5)
-        .connect(&env::var("DATABASE_URL")?)
-        .await?;
+    let pool =
+        PgPoolOptions::new()
+            .max_connections(5)
+            .connect(&env::var("DATABASE_URL").context(
+                "Needs the env var DATABASE_URL set to the connection string of the pg db",
+            )?)
+            .await?;
 
     Ok(pool)
 }
