@@ -19,13 +19,17 @@ EGNG_SCRIPT_DIR=$(realpath "$(dirname "${BASH_SOURCE[0]}")")
 
 echo ">> checking if docker needs sudo"
 if docker ps &>/dev/null; then
-    DOCKER_SUDO=
+    DOCKER_NEEDS_SUDO=0
 else
-    DOCKER_SUDO=sudo
+    DOCKER_NEEDS_SUDO=1
 fi
 
 docker() {
-    $DOCKER_SUDO command docker "$@"
+    if [[ "$DOCKER_NEEDS_SUDO" -eq 1 ]]; then
+        sudo command docker "$@"
+    else
+        command docker "$@"
+    fi
 }
 
 # --- helper functions ---
