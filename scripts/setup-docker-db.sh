@@ -76,8 +76,9 @@ egng-start-container() {
     if not egng-is-running; then
         echo ">> starting container"
         egng-docker start "$EGNG_CONTAINER_NAME"
-        egng-set-database-url
     fi
+
+    egng-set-database-url
 }
 
 egng-stop-container() {
