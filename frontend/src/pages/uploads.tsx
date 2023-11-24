@@ -19,7 +19,8 @@ export default function Course() {
           class="btn"
           classList={{ 'btn-accent': activeSort() === 'date' }}
           onClick={() => {
-            setSortDateDirection(!sortDateDirection());
+            if (activeSort() === 'date')
+              setSortDateDirection(!sortDateDirection());
             setActiveSort('date');
           }}
         >
@@ -32,7 +33,8 @@ export default function Course() {
           class="btn"
           classList={{ 'btn-accent': activeSort() === 'size' }}
           onClick={() => {
-            setSortSizeDirection(!sortSizeDirection());
+            if (activeSort() === 'size')
+              setSortSizeDirection(!sortSizeDirection());
             setActiveSort('size');
           }}
         >
@@ -45,7 +47,8 @@ export default function Course() {
           class="btn"
           classList={{ 'btn-accent': activeSort() === 'downloads' }}
           onClick={() => {
-            setSortDownloadsDirection(!sortDownloadsDirection());
+            if (activeSort() === 'downloads')
+              setSortDownloadsDirection(!sortDownloadsDirection());
             setActiveSort('downloads');
           }}
         >
@@ -58,7 +61,8 @@ export default function Course() {
           class="btn"
           classList={{ 'btn-accent': activeSort() === 'rating' }}
           onClick={() => {
-            setSortRatingDirection(!sortRatingDirection());
+            if (activeSort() === 'rating')
+              setSortRatingDirection(!sortRatingDirection());
             setActiveSort('rating');
           }}
         >
@@ -69,11 +73,27 @@ export default function Course() {
         </button>
       </div>
 
-      <Suspense fallback={<span>...</span>}>
-        <div class="flex flex-col items-center">
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+        <Suspense
+          fallback={
+            <For each={Array(9)}>
+              {() => (
+                <div class="card card-compact card-side bg-base-200 shadow-md h-40">
+                  <div class="skeleton h-full w-28"></div>
+                  <div class="card-body">
+                    <div class="skeleton h-6 w-48"></div>
+                    <div class="skeleton h-4 w-full"></div>
+                    <div class="skeleton h-4 w-full"></div>
+                    <div class="skeleton h-4 w-64"></div>
+                  </div>
+                </div>
+              )}
+            </For>
+          }
+        >
           <For each={uploads()}>{upload => <UploadCard {...upload} />}</For>
-        </div>
-      </Suspense>
+        </Suspense>
+      </div>
     </>
   );
 }

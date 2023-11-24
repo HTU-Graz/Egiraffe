@@ -10,13 +10,13 @@ const UploadsData: RouteDataFunc<unknown, Resource<Upload[]>> = args => {
       new Promise(resolve => setTimeout(resolve, ms));
     await sleep(500);
     return Array.from({ length: 20 }, (_, i) => ({
-      id: `${i}`,
+      id: `${crypto.randomUUID()}`,
       name: `Upload ${i}`,
       description: `Lorem ipsum, dolor sit amet consectetur adipisicing elit. Laboriosam dignissimos voluptatem consequuntur fuga placeat, atque mollitia autem iusto voluptatum nulla molestiae a architecto, sint alias ipsam id voluptates! Ipsam fugit voluptas molestiae suscipit impedit sit assumenda id voluptates natus sequi atque aliquid inventore tempora repudiandae labore quo, nam mollitia sapiente.`,
       price: i,
       uploader: `Uploader ${i}`,
-      upload_date: `${i % 3}`,
-      last_modified_date: `${i % 3}`,
+      upload_date: new Date(Date.now() - i * 100_000_000).toISOString(),
+      last_modified_date: new Date(Date.now() - i * 100_000_000).toISOString(),
       belongs_to: `${i % 3}`,
       held_by: `${i % 3}`,
     }));
