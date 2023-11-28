@@ -41,6 +41,14 @@ export default function Navbar() {
           </div>
 
           <div class="navbar-end hidden md:inline-flex">
+            <div class="navbar-end hidden md:inline-flex">
+              <button
+                type="button"
+                class="btn btn-ghost btn-sm rounded-btn"
+              >
+                <Link href="/debug">Debug menu</Link>
+              </button>
+            </div>
             <div class="flex-none gap-2">
               <div class="dropdown dropdown-end">
                 <Show

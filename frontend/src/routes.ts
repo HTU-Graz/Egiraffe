@@ -31,6 +31,10 @@ export const routes: RouteDefinition[] = [
     data: AboutData,
   },
   {
+    path: '/debug',
+    component: lazy(() => import('./pages/debug')),
+  },
+  {
     path: '**',
     component: lazy(() => import('./errors/404')),
   },
