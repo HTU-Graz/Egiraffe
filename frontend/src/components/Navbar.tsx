@@ -31,9 +31,11 @@ export default function Navbar() {
                 ></path>
               </svg>
             </label>
-            <button class="btn btn-ghost normal-case text-xl hidden md:inline">
-              <Link href="/">Egiraffe</Link>
-            </button>
+            <Link href="/">
+              <button class="btn btn-ghost normal-case text-xl hidden md:inline">
+                Egiraffe
+              </button>
+            </Link>
           </div>
 
           <div class="basis-3/4 grow justify-center">
@@ -42,12 +44,14 @@ export default function Navbar() {
 
           <div class="navbar-end hidden md:inline-flex">
             <div class="navbar-end hidden md:inline-flex">
-              <button
-                type="button"
-                class="btn btn-ghost btn-sm rounded-btn"
-              >
-                <Link href="/debug">Debug menu</Link>
-              </button>
+              <Link href="/debug">
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-sm rounded-btn"
+                >
+                  Debug menu
+                </button>
+              </Link>
             </div>
             <div class="flex-none gap-2">
               <div class="dropdown dropdown-end">
