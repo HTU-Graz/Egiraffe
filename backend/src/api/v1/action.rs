@@ -322,20 +322,42 @@ async fn handle_do_file(
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     mut multipart: Multipart,
 ) -> impl IntoResponse {
+    let mut upload = DoFileReq {
+        upload_id: Uuid::new_v4(),
+        name: String::new(),
+        mime_type: String::new(),
+        contents: Vec::new(),
+    };
+
     while let Some(mut field) = multipart.next_field().await.unwrap() {
+        // Get the form field's name, filename, and content type
         let name = field.name().unwrap().to_owned();
-        let filename = field.file_name().unwrap().to_owned();
-        let content_type = field.content_type().unwrap().to_owned();
-        let mut bytes = Vec::new();
-        while let Some(chunk) = field.chunk().await.unwrap() {
-            bytes.extend_from_slice(&chunk);
+
+        match name.as_str() {
+            "upload" => {
+                upload.name = field.file_name().unwrap().to_owned();
+                upload.mime_type = field.content_type().unwrap().to_owned();
+
+                while let Some(chunk) = field.chunk().await.unwrap() {
+                    upload.contents.extend_from_slice(&chunk);
+                }
+            }
+            name => {
+                return (
+                    StatusCode::BAD_REQUEST,
+                    Json(json!({
+                        "success": false,
+                        "message": "Invalid form field name",
+                        "first_invalid_field_name": name,
+                    })),
+                );
+            }
         }
+
         println!("{} {} {} {}", name, filename, content_type, bytes.len());
     }
 
     // TODO finish this
-
-    todo!("Complete file upload");
 
     (
         StatusCode::OK,
