@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            WITH matching_university AS (\n                SELECT id\n                FROM university\n                WHERE $1 = ANY (domain_names)\n            ),\n            new_email AS (\n                INSERT INTO email (id, address, belongs_to_user, of_university, status)\n                VALUES ($2, $3, $4, (SELECT id FROM matching_university), 'unverified')\n            )\n            INSERT INTO \"user\" (id, first_names, last_name, primary_email, password_hash, totp_secret, user_role)\n            VALUES ($5, $6, $7, $8, $9, $10, $11)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid",
+        "Varchar",
+        "Uuid",
+        "Uuid",
+        "Varchar",
+        "Varchar",
+        "Uuid",
+        "Varchar",
+        "Varchar",
+        "Int2"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b78a8fb90564de6b187dcc5f0eb9701919417711ddf99a6761110f325c2790fd"
+}
