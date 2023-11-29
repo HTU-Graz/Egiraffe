@@ -1,4 +1,5 @@
 pub mod course;
+pub mod file;
 pub mod init;
 pub mod session;
 pub mod university;

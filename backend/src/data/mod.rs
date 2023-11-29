@@ -185,3 +185,15 @@ pub struct SystemTransaction {
     /// The amount of ECS the user gained or lost
     pub delta_ec: i16,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct File {
+    pub id: Uuid,
+    pub name: String,
+    pub mime_type: String,
+    pub size: i64,
+    // The latest one should match the file's last modified date
+    pub revision_at: NaiveDateTime,
+    /// The ID of the upload this file belongs to
+    pub upload_id: Uuid,
+}

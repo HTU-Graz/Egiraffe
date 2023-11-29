@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use axum::{
     extract::{Multipart, State},
     http::StatusCode,
@@ -322,7 +324,7 @@ async fn handle_do_file(
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     mut multipart: Multipart,
 ) -> impl IntoResponse {
-    let mut upload = DoFileReq {
+    let mut upload_req = DoFileReq {
         upload_id: Uuid::new_v4(),
         name: String::new(),
         mime_type: String::new(),
@@ -335,11 +337,11 @@ async fn handle_do_file(
 
         match name.as_str() {
             "upload" => {
-                upload.name = field.file_name().unwrap().to_owned();
-                upload.mime_type = field.content_type().unwrap().to_owned();
+                upload_req.name = field.file_name().unwrap().to_owned();
+                upload_req.mime_type = field.content_type().unwrap().to_owned();
 
                 while let Some(chunk) = field.chunk().await.unwrap() {
-                    upload.contents.extend_from_slice(&chunk);
+                    upload_req.contents.extend_from_slice(&chunk);
                 }
             }
             name => {
@@ -357,7 +359,61 @@ async fn handle_do_file(
         // println!("{} {} {} {}", name, filename, content_type, bytes.len());
     }
 
-    // TODO finish this
+    // 1. Get the upload from the database
+    let maybe_upload = db::upload::get_upload_by_id(&db_pool, upload_req.upload_id).await;
+    let Ok(upload) = maybe_upload else {
+        log::error!(
+            "Failed to get upload from database: {}",
+            maybe_upload.unwrap_err()
+        );
+
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({
+                "success": false,
+                "message": "Failed to get upload from database",
+            })),
+        );
+    };
+
+    let Some(upload) = upload else {
+        log::error!(
+            "Cannot modify: no such upload: {id}",
+            id = upload_req.upload_id
+        );
+
+        return (
+            StatusCode::NOT_FOUND,
+            Json(json!({
+                "success": false,
+                "message": "No such upload",
+            })),
+        );
+    };
+
+    // 2. Check if the user is allowed to modify this upload
+    if upload.uploader != current_user_id {
+        log::error!(
+            "Cannot modify: user ({current_user_id}) is not the uploader ({})",
+            upload.uploader
+        );
+
+        return (
+            StatusCode::FORBIDDEN,
+            Json(json!({
+                "success": false,
+                "message": "User is not allowed to modify this upload",
+            })),
+        );
+    }
+
+    // 3. Write the file to disk
+    // HACK maybe even consider checking for a name collision?
+    let file_id = Uuid::new_v4();
+    let path = PathBuf::from("uploads").join(file_id.to_string());
+    tokio::fs::write(path, upload_req.contents).await.unwrap();
+
+    // 4. Write metadata to the database
 
     (
         StatusCode::OK,
