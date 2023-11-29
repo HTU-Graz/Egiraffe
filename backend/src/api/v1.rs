@@ -2,6 +2,7 @@ pub mod action;
 mod auth;
 mod course;
 mod get;
+// mod university;
 
 use axum::{
     extract::State,
@@ -55,6 +56,7 @@ pub fn routes(state: &AppState) -> Router<AppState> {
             "/admin",
             Router::new()
                 .route("/demo-admin-route", get(handle_demo_protected_route))
+                // .nest("/university", university::routes(state))
                 .layer(middleware::from_fn_with_state(
                     state.clone(),
                     auth::<_, { AuthLevel::Admin }>,

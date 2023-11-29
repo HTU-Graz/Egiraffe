@@ -354,7 +354,7 @@ async fn handle_do_file(
             }
         }
 
-        println!("{} {} {} {}", name, filename, content_type, bytes.len());
+        // println!("{} {} {} {}", name, filename, content_type, bytes.len());
     }
 
     // TODO finish this
