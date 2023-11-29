@@ -21,7 +21,7 @@ pub fn routes(state: &AppState) -> Router<AppState> {
     Router::new()
         .route("/", get(api_greeting).post(api_greeting).put(api_greeting))
         // .route("/courses", put(handle_get_courses))
-        .route("/uploads", put(handle_do_upload))
+        .route("/upload", put(handle_do_upload))
         // .route("/universities", put(handle_get_universities))
         .route("/me", put(handle_do_me))
         .route("/file", put(handle_do_file))

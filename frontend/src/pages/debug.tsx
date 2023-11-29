@@ -1,10 +1,18 @@
 import { Link, useRouteData } from '@solidjs/router';
-import { For, Suspense } from 'solid-js';
-import { Course } from '../api/courses';
-import { CoursesDataType } from './courses.data';
-import { UploadRequest } from '../api/uploads';
+import { For, Suspense, createSignal } from 'solid-js';
+import { Course, GetCoursesResponse } from '../api/courses';
+import { Upload, UploadRequest, upload } from '../api/uploads';
+import { getUniversities } from '../api/universities';
+import { put } from '../api';
+
+const unis = await getUniversities();
+const tu_graz = unis.find((uni) => uni.short_name === "TUG")!;
 
 export default function Debug() {
+
+  const [course, setCourse] = createSignal<Course | null>(null);
+  const [_upload, setUpload] = createSignal<Upload | null>(null);
+
   const handle_upload = async (e: Event) => {
     e.preventDefault();
     const form = document.getElementById("upload-form") as HTMLFormElement;
@@ -19,39 +27,47 @@ export default function Debug() {
 
   const handle_create_course = async (e: Event) => {
     e.preventDefault();
-    const data = JSON.stringify({
-      id: "foobar",
-      name: "foobar",
-      held_at: "foobar",
+
+    console.debug("Creating course");
+
+    const json = await put("/api/v1/mod/courses/create", {
+      "name": "Introduction to Egiraffe",
+      "held_at": tu_graz.id,
     } as Course);
 
-    const response = await fetch("/api/v1/mod/courses/create", {
-      method: "PUT",
-      body: data,
-    });
-    const json = await response.json();
+    console.debug("Created course", json);
+
+    const courses = (await put<GetCoursesResponse>("/api/v1/get/courses", {})).courses as Course[];
+    setCourse(courses[0]);
+
+    console.debug("Course is:", courses[0])
+
     console.log(json);
   }
 
   const handle_create_upload = async (e: Event) => {
     e.preventDefault();
-    const data = JSON.stringify({
-      id: "foobar",
-      name: "foobar",
-      filename: "foobar",
-      content_type: "foobar",
-    } as UploadRequest);
+    const upload_ = await upload({
+      belongs_to: course()?.id,
+      name: "Test upload",
+      description: "This is a test upload",
+      price: 0,
+    })
 
-    const response = await fetch("/api/v1/do/upload", {
-      method: "PUT",
-      body: data,
-    });
-    const json = await response.json();
-    console.log(json);
+    setUpload(upload_);
   }
 
   return (
     <div>
+      <p>
+        Currently targeting "{course()?.name}" ({course()?.id}).
+      </p>
+      <p>
+        Upload is "{_upload()?.name}" ({_upload()?.id}).
+      </p>
+
+      <br />
+
       <button onClick={handle_create_course} class="btn btn-accent">Create course</button>
       &nbsp;&nbsp;&nbsp;
       <button onClick={handle_create_upload} class="btn btn-accent">Create upload</button>
