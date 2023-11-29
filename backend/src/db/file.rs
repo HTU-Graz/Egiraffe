@@ -1,5 +1,3 @@
-use anyhow::Context;
-
 use crate::data::File;
 
 pub async fn create_file(db_pool: &sqlx::Pool<sqlx::Postgres>, file: &File) -> anyhow::Result<()> {
@@ -10,19 +8,23 @@ pub async fn create_file(db_pool: &sqlx::Pool<sqlx::Postgres>, file: &File) -> a
                     name,
                     mime_type,
                     size,
-                    upload_id
+                    upload_id,
+                    revision_at
                 )
-            VALUES ($1, $2, $3, $4, $5)
+            VALUES ($1, $2, $3, $4, $5, $6)
         "#,
         file.id,
         file.name,
         file.mime_type,
         file.size,
         file.upload_id,
+        file.revision_at
     )
     .execute(db_pool)
     .await
-    .context("Failed to create file")?;
+    // .unwrap();
+    // .context("Failed to create file")?;
+    ?;
 
     Ok(())
 }

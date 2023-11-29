@@ -13,7 +13,7 @@ use uuid::Uuid;
 
 use crate::{
     api::api_greeting,
-    data::{RedactedUser, Upload},
+    data::{File, RedactedUser, Upload},
     db::{self, user::make_pwd_hash},
     AppState,
 };
@@ -325,7 +325,7 @@ async fn handle_do_file(
     mut multipart: Multipart,
 ) -> impl IntoResponse {
     let mut upload_req = DoFileReq {
-        upload_id: Uuid::new_v4(),
+        upload_id: Uuid::new_v4(), // TODO remove this, value never read
         name: String::new(),
         mime_type: String::new(),
         contents: Vec::new(),
@@ -336,7 +336,11 @@ async fn handle_do_file(
         let name = field.name().unwrap().to_owned();
 
         match name.as_str() {
-            "upload" => {
+            "upload_id" => {
+                // TODO handle parse error
+                upload_req.upload_id = Uuid::parse_str(&field.text().await.unwrap()).unwrap();
+            }
+            "file" => {
                 upload_req.name = field.file_name().unwrap().to_owned();
                 upload_req.mime_type = field.content_type().unwrap().to_owned();
 
@@ -407,19 +411,40 @@ async fn handle_do_file(
         );
     }
 
-    // 3. Write the file to disk
-    // HACK maybe even consider checking for a name collision?
-    let file_id = Uuid::new_v4();
-    let path = PathBuf::from("uploads").join(file_id.to_string());
-    tokio::fs::write(path, upload_req.contents).await.unwrap();
+    // 3. Generate file metadata & persist it to the database
+    let file = File {
+        id: Uuid::new_v4(),
+        name: upload_req.name,
+        mime_type: upload_req.mime_type,
+        size: upload_req.contents.len() as i64,
+        upload_id: upload_req.upload_id,
+        revision_at: chrono::Utc::now().naive_utc(), // FIXME update the upload's last modified date to this timestamp
+    };
 
-    // 4. Write metadata to the database
+    let maybe_file = db::file::create_file(&db_pool, &file).await;
+    if maybe_file.is_err() {
+        log::error!("Failed to create file: {}", maybe_file.unwrap_err());
+
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({
+                "success": false,
+                "message": "Failed to create file",
+            })),
+        );
+    };
+
+    // 4. Write the file to disk
+    std::fs::create_dir_all("uploads").unwrap();
+    let path = PathBuf::from("uploads").join(file.id.to_string());
+    tokio::fs::write(path, upload_req.contents).await.unwrap();
 
     (
         StatusCode::OK,
         Json(json!({
             "success": true,
             "message": "File uploaded successfully",
+            "file": file,
         })),
     )
 }

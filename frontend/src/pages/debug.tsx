@@ -59,6 +59,20 @@ export default function Debug() {
 
   return (
     <div>
+      <h1 class="text-3xl font-bold">
+        Debug page
+      </h1>
+      <ol class="list-decimal">
+        <li>Log in as Mod or Admin</li>
+        <li>Click Create course</li>
+        <li>Click Create upload</li>
+        <li>Select a file</li>
+        <li>Click yeet</li>
+        <li>Check JS & backend consoles</li>
+      </ol>
+
+      <br />
+
       <p>
         Currently targeting "{course()?.name}" ({course()?.id}).
       </p>
@@ -72,19 +86,15 @@ export default function Debug() {
       &nbsp;&nbsp;&nbsp;
       <button onClick={handle_create_upload} class="btn btn-accent">Create upload</button>
 
-      <br /> <br /> <br />
+      <br /> <br />
 
       <form id="upload-form">
-        {/* <input type="text" name="name" id="name " value={"name_foobar"} /> */}
-        {/* <input type="text" name="filename" id="filename " value={"filename_foobar"} /> */}
-        {/* <input type="text" name="content_type" id="content_type " value={"content_type_foobar"} /> */}
         <input type="file" name="file" />
-        <input type="text" name="upload_id" value="hello world" hidden />
+        <input type="text" name="upload_id" value={_upload()?.id} hidden />
         <br />
         <br />
         <button type="submit" onClick={handle_upload} class="btn btn-accent">Yeet</button>
       </form>
-
 
     </div>
   );
