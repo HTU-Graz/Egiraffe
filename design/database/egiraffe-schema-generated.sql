@@ -101,6 +101,17 @@ CREATE TABLE IF NOT EXISTS public.prof
     PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS public.file
+(
+    id uuid,
+    name character varying(255) NOT NULL,
+    mime_type character varying(200) NOT NULL,
+    size bigint NOT NULL,
+    revision_at timestamp without time zone NOT NULL,
+    upload_id uuid NOT NULL,
+    PRIMARY KEY (id)
+);
+
 ALTER TABLE IF EXISTS public."user"
     ADD FOREIGN KEY (primary_email)
     REFERENCES public.email (id) MATCH SIMPLE
@@ -192,6 +203,14 @@ ALTER TABLE IF EXISTS public.system_ec_transaction
 ALTER TABLE IF EXISTS public.session
     ADD FOREIGN KEY (of_user)
     REFERENCES public."user" (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS public.file
+    ADD FOREIGN KEY (upload_id)
+    REFERENCES public.upload (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
     NOT VALID;
