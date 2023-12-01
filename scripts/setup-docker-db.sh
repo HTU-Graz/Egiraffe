@@ -126,10 +126,6 @@ egng-wait-db() {
 }
 
 egng-reset-db() {
-    if not egng-is-running; then
-        egng-start-container
-    fi
-
     egng-wait-db
 
     echo ">> resetting database"
