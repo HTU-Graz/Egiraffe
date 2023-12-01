@@ -4,7 +4,6 @@ EGNG_CONTAINER_IMAGE=postgres:16.1-bookworm
 EGNG_CONTAINER_NAME=egiraffe_postgres
 EGNG_DATABASE_NAME=egiraffe
 EGNG_DATABASE_PASSWORD=test
-EGNG_DATABASE_WAIT=2
 
 # --- get script dir ---
 
@@ -99,21 +98,46 @@ egng-remove-container() {
     fi
 }
 
+egng-psql() {
+    PGPASSWORD="$EGNG_DATABASE_PASSWORD" psql \
+        -h "$EGNG_CONTAINER_IP" -U postgres \
+        "$@"
+}
+
+egng-wait-db() {
+    if not egng-is-running; then
+        egng-start-container
+    fi
+
+    echo ">> waiting until database is up"
+    secs=0
+    until egng-psql -c "SELECT 1" &> /dev/null
+    do
+        secs=$((secs + 1))
+        echo -n "."
+        sleep 1
+    done
+
+    if [[ $secs -gt 0 ]]; then
+        echo
+    fi
+
+    echo ">> database up after $secs seconds"
+}
+
 egng-reset-db() {
     if not egng-is-running; then
         egng-start-container
-
-        echo ">> waiting $EGNG_DATABASE_WAIT secs for database to come up"
-        sleep "$EGNG_DATABASE_WAIT"
     fi
 
+    egng-wait-db
+
     echo ">> resetting database"
-    PGPASSWORD="$EGNG_DATABASE_PASSWORD" psql \
-        -h "$EGNG_CONTAINER_IP" -U postgres \
+    egng-psql \
         -c "DROP DATABASE IF EXISTS $EGNG_DATABASE_NAME;" \
         -c "CREATE DATABASE $EGNG_DATABASE_NAME;"
-    PGPASSWORD="$EGNG_DATABASE_PASSWORD" psql \
-        -h "$EGNG_CONTAINER_IP" -U postgres -d "$EGNG_DATABASE_NAME" \
+    egng-psql \
+        -d "$EGNG_DATABASE_NAME" \
         -f "$EGNG_SCRIPT_DIR/../design/database/yeet.sql" \
         -f "$EGNG_SCRIPT_DIR/../design/database/egiraffe-schema-generated.sql"
 }
