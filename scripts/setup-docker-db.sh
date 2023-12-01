@@ -68,9 +68,7 @@ egng-create-container() {
 }
 
 egng-start-container() {
-    if not egng-has-container; then
-        egng-create-container
-    fi
+    egng-create-container
 
     if not egng-is-running; then
         echo ">> starting container"
@@ -88,9 +86,7 @@ egng-stop-container() {
 }
 
 egng-remove-container() {
-    if egng-is-running; then
-        egng-stop-container
-    fi
+    egng-stop-container
 
     if egng-has-container; then
         echo ">> removing container"
@@ -105,9 +101,7 @@ egng-psql() {
 }
 
 egng-wait-db() {
-    if not egng-is-running; then
-        egng-start-container
-    fi
+    egng-start-container
 
     echo ">> waiting until database is up"
     secs=0
