@@ -1,4 +1,5 @@
 #!/bin/bash
+# compatible with bash and zsh
 
 EGNG_CONTAINER_IMAGE=postgres:16.1-bookworm
 EGNG_CONTAINER_NAME=egiraffe_postgres
@@ -7,12 +8,31 @@ EGNG_DATABASE_PASSWORD=test
 
 # --- get script dir ---
 
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    echo ">> error: please run this script as 'source scripts/setup-docker-db.sh'"
+EGNG_SOURCED=1
+if [ -n "$BASH" ]; then
+    # bash
+    set +o posix
+    EGNG_SCRIPT_DIR=$(realpath "$(dirname "${BASH_SOURCE[0]}")")
+    if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+        echo ">> warning: this script is intended to be sourced"
+        echo ">> warning: please run this script as 'source scripts/setup-docker-db.sh"
+        EGNG_SOURCED=0
+    fi
+elif [ -n "$ZSH_EVAL_CONTEXT" ]; then
+    # zsh
+    EGNG_SCRIPT_DIR="$0:a:h"
+    if [[ "$ZSH_EVAL_CONTEXT" == "toplevel" ]]; then
+        echo ">> warning: this script is intended to be sourced"
+        echo ">> warning: please run this script as 'source scripts/setup-docker-db.sh"
+        EGNG_SOURCED=0
+    fi
+else
+    # other shell
+    echo ">> error: this script is only compatible with bash and zsh"
+    echo ">> note: this script is intended to be sourced"
+    echo ">> note: please run this script as 'source scripts/setup-docker-db.sh"
     exit 1
 fi
-
-EGNG_SCRIPT_DIR=$(realpath "$(dirname "${BASH_SOURCE[0]}")")
 
 # --- check if docker commands need sudo ---
 
@@ -42,6 +62,17 @@ not() {
 }
 
 # --- container management functions ---
+
+egng-usage() {
+    echo ">> this script provides the following commands:"
+    echo "- egng-has-container ...... check if DB container already created"
+    echo "- egng-is-running ......... check if DB container is already running"
+    echo "- egng-create-container ... create DB container"
+    echo "- egng-start-container .... start DB container"
+    echo "- egng-stop-container ..... stop DB container"
+    echo "- egng-remove-container ... remove DB container"
+    echo "- egng-reset-db ........... reset DB in container to defaults"
+}
 
 egng-has-container() {
     [[ -n $(egng-docker ps -a -q -f name="$EGNG_CONTAINER_NAME") ]]
@@ -136,4 +167,8 @@ if egng-has-container; then
     egng-start-container
 else
     egng-reset-db
+fi
+
+if [[ $EGNG_SOURCED -eq 1 ]]; then
+    egng-usage
 fi
