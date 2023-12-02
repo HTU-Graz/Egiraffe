@@ -169,9 +169,8 @@ pub struct Prof {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Purchase {
-    pub id: Uuid,
-    pub buyer: Uuid,
-    pub upload: Uuid,
+    pub user_id: Uuid,
+    pub upload_id: Uuid,
     pub ecs_spent: i16,
     pub purchase_date: NaiveDateTime,
     pub rating: Option<i16>,
