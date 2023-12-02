@@ -31,6 +31,7 @@ pub fn routes(state: &AppState) -> Router<AppState> {
         // .route("/universities", put(handle_get_universities))
         .route("/me", put(handle_do_me))
         .route("/file", put(handle_do_file))
+        .route("/purchase", put(handle_do_purchase))
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -466,6 +467,105 @@ async fn handle_do_file(
             "success": true,
             "message": "File uploaded successfully",
             "file": file,
+        })),
+    )
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct DoPurchaseReq {
+    /// The ID of the upload this file belongs to
+    upload_id: Uuid,
+}
+
+async fn handle_do_purchase(
+    State(db_pool): State<AppState>,
+    Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
+    Json(req): Json<DoPurchaseReq>,
+) -> impl IntoResponse {
+    // 1. Get the upload from the database
+    let maybe_upload = db::upload::get_upload_by_id(&db_pool, req.upload_id).await;
+    let Ok(upload) = maybe_upload else {
+        log::error!(
+            "Failed to get upload from database: {}",
+            maybe_upload.unwrap_err()
+        );
+
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({
+                "success": false,
+                "message": "Failed to get upload from database",
+            })),
+        );
+    };
+
+    let Some(upload) = upload else {
+        log::error!("Cannot purchase: no such upload: {id}", id = req.upload_id);
+
+        return (
+            StatusCode::NOT_FOUND,
+            Json(json!({
+                "success": false,
+                "message": "No such upload",
+            })),
+        );
+    };
+
+    // 2. Get the current user from the database
+    let maybe_user = db::user::get_user_by_id(&db_pool, current_user_id).await;
+    let Ok(Some(user)) = maybe_user else {
+        log::error!(
+            "Failed to get user from database: {}",
+            maybe_user.unwrap_err()
+        );
+
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({
+                "success": false,
+                "message": "Failed to get user from database",
+            })),
+        );
+    };
+
+    // 3. Check if the user has already purchased this upload
+    let maybe_purchase = db::purchase::get_purchase(&db_pool, current_user_id, req.upload_id).await;
+    let Ok(purchase) = maybe_purchase else {
+        log::error!(
+            "Failed to get purchase from database: {}",
+            maybe_purchase.unwrap_err()
+        );
+
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({
+                "success": false,
+                "message": "Failed to get purchase from database",
+            })),
+        );
+    };
+    if purchase.is_some() {
+        log::error!(
+            "Cannot purchase: user ({current_user_id}) has already purchased this upload ({})",
+            upload.uploader
+        );
+
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json!({
+                "success": false,
+                "message": "User has already purchased this upload",
+            })),
+        );
+    }
+
+    // 4. Check if the user has enough ECS to purchase this upload
+
+    (
+        StatusCode::OK,
+        Json(json!({
+            "success": true,
+            "message": "Purchase successful",
         })),
     )
 }
