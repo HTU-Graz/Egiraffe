@@ -7,14 +7,18 @@ use axum::{
     routing::{get, put},
     Extension, Json, Router,
 };
+use futures::{io, TryStreamExt};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use tokio::io::AsyncWriteExt;
+use tokio_util::io::StreamReader;
 use uuid::Uuid;
 
 use crate::{
     api::api_greeting,
     data::{File, RedactedUser, Upload},
     db::{self, user::make_pwd_hash},
+    util::bad_request,
     AppState,
 };
 
@@ -314,9 +318,6 @@ struct DoFileReq {
 
     /// The file's MIME type
     mime_type: String,
-
-    /// The file's contents, byte buffer
-    contents: Vec<u8>,
 }
 
 async fn handle_do_file(
@@ -324,44 +325,52 @@ async fn handle_do_file(
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     mut multipart: Multipart,
 ) -> impl IntoResponse {
-    let mut upload_req = DoFileReq {
-        upload_id: Uuid::new_v4(), // TODO remove this, value never read
-        name: String::new(),
-        mime_type: String::new(),
-        contents: Vec::new(),
+    // 0. Get the form fields
+    // 0.a. Get the upload ID
+    let Some(field) = multipart.next_field().await.unwrap() else {
+        return bad_request("Missing some form field");
+    };
+    if field.name().unwrap().to_owned() != "upload_id" {
+        return bad_request("Invalid form field name, expected \"upload_id\"");
+    }
+
+    let upload_id = Uuid::parse_str(&field.text().await.unwrap()).unwrap();
+
+    // 0.b. Get the file name & MIME type
+    let Some(field) = multipart.next_field().await.unwrap() else {
+        return bad_request("Missing some form field");
+    };
+    if field.name().unwrap().to_owned() != "file" {
+        return bad_request("Invalid form field name, expected \"file\"");
+    }
+
+    let name = field.file_name().unwrap().to_owned();
+    let mime_type = field.content_type().unwrap().to_owned();
+
+    let upload_req = DoFileReq {
+        upload_id,
+        name,
+        mime_type,
     };
 
-    while let Some(mut field) = multipart.next_field().await.unwrap() {
-        // Get the form field's name, filename, and content type
-        let name = field.name().unwrap().to_owned();
+    // 2. Begin reading & writing the file's contents; and generate file metadata
+    let file_id = Uuid::new_v4();
 
-        match name.as_str() {
-            "upload_id" => {
-                // TODO handle parse error
-                upload_req.upload_id = Uuid::parse_str(&field.text().await.unwrap()).unwrap();
-            }
-            "file" => {
-                upload_req.name = field.file_name().unwrap().to_owned();
-                upload_req.mime_type = field.content_type().unwrap().to_owned();
+    // 3. Write the file to disk & check for collisions
+    std::fs::create_dir_all("uploads").unwrap();
+    let path = PathBuf::from("uploads").join(file_id.to_string());
 
-                while let Some(chunk) = field.chunk().await.unwrap() {
-                    upload_req.contents.extend_from_slice(&chunk);
-                }
-            }
-            name => {
-                return (
-                    StatusCode::BAD_REQUEST,
-                    Json(json!({
-                        "success": false,
-                        "message": "Invalid form field name",
-                        "first_invalid_field_name": name,
-                    })),
-                );
-            }
-        }
-
-        // println!("{} {} {} {}", name, filename, content_type, bytes.len());
+    if path.exists() {
+        return bad_request("File already exists; please try again");
     }
+
+    let mut fs_file = tokio::fs::File::create(&path).await.unwrap();
+    let body_with_io_error = field.map_err(|err| io::Error::new(io::ErrorKind::Other, err));
+    let body_reader = StreamReader::new(body_with_io_error);
+    futures::pin_mut!(body_reader);
+
+    // TODO consider moving this till after the database stuff
+    let file_writing_future = tokio::io::copy(&mut body_reader, &mut fs_file);
 
     // 1. Get the upload from the database
     let maybe_upload = db::upload::get_upload_by_id(&db_pool, upload_req.upload_id).await;
@@ -370,6 +379,10 @@ async fn handle_do_file(
             "Failed to get upload from database: {}",
             maybe_upload.unwrap_err()
         );
+
+        // Stop writing the file to disk & delete it
+        let _ = file_writing_future.await;
+        let _ = tokio::fs::remove_file(path).await;
 
         return (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -385,6 +398,10 @@ async fn handle_do_file(
             "Cannot modify: no such upload: {id}",
             id = upload_req.upload_id
         );
+
+        // Stop writing the file to disk & delete it
+        let _ = file_writing_future.await;
+        let _ = tokio::fs::remove_file(path).await;
 
         return (
             StatusCode::NOT_FOUND,
@@ -402,6 +419,10 @@ async fn handle_do_file(
             upload.uploader
         );
 
+        // Stop writing the file to disk & delete it
+        let _ = file_writing_future.await;
+        let _ = tokio::fs::remove_file(path).await;
+
         return (
             StatusCode::FORBIDDEN,
             Json(json!({
@@ -411,19 +432,24 @@ async fn handle_do_file(
         );
     }
 
-    // 3. Generate file metadata & persist it to the database
+    // 3. Finish writing the file to disk
+    let bytes_written = file_writing_future.await.unwrap();
     let file = File {
-        id: Uuid::new_v4(),
+        id: file_id,
         name: upload_req.name,
         mime_type: upload_req.mime_type,
-        size: upload_req.contents.len() as i64,
+        size: bytes_written as i64,
         upload_id: upload_req.upload_id,
         revision_at: chrono::Utc::now().naive_utc(), // FIXME update the upload's last modified date to this timestamp
     };
 
+    // 4. Persist the file in the database
     let maybe_file = db::file::create_file(&db_pool, &file).await;
     if maybe_file.is_err() {
         log::error!("Failed to create file: {}", maybe_file.unwrap_err());
+
+        // Delete the file
+        let _ = tokio::fs::remove_file(path).await;
 
         return (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -433,11 +459,6 @@ async fn handle_do_file(
             })),
         );
     };
-
-    // 4. Write the file to disk
-    std::fs::create_dir_all("uploads").unwrap();
-    let path = PathBuf::from("uploads").join(file.id.to_string());
-    tokio::fs::write(path, upload_req.contents).await.unwrap();
 
     (
         StatusCode::OK,

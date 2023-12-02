@@ -8,6 +8,7 @@
 mod api;
 mod data;
 mod db;
+mod util;
 
 use std::{
     fs::canonicalize,

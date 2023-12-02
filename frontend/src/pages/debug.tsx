@@ -89,8 +89,8 @@ export default function Debug() {
       <br /> <br />
 
       <form id="upload-form">
-        <input type="file" name="file" />
         <input type="text" name="upload_id" value={_upload()?.id} hidden />
+        <input type="file" name="file" />
         <br />
         <br />
         <button type="submit" onClick={handle_upload} class="btn btn-accent">Yeet</button>
