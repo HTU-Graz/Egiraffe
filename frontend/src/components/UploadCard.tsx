@@ -1,5 +1,5 @@
-import { Upload } from '../api/uploads';
-import DocumentPreview from '../assets/document-preview.png';
+import { Upload } from "../api/uploads";
+import DocumentPreview from "../assets/document-preview.png";
 
 export default function UploadCard(props: Upload) {
   return (

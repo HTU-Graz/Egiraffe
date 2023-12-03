@@ -1,4 +1,4 @@
-import { ErrorResponse, put } from '.';
+import { ErrorResponse, put } from ".";
 
 export interface RedactedUser {
   success: boolean;
@@ -27,15 +27,13 @@ export type UpdateMeResponse =
   | { success: true; message: string; user: RedactedUser };
 
 export async function getMe(): Promise<RedactedUser> {
-  const response = await put<GetMeResponse>('/api/v1/get/me');
+  const response = await put<GetMeResponse>("/api/v1/get/me");
   if (!response.success) throw new Error(response.message);
   return response.user;
 }
 
-export async function updateMe(
-  options: UpdateMeRequest
-): Promise<RedactedUser> {
-  const response = await put<UpdateMeResponse>('/api/v1/do/me', options);
+export async function updateMe(options: UpdateMeRequest): Promise<RedactedUser> {
+  const response = await put<UpdateMeResponse>("/api/v1/do/me", options);
   if (!response.success) throw new Error(response.message);
   return response.user;
 }

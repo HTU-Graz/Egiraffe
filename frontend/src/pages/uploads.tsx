@@ -1,15 +1,14 @@
-import { useRouteData } from '@solidjs/router';
-import { For, Show, Suspense, createSignal } from 'solid-js';
-import UploadCard from '../components/UploadCard';
-import { UploadsDataType } from './uploads.data';
+import { useRouteData } from "@solidjs/router";
+import { For, Show, Suspense, createSignal } from "solid-js";
+import UploadCard from "../components/UploadCard";
+import { UploadsDataType } from "./uploads.data";
 
 export default function Course() {
   const uploads = useRouteData<UploadsDataType>();
-  const [activeSort, setActiveSort] = createSignal('date');
+  const [activeSort, setActiveSort] = createSignal("date");
   const [sortDateDirection, setSortDateDirection] = createSignal(false);
   const [sortSizeDirection, setSortSizeDirection] = createSignal(false);
-  const [sortDownloadsDirection, setSortDownloadsDirection] =
-    createSignal(false);
+  const [sortDownloadsDirection, setSortDownloadsDirection] = createSignal(false);
   const [sortRatingDirection, setSortRatingDirection] = createSignal(false);
 
   return (
@@ -17,11 +16,10 @@ export default function Course() {
       <div class="flex gap-2 flex-wrap">
         <button
           class="btn"
-          classList={{ 'btn-accent': activeSort() === 'date' }}
+          classList={{ "btn-accent": activeSort() === "date" }}
           onClick={() => {
-            if (activeSort() === 'date')
-              setSortDateDirection(!sortDateDirection());
-            setActiveSort('date');
+            if (activeSort() === "date") setSortDateDirection(!sortDateDirection());
+            setActiveSort("date");
           }}
         >
           <Show when={sortDateDirection()} fallback={DescendingIcon()}>
@@ -31,11 +29,10 @@ export default function Course() {
         </button>
         <button
           class="btn"
-          classList={{ 'btn-accent': activeSort() === 'size' }}
+          classList={{ "btn-accent": activeSort() === "size" }}
           onClick={() => {
-            if (activeSort() === 'size')
-              setSortSizeDirection(!sortSizeDirection());
-            setActiveSort('size');
+            if (activeSort() === "size") setSortSizeDirection(!sortSizeDirection());
+            setActiveSort("size");
           }}
         >
           <Show when={sortSizeDirection()} fallback={DescendingIcon()}>
@@ -45,11 +42,10 @@ export default function Course() {
         </button>
         <button
           class="btn"
-          classList={{ 'btn-accent': activeSort() === 'downloads' }}
+          classList={{ "btn-accent": activeSort() === "downloads" }}
           onClick={() => {
-            if (activeSort() === 'downloads')
-              setSortDownloadsDirection(!sortDownloadsDirection());
-            setActiveSort('downloads');
+            if (activeSort() === "downloads") setSortDownloadsDirection(!sortDownloadsDirection());
+            setActiveSort("downloads");
           }}
         >
           <Show when={sortDownloadsDirection()} fallback={DescendingIcon()}>
@@ -59,11 +55,10 @@ export default function Course() {
         </button>
         <button
           class="btn"
-          classList={{ 'btn-accent': activeSort() === 'rating' }}
+          classList={{ "btn-accent": activeSort() === "rating" }}
           onClick={() => {
-            if (activeSort() === 'rating')
-              setSortRatingDirection(!sortRatingDirection());
-            setActiveSort('rating');
+            if (activeSort() === "rating") setSortRatingDirection(!sortRatingDirection());
+            setActiveSort("rating");
           }}
         >
           <Show when={sortRatingDirection()} fallback={DescendingIcon()}>
@@ -91,7 +86,7 @@ export default function Course() {
             </For>
           }
         >
-          <For each={uploads()}>{upload => <UploadCard {...upload} />}</For>
+          <For each={uploads()}>{(upload) => <UploadCard {...upload} />}</For>
         </Suspense>
       </div>
     </>

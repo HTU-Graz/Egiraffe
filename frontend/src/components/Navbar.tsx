@@ -1,8 +1,8 @@
-import { Link } from '@solidjs/router';
-import { Show } from 'solid-js';
-import { useAuthContext } from '../context/AuthContext';
-import SearchBar from './SearchBar';
-import Sidebar from './Sidebar';
+import { Link } from "@solidjs/router";
+import { Show } from "solid-js";
+import { useAuthContext } from "../context/AuthContext";
+import SearchBar from "./SearchBar";
+import Sidebar from "./Sidebar";
 
 export default function Navbar() {
   const { user, logout, setLoginModal } = useAuthContext();
@@ -13,10 +13,7 @@ export default function Navbar() {
       <div class="drawer-content flex flex-col">
         <div class="navbar border-b-2 border-base-300">
           <div class="justify-start md:w-1/2">
-            <label
-              for="navbar-drawer"
-              class="btn btn-square btn-ghost md:hidden"
-            >
+            <label for="navbar-drawer" class="btn btn-square btn-ghost md:hidden">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -32,9 +29,7 @@ export default function Navbar() {
               </svg>
             </label>
             <Link href="/">
-              <button class="btn btn-ghost normal-case text-xl hidden md:inline">
-                Egiraffe
-              </button>
+              <button class="btn btn-ghost normal-case text-xl hidden md:inline">Egiraffe</button>
             </Link>
           </div>
 
@@ -45,10 +40,7 @@ export default function Navbar() {
           <div class="navbar-end hidden md:inline-flex">
             <div class="navbar-end hidden md:inline-flex">
               <Link href="/debug">
-                <button
-                  type="button"
-                  class="btn btn-ghost btn-sm rounded-btn"
-                >
+                <button type="button" class="btn btn-ghost btn-sm rounded-btn">
                   Debug menu
                 </button>
               </Link>
@@ -58,10 +50,7 @@ export default function Navbar() {
                 <Show
                   when={user()}
                   fallback={
-                    <button
-                      onClick={() => setLoginModal(true)}
-                      class="btn btn-outline"
-                    >
+                    <button onClick={() => setLoginModal(true)} class="btn btn-outline">
                       Anmelden
                     </button>
                   }

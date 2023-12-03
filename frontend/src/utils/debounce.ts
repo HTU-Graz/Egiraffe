@@ -1,6 +1,6 @@
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
-  delay: number
+  delay: number,
 ): (...args: Parameters<T>) => Promise<Awaited<ReturnType<T>>> {
   let timeout: number | null = null;
   return function (this: unknown, ...args: Parameters<T>) {

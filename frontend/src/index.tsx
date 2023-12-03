@@ -1,11 +1,11 @@
 /* @refresh reload */
-import './index.css';
+import "./index.css";
 
-import { Router } from '@solidjs/router';
-import 'solid-devtools';
-import { render } from 'solid-js/web';
-import App from './app';
-import { AuthContextProvider } from './context/AuthContext';
+import { Router } from "@solidjs/router";
+import "solid-devtools";
+import { render } from "solid-js/web";
+import App from "./app";
+import { AuthContextProvider } from "./context/AuthContext";
 
 render(
   () => (
@@ -15,5 +15,5 @@ render(
       </Router>
     </AuthContextProvider>
   ),
-  document.getElementById('root')!
+  document.getElementById("root")!,
 );

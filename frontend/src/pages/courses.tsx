@@ -5,8 +5,7 @@ import { CoursesDataType } from "./courses.data";
 
 export default function Courses() {
   const courses = useRouteData<CoursesDataType>();
-  const courseURL = (course: Course) =>
-    `/courses/${encodeURIComponent(course.id)}`;
+  const courseURL = (course: Course) => `/courses/${encodeURIComponent(course.id)}`;
 
   return (
     <div class="flex flex-col gap-6 items-center">

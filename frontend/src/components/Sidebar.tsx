@@ -1,6 +1,6 @@
-import { Link } from '@solidjs/router';
-import { Show } from 'solid-js';
-import { useAuthContext } from '../context/AuthContext';
+import { Link } from "@solidjs/router";
+import { Show } from "solid-js";
+import { useAuthContext } from "../context/AuthContext";
 
 export default function Sidebar() {
   const { user, logout, setLoginModal } = useAuthContext();

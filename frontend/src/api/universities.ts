@@ -1,4 +1,4 @@
-import { ErrorResponse, put } from '.';
+import { ErrorResponse, put } from ".";
 
 export interface University {
   id: string;
@@ -8,14 +8,10 @@ export interface University {
   domain_names: string[];
 }
 
-export type GetUniversitiesResponse =
-  | ErrorResponse
-  | { success: true; universities: University[] };
+export type GetUniversitiesResponse = ErrorResponse | { success: true; universities: University[] };
 
 export async function getUniversities(): Promise<University[]> {
-  const response = await put<GetUniversitiesResponse>(
-    '/api/v1/get/universities'
-  );
+  const response = await put<GetUniversitiesResponse>("/api/v1/get/universities");
   if (!response.success) throw new Error(response.message);
   return response.universities;
 }

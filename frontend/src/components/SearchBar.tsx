@@ -12,8 +12,7 @@ export default function SearchBar() {
   });
   let searchInput: HTMLInputElement | undefined;
 
-  const courseURL = (course: Course) =>
-    `/courses/${encodeURIComponent(course.id)}`;
+  const courseURL = (course: Course) => `/courses/${encodeURIComponent(course.id)}`;
 
   function submit(event: SubmitEvent) {
     event.preventDefault();
@@ -39,10 +38,7 @@ export default function SearchBar() {
               <For each={courses()}>
                 {(course) => (
                   <li>
-                    <Link
-                      href={courseURL(course)}
-                      onClick={(e) => e.currentTarget.blur()}
-                    >
+                    <Link href={courseURL(course)} onClick={(e) => e.currentTarget.blur()}>
                       {course.name}
                     </Link>
                   </li>

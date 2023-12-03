@@ -1,13 +1,12 @@
-import { RouteDataFunc } from '@solidjs/router';
-import { Resource, createResource } from 'solid-js';
-import { Upload } from '../api/uploads';
+import { RouteDataFunc } from "@solidjs/router";
+import { Resource, createResource } from "solid-js";
+import { Upload } from "../api/uploads";
 
-const UploadsData: RouteDataFunc<unknown, Resource<Upload[]>> = args => {
+const UploadsData: RouteDataFunc<unknown, Resource<Upload[]>> = (args) => {
   // TODO: use API
   // const [data] = createResource(() => getUploads(args.params.id));
   const [data] = createResource<Upload[]>(async () => {
-    const sleep = (ms: number) =>
-      new Promise(resolve => setTimeout(resolve, ms));
+    const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
     await sleep(500);
     return Array.from({ length: 20 }, (_, i) => ({
       id: `${crypto.randomUUID()}`,
