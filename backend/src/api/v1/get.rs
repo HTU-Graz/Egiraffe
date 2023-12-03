@@ -1,13 +1,17 @@
+use std::{path::PathBuf, vec};
+
 use axum::{
+    body::StreamBody,
     extract::State,
-    http::StatusCode,
-    response::IntoResponse,
+    http::{header, StatusCode},
+    response::{AppendHeaders, IntoResponse},
     routing::{get, put},
     Extension, Json, Router,
 };
 use axum_extra::extract::CookieJar;
 use serde::Deserialize;
 use serde_json::json;
+use tokio_util::io::ReaderStream;
 use uuid::Uuid;
 
 use crate::{api::api_greeting, data::RedactedUser, db, AppState};
@@ -157,10 +161,10 @@ async fn handle_get_file(
 ) -> impl IntoResponse {
     // Most `/get` endpoints do not require authentication; this one does
     if current_user_id.is_nil() {
-        return (
+        return Err((
             StatusCode::UNAUTHORIZED,
             Json(json!({ "error": "Unauthorized" })),
-        );
+        ));
     }
 
     let maybe_file = db::file::get_file(&db_pool, req.file_id).await;
@@ -168,25 +172,40 @@ async fn handle_get_file(
     let Ok(file) = maybe_file else {
         log::error!("Failed to get file: {}", maybe_file.unwrap_err());
 
-        return (
+        return Err((
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(json!({
                 "success": false,
                 "message": "Failed to get file",
             })),
-        );
+        ));
+    };
+
+    let do_download_to_user = async {
+        let fs_file =
+            tokio::fs::File::open(PathBuf::from("uploads").join(file.id.to_string())).await;
+
+        let fs_file = fs_file.unwrap(); // TODO handle error
+
+        let stream = ReaderStream::new(fs_file);
+        let body = StreamBody::new(stream);
+
+        return Ok((
+            StatusCode::OK,
+            [
+                (header::CONTENT_TYPE, file.mime_type),
+                (
+                    header::CONTENT_DISPOSITION,
+                    format!("attachment; filename={}", file.name),
+                ),
+            ],
+            body,
+        ));
     };
 
     // A user is always authorized to access their own files
     if file.upload_id == current_user_id {
-        // FIXME actually send the file
-        return (
-            StatusCode::OK,
-            Json(json!({
-                "success": true,
-                "file": file,
-            })),
-        );
+        return do_download_to_user.await;
     }
 
     // Check if there is a valid purchase for this file
@@ -194,32 +213,26 @@ async fn handle_get_file(
     let Ok(purchase) = maybe_purchase else {
         log::error!("Failed to get purchase: {}", maybe_purchase.unwrap_err());
 
-        return (
+        return Err((
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(json!({
                 "success": false,
                 "message": "Failed to get purchase",
             })),
-        );
+        ));
     };
 
-    let Some(purchase) = purchase else {
+    if purchase.is_none() {
         // The user has not purchased this file
-        return (
-            StatusCode::OK,
+        return Err((
+            StatusCode::UNAUTHORIZED,
             Json(json!({
                 "success": false,
                 "message": "No valid purchase for this file and user",
             })),
-        );
+        ));
     };
 
     // FIXME actually send the file
-    (
-        StatusCode::OK,
-        Json(json!({
-            "success": true,
-            "file": file,
-        })),
-    )
+    do_download_to_user.await
 }
