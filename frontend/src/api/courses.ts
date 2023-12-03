@@ -1,4 +1,4 @@
-import { ErrorResponse, put } from '.';
+import { ErrorResponse, put } from ".";
 
 export type GetCoursesResponse =
   | ErrorResponse
@@ -13,8 +13,16 @@ export interface Course {
   held_at: string;
 }
 
-export async function getCourses(): Promise<Course[]> {
-  const response = await put<GetCoursesResponse>('/api/v1/get/courses');
+export async function getCourses(query = ""): Promise<Course[]> {
+  const response = await put<GetCoursesResponse>(
+    query.length > 0
+      ? "/api/v1/get/courses?query=" + encodeURIComponent(query)
+      : "/api/v1/get/courses"
+  );
   if (!response.success) throw new Error(response.message);
-  return response.courses;
+
+  // TODO: filter in backend
+  return response.courses.filter((course) =>
+    course.name.toLowerCase().includes(query.toLowerCase())
+  );
 }

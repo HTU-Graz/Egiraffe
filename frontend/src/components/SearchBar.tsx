@@ -1,24 +1,57 @@
-import { createSignal } from 'solid-js';
+import { Link, useNavigate, useSearchParams } from "@solidjs/router";
+import { For, Show, createResource, createSignal } from "solid-js";
+import { Course, getCourses } from "../api/courses";
+import { debounce } from "../utils/debounce";
 
 export default function SearchBar() {
-  const [query, setQuery] = createSignal('');
+  const [searchParams] = useSearchParams<{ search: string }>();
+  const navigate = useNavigate();
+  const [query, setQuery] = createSignal(searchParams.search || "");
+  const [courses] = createResource(query, debounce(getCourses, 100), {
+    initialValue: [],
+  });
+  let searchInput: HTMLInputElement | undefined;
+
+  const courseURL = (course: Course) =>
+    `/courses/${encodeURIComponent(course.id)}`;
 
   function submit(event: SubmitEvent) {
     event.preventDefault();
-    alert(`Suche nach ${query()}`);
+    searchInput?.blur();
+    navigate(`/courses?search=${encodeURIComponent(query())}`);
   }
 
   return (
     <form onSubmit={submit} class="w-full max-w-lg">
       <div class="join w-full rounded-full">
-        <input
-          type="search"
-          placeholder="Suche nach Kursen…"
-          required
-          class="input input-bordered join-item w-full"
-          onInput={e => setQuery(e.currentTarget.value)}
-        />
-        <button type="submit" class="btn join-item">
+        <div class="w-full relative group">
+          <input
+            type="search"
+            placeholder="Suche nach Kursen…"
+            required
+            class="input input-bordered join-item w-full group"
+            ref={searchInput}
+            value={query()}
+            onInput={(e) => setQuery(e.currentTarget.value)}
+          />
+          <Show when={query().length > 0 && courses().length > 0}>
+            <ul class="menu absolute z-10 mt-2 rounded-box w-full bg-base-200 shadow-md hidden group-focus-within:block">
+              <For each={courses()}>
+                {(course) => (
+                  <li>
+                    <Link
+                      href={courseURL(course)}
+                      onClick={(e) => e.currentTarget.blur()}
+                    >
+                      {course.name}
+                    </Link>
+                  </li>
+                )}
+              </For>
+            </ul>
+          </Show>
+        </div>
+        <button class="btn join-item">
           <svg
             width="28"
             height="28"
