@@ -14,6 +14,7 @@ use axum::{
 };
 use axum_extra::extract::CookieJar;
 use serde_json::json;
+use uuid::Uuid;
 
 use crate::{
     db::{self, session::ValidationResult},
@@ -34,7 +35,13 @@ pub fn routes(state: &AppState) -> Router<AppState> {
                 .route("/register", put(auth::handle_register))
                 .route("/logout", put(auth::handle_logout)),
         )
-        .nest("/get", get::routes(state))
+        .nest(
+            "/get",
+            get::routes(state).layer(middleware::from_fn_with_state(
+                state.clone(),
+                auth::<_, { AuthLevel::Anyone }>,
+            )),
+        )
         .nest(
             "/do",
             action::routes(state).layer(middleware::from_fn_with_state(
@@ -99,10 +106,6 @@ async fn auth<B, const REQUIRED_AUTH_LEVEL: i16>(
 
     log::info!("Auth level required: {}", REQUIRED_AUTH_LEVEL);
 
-    if REQUIRED_AUTH_LEVEL == AuthLevel::Anyone {
-        return Ok(next.run(request).await);
-    }
-
     let unauthorized = (
         StatusCode::UNAUTHORIZED,
         Json(json!({ "error": "Unauthorized" })),
@@ -110,7 +113,13 @@ async fn auth<B, const REQUIRED_AUTH_LEVEL: i16>(
 
     let Some(session_cookie) = cookie_jar.get(SESSION_COOKIE_NAME) else {
         log::info!("No session cookie");
-        return Err(unauthorized);
+
+        if REQUIRED_AUTH_LEVEL == AuthLevel::Anyone {
+            request.extensions_mut().insert(Uuid::nil());
+            return Ok(next.run(request).await);
+        } else {
+            return Err(unauthorized);
+        }
     };
 
     match db::session::validate_session(&db_pool, &session_cookie.value().to_string()).await {

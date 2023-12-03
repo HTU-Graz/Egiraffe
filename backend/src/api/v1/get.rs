@@ -3,7 +3,7 @@ use axum::{
     http::StatusCode,
     response::IntoResponse,
     routing::{get, put},
-    Json, Router,
+    Extension, Json, Router,
 };
 use axum_extra::extract::CookieJar;
 use serde::Deserialize;
@@ -21,6 +21,7 @@ pub fn routes(state: &AppState) -> Router<AppState> {
         .route("/uploads", put(handle_get_uploads))
         .route("/universities", put(handle_get_universities))
         .route("/me", put(handle_get_me))
+        .route("/file", put(handle_get_file))
 }
 
 #[derive(Debug, Deserialize)]
@@ -142,4 +143,83 @@ async fn handle_get_me(
             "user": RedactedUser::from(user), // hide sensitive information
         })),
     );
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GetFileReq {
+    pub file_id: Uuid,
+}
+
+async fn handle_get_file(
+    State(db_pool): State<AppState>,
+    Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
+    Json(req): Json<GetFileReq>,
+) -> impl IntoResponse {
+    // Most `/get` endpoints do not require authentication; this one does
+    if current_user_id.is_nil() {
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(json!({ "error": "Unauthorized" })),
+        );
+    }
+
+    let maybe_file = db::file::get_file(&db_pool, req.file_id).await;
+
+    let Ok(file) = maybe_file else {
+        log::error!("Failed to get file: {}", maybe_file.unwrap_err());
+
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({
+                "success": false,
+                "message": "Failed to get file",
+            })),
+        );
+    };
+
+    // A user is always authorized to access their own files
+    if file.upload_id == current_user_id {
+        // FIXME actually send the file
+        return (
+            StatusCode::OK,
+            Json(json!({
+                "success": true,
+                "file": file,
+            })),
+        );
+    }
+
+    // Check if there is a valid purchase for this file
+    let maybe_purchase = db::purchase::get_purchase(&db_pool, current_user_id, file.id).await;
+    let Ok(purchase) = maybe_purchase else {
+        log::error!("Failed to get purchase: {}", maybe_purchase.unwrap_err());
+
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({
+                "success": false,
+                "message": "Failed to get purchase",
+            })),
+        );
+    };
+
+    let Some(purchase) = purchase else {
+        // The user has not purchased this file
+        return (
+            StatusCode::OK,
+            Json(json!({
+                "success": false,
+                "message": "No valid purchase for this file and user",
+            })),
+        );
+    };
+
+    // FIXME actually send the file
+    (
+        StatusCode::OK,
+        Json(json!({
+            "success": true,
+            "file": file,
+        })),
+    )
 }

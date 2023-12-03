@@ -1,3 +1,5 @@
+use uuid::Uuid;
+
 use crate::data::File;
 
 pub async fn create_file(db_pool: &sqlx::Pool<sqlx::Postgres>, file: &File) -> anyhow::Result<()> {
@@ -27,4 +29,29 @@ pub async fn create_file(db_pool: &sqlx::Pool<sqlx::Postgres>, file: &File) -> a
     ?;
 
     Ok(())
+}
+
+pub async fn get_file(db_pool: &sqlx::Pool<sqlx::Postgres>, id: Uuid) -> anyhow::Result<File> {
+    let file = sqlx::query_as!(
+        File,
+        r#"
+            SELECT
+                id,
+                name,
+                mime_type,
+                size,
+                upload_id,
+                revision_at
+            FROM file
+            WHERE id = $1
+        "#,
+        id
+    )
+    .fetch_one(db_pool)
+    .await
+    // .unwrap();
+    // .context("Failed to get file")?;
+    ?;
+
+    Ok(file)
 }
