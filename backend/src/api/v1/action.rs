@@ -16,7 +16,7 @@ use uuid::Uuid;
 
 use crate::{
     api::api_greeting,
-    data::{File, RedactedUser, Upload},
+    data::{File, Purchase, RedactedUser, Upload},
     db::{self, user::make_pwd_hash},
     util::bad_request,
     AppState,
@@ -544,6 +544,7 @@ async fn handle_do_purchase(
             })),
         );
     };
+
     if purchase.is_some() {
         log::error!(
             "Cannot purchase: user ({current_user_id}) has already purchased this upload ({})",
@@ -559,13 +560,38 @@ async fn handle_do_purchase(
         );
     }
 
-    // 4. Check if the user has enough ECS to purchase this upload
+    // TODO 4. Check if the user has enough ECS to purchase this upload
+
+    // 5. Create the purchase
+    let purchase = Purchase {
+        user_id: current_user_id,
+        upload_id: req.upload_id,
+        ecs_spent: upload.price,
+        purchase_date: chrono::Utc::now().naive_utc().clone(),
+        rating: None,
+    };
+
+    // 6. Persist the purchase in the database
+    let create_result = db::purchase::create_purchase(&db_pool, &purchase).await;
+    if create_result.is_err() {
+        log::error!("Failed to create purchase: {}", create_result.unwrap_err());
+
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({
+                "success": false,
+                "message": "Failed to create purchase",
+            })),
+        );
+    };
 
     (
         StatusCode::OK,
         Json(json!({
             "success": true,
             "message": "Purchase successful",
+            "purchase": purchase,
+            "upload": upload,
         })),
     )
 }

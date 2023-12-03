@@ -40,9 +40,9 @@ pub async fn create_universities(db_con: &mut PgConnection) -> anyhow::Result<()
 
         sqlx::query!(
             r#"
-                    INSERT INTO university (id, name_full, name_mid, name_short, domain_names)
-                    VALUES ($1, $2, $3, $4, $5)
-                "#,
+                INSERT INTO university (id, name_full, name_mid, name_short, domain_names)
+                VALUES ($1, $2, $3, $4, $5)
+            "#,
             id,
             full_name,
             mid_name,
