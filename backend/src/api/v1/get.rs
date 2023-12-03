@@ -26,6 +26,7 @@ pub fn routes(state: &AppState) -> Router<AppState> {
         .route("/universities", put(handle_get_universities))
         .route("/me", put(handle_get_me))
         .route("/file", put(handle_get_file))
+        .route("/files", put(handle_get_files))
 }
 
 #[derive(Debug, Deserialize)]
@@ -222,17 +223,52 @@ async fn handle_get_file(
         ));
     };
 
-    if purchase.is_none() {
-        // The user has not purchased this file
-        return Err((
-            StatusCode::UNAUTHORIZED,
-            Json(json!({
-                "success": false,
-                "message": "No valid purchase for this file and user",
-            })),
-        ));
-    };
+    // if purchase.is_none() {
+    //     // The user has not purchased this file
+    //     return Err((
+    //         StatusCode::UNAUTHORIZED,
+    //         Json(json!({
+    //             "success": false,
+    //             "message": "No valid purchase for this file and user",
+    //         })),
+    //     ));
+    // };
 
     // FIXME actually send the file
     do_download_to_user.await
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GetUploadReq {
+    pub upload_id: Uuid,
+}
+
+async fn handle_get_files(
+    State(db_pool): State<AppState>,
+    Json(upload): Json<GetUploadReq>,
+) -> impl IntoResponse {
+    log::info!("Get details for upload {}", upload.upload_id);
+
+    let maybe_files = db::file::get_files_of_upload(&db_pool, upload.upload_id).await;
+
+    let Ok(files) = maybe_files else {
+        log::error!("Failed to get files: {}", maybe_files.unwrap_err());
+
+        // TODO return a more specific error message (e.g. 404 if course doesn't exist)
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({
+                "success": false,
+                "message": "Failed to get files",
+            })),
+        );
+    };
+
+    (
+        StatusCode::OK,
+        Json(json!({
+            "success": true,
+            "files": files,
+        })),
+    )
 }
