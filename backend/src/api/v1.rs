@@ -99,7 +99,6 @@ async fn auth<B, const REQUIRED_AUTH_LEVEL: i16>(
     mut request: Request<B>,
     next: Next<B>,
 ) -> Result<Response, (StatusCode, Json<serde_json::Value>)> {
-    dbg!(REQUIRED_AUTH_LEVEL);
     assert!(
         REQUIRED_AUTH_LEVEL >= AuthLevel::Anyone && REQUIRED_AUTH_LEVEL <= AuthLevel::Admin,
         "Invalid auth level"
