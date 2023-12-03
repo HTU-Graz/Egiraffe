@@ -99,8 +99,9 @@ async fn auth<B, const REQUIRED_AUTH_LEVEL: i16>(
     mut request: Request<B>,
     next: Next<B>,
 ) -> Result<Response, (StatusCode, Json<serde_json::Value>)> {
+    dbg!(REQUIRED_AUTH_LEVEL);
     assert!(
-        REQUIRED_AUTH_LEVEL > AuthLevel::Anyone && REQUIRED_AUTH_LEVEL <= AuthLevel::Admin,
+        REQUIRED_AUTH_LEVEL >= AuthLevel::Anyone && REQUIRED_AUTH_LEVEL <= AuthLevel::Admin,
         "Invalid auth level"
     );
 
@@ -130,6 +131,10 @@ async fn auth<B, const REQUIRED_AUTH_LEVEL: i16>(
             request.extensions_mut().insert(user_id);
             let response = next.run(request).await;
             Ok(response)
+        }
+        ValidationResult::Invalid if REQUIRED_AUTH_LEVEL == AuthLevel::Anyone => {
+            request.extensions_mut().insert(Uuid::nil());
+            return Ok(next.run(request).await);
         }
         ValidationResult::Invalid | ValidationResult::Valid { .. } => {
             log::info!("Invalid session");
