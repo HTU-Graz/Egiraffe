@@ -204,9 +204,27 @@ async fn handle_get_file(
         ));
     };
 
+    let Ok(upload) = db::file::get_upload_of_file(&db_pool, file.id).await else {
+        log::error!("Failed to get upload of file: {}", file.id);
+
+        return Err((
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({
+                "success": false,
+                "message": "Failed to get upload",
+            })),
+        ));
+    };
+
     // A user is always authorized to access their own files
-    if file.upload_id == current_user_id {
+    if upload.uploader == current_user_id {
+        log::info!(
+            "User {current_user_id} is authorized (owner) to access file {}",
+            file.id
+        );
         return do_download_to_user.await;
+    } else {
+        log::info!("User {current_user_id} does not own file {}", file.id);
     }
 
     // Check if there is a valid purchase for this file
@@ -223,18 +241,27 @@ async fn handle_get_file(
         ));
     };
 
-    // if purchase.is_none() {
-    //     // The user has not purchased this file
-    //     return Err((
-    //         StatusCode::UNAUTHORIZED,
-    //         Json(json!({
-    //             "success": false,
-    //             "message": "No valid purchase for this file and user",
-    //         })),
-    //     ));
-    // };
+    if purchase.is_none() {
+        log::info!(
+            "User {current_user_id} is not authorized to access file {}",
+            file.id
+        );
 
-    // FIXME actually send the file
+        // The user has not purchased this file
+        return Err((
+            StatusCode::UNAUTHORIZED,
+            Json(json!({
+                "success": false,
+                "message": "No valid purchase for this file and user",
+            })),
+        ));
+    };
+
+    log::info!(
+        "User {current_user_id} is authorized (purchase) to access file {}",
+        file.id
+    );
+
     do_download_to_user.await
 }
 

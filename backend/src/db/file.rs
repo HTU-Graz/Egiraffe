@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use crate::data::File;
+use crate::data::{File, Upload};
 
 pub async fn create_file(db_pool: &sqlx::Pool<sqlx::Postgres>, file: &File) -> anyhow::Result<()> {
     sqlx::query!(
@@ -82,4 +82,39 @@ pub async fn get_files_of_upload(
     ?;
 
     Ok(files)
+}
+
+pub async fn get_upload_of_file(
+    db_pool: &sqlx::Pool<sqlx::Postgres>,
+    file_id: Uuid,
+) -> anyhow::Result<Upload> {
+    let upload = sqlx::query_as!(
+        Upload,
+        r#"
+            SELECT
+                id,
+                upload_name AS name,
+                description,
+                price,
+                uploader,
+                upload_date,
+                last_modified_date,
+                belongs_to,
+                held_by
+            FROM upload
+            WHERE id = (
+                SELECT upload_id
+                FROM file
+                WHERE id = $1
+            )
+        "#,
+        file_id
+    )
+    .fetch_one(db_pool)
+    .await
+    // .unwrap();
+    // .context("Failed to get upload of file")?;
+    ?;
+
+    Ok(upload)
 }
