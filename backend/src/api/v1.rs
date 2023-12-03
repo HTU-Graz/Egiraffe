@@ -108,7 +108,7 @@ async fn auth<B, const REQUIRED_AUTH_LEVEL: i16>(
 
     let unauthorized = (
         StatusCode::UNAUTHORIZED,
-        Json(json!({ "error": "Unauthorized" })),
+        Json(json!({ "success": false, "message": "Unauthorized" })),
     );
 
     let Some(session_cookie) = cookie_jar.get(SESSION_COOKIE_NAME) else {

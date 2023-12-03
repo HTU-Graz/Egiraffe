@@ -36,7 +36,7 @@ async fn handle_create_course(
         held_at: course.held_at,
     };
 
-    let db_action_result = db::course::create_course(&db_pool, course).await;
+    let db_action_result = db::course::create_course(&db_pool, &course).await;
 
     if let Err(error) = db_action_result {
         return (
@@ -48,7 +48,10 @@ async fn handle_create_course(
         );
     }
 
-    (StatusCode::OK, Json(json!({ "success": true })))
+    (
+        StatusCode::OK,
+        Json(json!({ "success": true, "course": course })),
+    )
 }
 
 async fn handle_replace_course(

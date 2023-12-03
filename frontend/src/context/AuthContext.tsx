@@ -1,6 +1,6 @@
 import { ParentProps, createContext, createResource, createSignal, useContext } from "solid-js";
 import { LoginRequest, RegisterRequest, login, logout, register } from "../api/auth";
-import { getMe } from "../api/users";
+import { AuthLevel, getMe } from "../api/users";
 
 function useProviderValue() {
   const [user, { mutate: mutateUser, refetch: refetchUser }] = createResource(() =>
@@ -22,6 +22,9 @@ function useProviderValue() {
     async logout() {
       mutateUser(undefined);
       await logout();
+    },
+    hasRole(role: AuthLevel) {
+      return (user()?.user_role || 0) >= role;
     },
   };
 }

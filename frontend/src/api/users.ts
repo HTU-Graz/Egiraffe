@@ -1,12 +1,19 @@
 import { ErrorResponse, put } from ".";
 
+export enum AuthLevel {
+  ANYONE = 0,
+  REGULARUSER = 1,
+  MODERATOR = 2,
+  ADMIN = 3,
+}
+
 export interface RedactedUser {
   success: boolean;
   id: string;
   first_names: string;
   last_name: string;
   totp_enabled: boolean;
-  user_role: number;
+  user_role: AuthLevel;
 }
 
 export type GetMeResponse =

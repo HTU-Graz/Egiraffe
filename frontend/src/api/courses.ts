@@ -13,6 +13,13 @@ export interface Course {
   held_at: string;
 }
 
+export interface CreateCourseRequest {
+  name: string;
+  held_at: string;
+}
+
+export type CreateCourseResponse = ErrorResponse | { success: true; course: Course };
+
 export async function getCourses(query = ""): Promise<Course[]> {
   const response = await put<GetCoursesResponse>(
     query.length > 0
@@ -25,4 +32,10 @@ export async function getCourses(query = ""): Promise<Course[]> {
   return response.courses.filter((course) =>
     course.name.toLowerCase().includes(query.toLowerCase()),
   );
+}
+
+export async function createCourse(req: CreateCourseRequest): Promise<Course> {
+  const response = await put<CreateCourseResponse>("/api/v1/mod/courses/create", req);
+  if (!response.success) throw new Error(response.message);
+  return response.course;
 }

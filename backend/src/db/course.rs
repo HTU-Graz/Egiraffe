@@ -3,7 +3,7 @@ use sqlx::PgPool;
 
 use crate::data::Course;
 
-pub async fn create_course(db_pool: &PgPool, course: Course) -> anyhow::Result<()> {
+pub async fn create_course(db_pool: &PgPool, course: &Course) -> anyhow::Result<()> {
     sqlx::query!(
         r#"
             INSERT INTO course (id, held_at, course_name)

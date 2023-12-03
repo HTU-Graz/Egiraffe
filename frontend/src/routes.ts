@@ -26,6 +26,10 @@ export const routes: RouteDefinition[] = [
     data: UploadsData,
   },
   {
+    path: "/create-course",
+    component: lazy(() => import("./pages/create-course")),
+  },
+  {
     path: "/about",
     component: lazy(() => import("./pages/about")),
     data: AboutData,

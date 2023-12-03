@@ -1,14 +1,36 @@
 import { Link, useRouteData } from "@solidjs/router";
 import { For, Show, Suspense } from "solid-js";
 import { Course } from "../api/courses";
+import { AuthLevel } from "../api/users";
+import { useAuthContext } from "../context/AuthContext";
 import { CoursesDataType } from "./courses.data";
 
 export default function Courses() {
+  const { hasRole } = useAuthContext();
   const courses = useRouteData<CoursesDataType>();
   const courseURL = (course: Course) => `/courses/${encodeURIComponent(course.id)}`;
 
   return (
     <div class="flex flex-col gap-6 items-center">
+      <Show when={hasRole(AuthLevel.MODERATOR)}>
+        <Link href="/create-course" class="btn btn-primary">
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M12 5l0 14" />
+            <path d="M5 12l14 0" />
+          </svg>
+          Kurs erstellen
+        </Link>
+      </Show>
       <Suspense
         fallback={
           <For each={Array(5)}>

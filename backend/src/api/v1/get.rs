@@ -164,7 +164,7 @@ async fn handle_get_file(
     if current_user_id.is_nil() {
         return Err((
             StatusCode::UNAUTHORIZED,
-            Json(json!({ "error": "Unauthorized" })),
+            Json(json!({ "success": false, "message": "Unauthorized" })),
         ));
     }
 
