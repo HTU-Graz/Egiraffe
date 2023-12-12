@@ -20,8 +20,14 @@ export enum AuthLevel {
   ADMIN = 3,
 }
 
+/**
+ * Contains most of the information the server knows about a user.
+ * 
+ * This is the type of object that is returned by the `/api/v1/get/me` endpoint.
+ * 
+ * Information like the password hash and the user's TOTP secret are withheld by the server.
+ */
 export interface RedactedUser {
-  success: boolean;
   id: string;
   first_names: string;
   last_name: string;
