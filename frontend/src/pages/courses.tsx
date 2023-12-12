@@ -1,14 +1,16 @@
 import { Link, useRouteData } from "@solidjs/router";
-import { For, Show, Suspense } from "solid-js";
+import { For, Show, Suspense, createResource } from "solid-js";
 import { Course } from "../api/courses";
 import { AuthLevel } from "../api/users";
 import { useAuthContext } from "../context/AuthContext";
 import { CoursesDataType } from "./courses.data";
+import { getUniversities } from "../api/universities";
 
 export default function Courses() {
   const { hasRole } = useAuthContext();
   const courses = useRouteData<CoursesDataType>();
   const courseURL = (course: Course) => `/courses/${encodeURIComponent(course.id)}`;
+  const [universities] = createResource(getUniversities);
 
   return (
     <div class="flex flex-col gap-6 items-center">
@@ -53,7 +55,7 @@ export default function Courses() {
               href={courseURL(course)}
             >
               <h2 class="text-lg font-bold">{course.name}</h2>
-              <p>{course.held_at}</p>
+              <p>{universities()?.find((u) => u.id === course.held_at)?.full_name ?? course.held_at}</p>
             </Link>
           )}
         </For>
