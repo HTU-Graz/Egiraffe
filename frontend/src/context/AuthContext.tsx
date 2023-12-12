@@ -24,7 +24,7 @@ function useProviderValue() {
       await logout();
     },
     hasRole(role: AuthLevel) {
-      return (user()?.user_role ?? 0) >= role;
+      return (user()?.user_role ?? AuthLevel.ANYONE) >= role;
     },
   };
 }
