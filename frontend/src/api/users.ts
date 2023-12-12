@@ -1,9 +1,22 @@
 import { ErrorResponse, put } from ".";
 
+/**
+ * Describes the different levels of authentication
+ * that a user can have.
+ *
+ * The higher the number, the more permissions the user has.
+ */
 export enum AuthLevel {
+  /** Describes anonymous users who are not logged in */
   ANYONE = 0,
-  REGULARUSER = 1,
+
+  /** Describes users without any special permissions */
+  REGULAR_USER = 1,
+
+  /** Describes users with moderator permissions */
   MODERATOR = 2,
+
+  /** Describes users with admin permissions */
   ADMIN = 3,
 }
 
@@ -19,9 +32,9 @@ export interface RedactedUser {
 export type GetMeResponse =
   | ErrorResponse
   | {
-      success: true;
-      user: RedactedUser;
-    };
+    success: true;
+    user: RedactedUser;
+  };
 
 export interface UpdateMeRequest {
   first_names?: string;
