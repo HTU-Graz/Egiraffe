@@ -1,13 +1,43 @@
 use anyhow::Context;
+use serde::Deserialize;
 use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::data::Upload;
 
+use super::SortOrder;
+
+#[derive(Debug, Deserialize)]
+pub struct Sorting {
+    pub order: SortOrder,
+    pub by: SortBy,
+}
+
+#[derive(Debug, Deserialize)]
+pub enum SortBy {
+    Name,
+    UploadDate,
+    Date,
+    Rating,
+}
+
+impl Default for Sorting {
+    fn default() -> Self {
+        Self {
+            order: SortOrder::Descending,
+            by: SortBy::Date,
+        }
+    }
+}
+
 pub async fn get_uploads_of_course(
     db_pool: &PgPool,
     course_id: Uuid,
+    sorting: Option<Sorting>,
 ) -> anyhow::Result<Vec<Upload>> {
+    // TODO: implement sorting
+    let _sorting = sorting.unwrap_or_default();
+
     sqlx::query_as!(
         Upload,
         r#"

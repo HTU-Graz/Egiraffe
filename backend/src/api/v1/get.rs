@@ -36,6 +36,7 @@ pub fn routes(state: &AppState) -> Router<AppState> {
 #[derive(Debug, Deserialize)]
 pub struct GetUploadsReq {
     pub course_id: Uuid,
+    pub sorting: Option<db::upload::Sorting>,
 }
 
 async fn handle_get_courses(State(db_pool): State<AppState>) -> impl IntoResponse {
@@ -68,7 +69,8 @@ async fn handle_get_uploads(
 ) -> impl IntoResponse {
     log::info!("Get uploads for course {}", course.course_id);
 
-    let maybe_uploads = db::upload::get_uploads_of_course(&db_pool, course.course_id).await;
+    let maybe_uploads =
+        db::upload::get_uploads_of_course(&db_pool, course.course_id, course.sorting).await;
 
     let Ok(uploads) = maybe_uploads else {
         log::error!("Failed to get courses: {}", maybe_uploads.unwrap_err());

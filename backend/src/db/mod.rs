@@ -8,6 +8,7 @@ pub mod upload;
 pub mod user;
 
 use anyhow::Context;
+use serde::Deserialize;
 use sqlx::{postgres::PgPoolOptions, Acquire, Executor, PgConnection, Pool, Postgres};
 use std::env;
 use tokio::fs::read_to_string;
@@ -84,4 +85,10 @@ async fn yeet_everything(db_con: &mut PgConnection) -> Result<(), anyhow::Error>
     }
 
     Ok(())
+}
+
+#[derive(Debug, Deserialize)]
+pub enum SortOrder {
+    Ascending,
+    Descending,
 }
