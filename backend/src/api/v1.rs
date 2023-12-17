@@ -23,7 +23,7 @@ use crate::{
 
 use super::api_greeting;
 
-const SESSION_COOKIE_NAME: &str = "session_token";
+const SESSION_COOKIE_NAME: &str = "egiraffe_session_token";
 
 pub fn routes(state: &AppState) -> Router<AppState> {
     Router::new()
