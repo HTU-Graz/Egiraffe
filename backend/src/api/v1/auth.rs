@@ -177,15 +177,21 @@ pub async fn handle_logout(
 
     log::info!("Logout");
 
-    let mut dead_cookie = Cookie::named(SESSION_COOKIE_NAME);
-    dead_cookie.set_value("");
-    dead_cookie.set_http_only(true);
-    dead_cookie.set_path("/");
-    dead_cookie.set_max_age(Some(Duration::ZERO));
+    let dead_cookie = make_dead_cookie();
 
     (
         StatusCode::OK,
         cookie_jar.add(dead_cookie),
         Json(LogoutRes { success: true }),
     )
+}
+
+// TODO consider turning this into a static constant to clone from
+pub fn make_dead_cookie() -> Cookie<'static> {
+    let mut dead_cookie = Cookie::named(SESSION_COOKIE_NAME);
+    dead_cookie.set_value("");
+    dead_cookie.set_http_only(true);
+    dead_cookie.set_path("/");
+    dead_cookie.set_max_age(Some(Duration::ZERO));
+    dead_cookie
 }
