@@ -28,7 +28,7 @@ export type UploadResponse = ErrorResponse | { success: true; message: string; u
 export type FileUploadResponse = ErrorResponse | { success: true; message: string };
 
 export async function getUploads(courseId: string): Promise<Upload[]> {
-  const response = await put<GetUploadsResponse>("api/v1/get/uploads", {
+  const response = await put<GetUploadsResponse>("/api/v1/get/uploads", {
     course_id: courseId,
   });
   if (!response.success) throw new Error(response.message);

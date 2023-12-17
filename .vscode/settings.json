@@ -10,6 +10,7 @@
         "postgres",
         "rngs",
         "rustup",
+        "solidjs",
         "sqlx",
         "totp",
         "yeet"
