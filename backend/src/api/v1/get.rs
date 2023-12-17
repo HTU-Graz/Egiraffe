@@ -8,13 +8,17 @@ use axum::{
     routing::{get, put},
     Extension, Json, Router,
 };
-use axum_extra::extract::CookieJar;
+use axum_extra::extract::{cookie::Cookie, CookieJar};
 use serde::Deserialize;
 use serde_json::json;
 use tokio_util::io::ReaderStream;
 use uuid::Uuid;
 
-use crate::{api::api_greeting, data::RedactedUser, db, AppState};
+use crate::{
+    api::{api_greeting, v1::auth::make_dead_cookie},
+    data::RedactedUser,
+    db, AppState,
+};
 
 use super::SESSION_COOKIE_NAME;
 
@@ -131,18 +135,31 @@ async fn handle_get_me(
     // Get the session cookie from the cookie jar
     let Some(session_cookie) = cookie_jar.get(SESSION_COOKIE_NAME) else {
         log::info!("No session cookie");
-        return (StatusCode::UNAUTHORIZED, Json(generic_error_response));
+        return (
+            StatusCode::UNAUTHORIZED,
+            cookie_jar,
+            Json(generic_error_response),
+        );
     };
 
     // Get the user from the database
     let maybe_user = db::user::get_user_by_session(&db_pool, session_cookie.value()).await;
     let Ok(user) = maybe_user else {
-        log::error!("Failed to get user: {}", maybe_user.unwrap_err());
-        return (StatusCode::UNAUTHORIZED, Json(generic_error_response));
+        log::error!(
+            "Failed to get user, removing session cookie: {}",
+            maybe_user.unwrap_err()
+        );
+
+        return (
+            StatusCode::UNAUTHORIZED,
+            cookie_jar.add(make_dead_cookie()),
+            Json(generic_error_response),
+        );
     };
 
     return (
         StatusCode::OK,
+        cookie_jar,
         Json(json!({
             "success": true,
             "user": RedactedUser::from(user), // hide sensitive information
