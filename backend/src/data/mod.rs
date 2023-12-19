@@ -195,4 +195,6 @@ pub struct File {
     pub revision_at: NaiveDateTime,
     /// The ID of the upload this file belongs to
     pub upload_id: Uuid,
+    pub approval_uploader: bool,
+    pub approval_mod: bool,
 }

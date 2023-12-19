@@ -442,6 +442,8 @@ async fn handle_do_file(
         size: bytes_written as i64,
         upload_id: upload_req.upload_id,
         revision_at: chrono::Utc::now().naive_utc(), // FIXME update the upload's last modified date to this timestamp
+        approval_uploader: true, // TODO consider making this user-configurable to allow for "draft uploads"
+        approval_mod: false,
     };
 
     // 4. Persist the file in the database

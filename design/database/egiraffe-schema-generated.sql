@@ -109,6 +109,8 @@ CREATE TABLE IF NOT EXISTS public.file
     size bigint NOT NULL,
     revision_at timestamp without time zone NOT NULL,
     upload_id uuid NOT NULL,
+    approval_uploader boolean NOT NULL,
+    approval_mod boolean NOT NULL,
     PRIMARY KEY (id)
 );
 

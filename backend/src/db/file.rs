@@ -40,8 +40,10 @@ pub async fn get_file(db_pool: &sqlx::Pool<sqlx::Postgres>, id: Uuid) -> anyhow:
                 name,
                 mime_type,
                 size,
+                revision_at,
                 upload_id,
-                revision_at
+                approval_uploader,
+                approval_mod
             FROM file
             WHERE id = $1
         "#,
@@ -68,8 +70,10 @@ pub async fn get_files_of_upload(
                 name,
                 mime_type,
                 size,
+                revision_at,
                 upload_id,
-                revision_at
+                approval_uploader,
+                approval_mod
             FROM file
             WHERE upload_id = $1
         "#,
