@@ -36,14 +36,14 @@ export async function getUploads(courseId: string): Promise<Upload[]> {
 }
 
 export async function upload(options: UploadRequest): Promise<Upload> {
-  const response = await put<UploadResponse>("api/v1/do/upload", options);
+  const response = await put<UploadResponse>("/api/v1/do/upload", options);
   if (!response.success) throw new Error(response.message);
   return response.upload;
 }
 
 export async function uploadFile(form: FormData): Promise<FileUploadResponse> {
   const response = (await (
-    await fetch("api/v1/do/files", {
+    await fetch("/api/v1/do/files", {
       method: "PUT",
       body: form,
     })

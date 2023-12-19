@@ -201,6 +201,7 @@ async fn handle_get_file(
         ));
     };
 
+    // Prepare the download logic
     let do_download_to_user = async {
         let fs_file =
             tokio::fs::File::open(PathBuf::from("uploads").join(file.id.to_string())).await;
