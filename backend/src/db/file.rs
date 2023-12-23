@@ -11,16 +11,20 @@ pub async fn create_file(db_pool: &sqlx::Pool<sqlx::Postgres>, file: &File) -> a
                     mime_type,
                     size,
                     upload_id,
-                    revision_at
+                    revision_at,
+                    approval_uploader,
+                    approval_mod
                 )
-            VALUES ($1, $2, $3, $4, $5, $6)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         "#,
         file.id,
         file.name,
         file.mime_type,
         file.size,
         file.upload_id,
-        file.revision_at
+        file.revision_at,
+        file.approval_uploader,
+        file.approval_mod
     )
     .execute(db_pool)
     .await
