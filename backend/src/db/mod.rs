@@ -1,6 +1,7 @@
 pub mod course;
 pub mod file;
 pub mod init;
+pub mod prof;
 pub mod purchase;
 pub mod session;
 pub mod university;

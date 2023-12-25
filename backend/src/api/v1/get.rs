@@ -31,6 +31,7 @@ pub fn routes(state: &AppState) -> Router<AppState> {
         .route("/me", put(handle_get_me))
         .route("/file", put(handle_get_file))
         .route("/files", put(handle_get_files))
+        .route("/prof", put(handle_get_prof))
 }
 
 #[derive(Debug, Deserialize)]
@@ -316,6 +317,67 @@ async fn handle_get_files(
         Json(json!({
             "success": true,
             "files": files,
+        })),
+    )
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GetProfReq {
+    pub prof_id: Uuid,
+}
+
+async fn handle_get_prof(
+    State(db_pool): State<AppState>,
+    Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
+    Json(prof_req): Json<GetProfReq>,
+) -> impl IntoResponse {
+    log::info!("Get details for prof {}", prof_req.prof_id);
+
+    if current_user_id.is_nil() {
+        log::info!("User is not logged in; resolving profs requires authentication");
+
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(json!({
+                "success": false,
+                "message": "Resolving profs requires authentication",
+            })),
+        );
+    }
+
+    let maybe_prof = db::prof::get_prof(&db_pool, prof_req.prof_id).await;
+
+    let Ok(prof) = maybe_prof else {
+        log::error!("Failed to get prof: {}", maybe_prof.unwrap_err());
+
+        // TODO return a more specific error message (e.g. 404 if prof doesn't exist)
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({
+                "success": false,
+                "message": "Failed to get prof",
+            })),
+        );
+    };
+
+    let Some(prof) = prof else {
+        log::info!("Prof {} does not exist", prof_req.prof_id);
+
+        // TODO return a more specific error message (e.g. 404 if prof doesn't exist)
+        return (
+            StatusCode::NOT_FOUND,
+            Json(json!({
+                "success": false,
+                "message": "Prof does not exist",
+            })),
+        );
+    };
+
+    (
+        StatusCode::OK,
+        Json(json!({
+            "success": true,
+            "prof": prof,
         })),
     )
 }
