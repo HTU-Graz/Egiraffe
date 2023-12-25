@@ -1,6 +1,7 @@
 pub mod action;
 mod auth;
 mod course;
+mod ecs;
 mod get;
 mod profs;
 // mod university;
@@ -65,6 +66,7 @@ pub fn routes(state: &AppState) -> Router<AppState> {
             "/admin",
             Router::new()
                 .route("/demo-admin-route", get(handle_demo_protected_route))
+                .nest("/ecs", ecs::routes(state))
                 // .nest("/university", university::routes(state))
                 .layer(middleware::from_fn_with_state(
                     state.clone(),

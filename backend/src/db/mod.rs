@@ -1,4 +1,5 @@
 pub mod course;
+pub mod ecs;
 pub mod file;
 pub mod init;
 pub mod prof;
