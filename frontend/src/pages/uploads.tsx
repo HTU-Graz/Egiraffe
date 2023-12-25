@@ -86,7 +86,20 @@ export default function Course() {
             </For>
           }
         >
-          <For each={uploads()}>{(upload) => <UploadCard {...upload} />}</For>
+          <Show
+            when={(uploads()?.length ?? 0) > 0}
+            fallback={
+              <div class="card card-compact card-side bg-base-200 shadow-md">
+                <div class="card-body">
+                  <div class="text-center">
+                    {/* HACK this looks appalling, improve font/layout */}
+                    <h2 class="text-3xl font-bold">Keine Uploads gefunden</h2>
+                  </div>
+                </div>
+              </div>
+            }>
+            <For each={uploads()}>{(upload) => <UploadCard {...upload} />}</For>
+          </Show>
         </Suspense>
       </div>
     </>
