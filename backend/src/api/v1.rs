@@ -2,6 +2,7 @@ pub mod action;
 mod auth;
 mod course;
 mod get;
+mod profs;
 // mod university;
 
 use axum::{
@@ -54,6 +55,7 @@ pub fn routes(state: &AppState) -> Router<AppState> {
             Router::new()
                 .route("/demo-mod-route", get(handle_demo_protected_route))
                 .nest("/courses", course::routes(state))
+                .nest("/profs", profs::routes(state))
                 .route_layer(middleware::from_fn_with_state(
                     state.clone(),
                     auth::<_, { AuthLevel::Moderator }>,
