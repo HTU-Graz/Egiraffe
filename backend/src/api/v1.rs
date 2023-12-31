@@ -1,5 +1,6 @@
 pub mod action;
 mod auth;
+mod content;
 mod course;
 mod ecs;
 mod get;
@@ -57,6 +58,7 @@ pub fn routes(state: &AppState) -> Router<AppState> {
                 .route("/demo-mod-route", get(handle_demo_protected_route))
                 .nest("/courses", course::routes(state))
                 .nest("/profs", profs::routes(state))
+                .nest("/content", content::routes(state))
                 .route_layer(middleware::from_fn_with_state(
                     state.clone(),
                     auth::<_, { AuthLevel::Moderator }>,
