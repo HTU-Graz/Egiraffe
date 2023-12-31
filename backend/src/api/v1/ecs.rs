@@ -9,51 +9,53 @@ use serde::Deserialize;
 use serde_json::json;
 use uuid::Uuid;
 
-use crate::{api::api_greeting, data::Prof, db, AppState};
+use crate::{
+    api::api_greeting,
+    data::{Prof, SystemTransaction},
+    db, AppState,
+};
 
 pub fn routes(state: &AppState) -> Router<AppState> {
-    Router::new().route("/", get(api_greeting).post(api_greeting).put(api_greeting))
-    // .route("/get-user-balance", put(handle_get_user_balance))
-    // .route(
-    //     "/create-system-transaction",
-    // put(handle_create_system_transaction),
-    // )
+    Router::new()
+        .route("/", get(api_greeting).post(api_greeting).put(api_greeting))
+        .route("/get-user-balance", put(handle_get_user_balance))
+        .route(
+            "/create-system-transaction",
+            put(handle_create_system_transaction),
+        )
 }
 
-// pub async fn handle_get_user_balance(
-//     Json(user_id): Json<Uuid>,
-//     State(state): State<AppState>,
-// ) -> impl IntoResponse {
-//     (
-//         StatusCode::INTERNAL_SERVER_ERROR,
-//         json!({ "error": "Not implemented" }),
-//     )
+pub async fn handle_get_user_balance(
+    State(db_pool): State<AppState>,
+    Json(user_id): Json<Uuid>,
+) -> impl IntoResponse {
+    let balance = db::ecs::calculate_available_funds(&db_pool, user_id).await;
+    match balance {
+        Ok(balance) => (StatusCode::OK, Json(json!({ "balance": balance }))),
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({ "error": e.to_string() })),
+        ),
+    }
+}
 
-//     // let balance = db:ecs::get_user_balance(&state.db, user_id).await;
-//     // match balance {
-//     //     Ok(balance) => (StatusCode::OK, json!({ "balance": balance })),
-//     //     Err(e) => (
-//     //         StatusCode::INTERNAL_SERVER_ERROR,
-//     //         json!({ "error": e.to_string() }),
-//     //     ),
-//     // }
-// }
+pub async fn handle_create_system_transaction(
+    State(db_pool): State<AppState>,
+    Json((user_id, amount, reason)): Json<(Uuid, i64, String)>,
+) -> impl IntoResponse {
+    let transaction = SystemTransaction {
+        affected_user: user_id,
+        transaction_date: chrono::Utc::now().naive_utc(),
+        delta_ec: amount.try_into().unwrap(), // FIXME
+        reason: Some(reason),
+    };
 
-// pub async fn handle_create_system_transaction(
-//     Json((user_id, amount, reason)): Json<(Uuid, i64, String)>,
-//     State(state): State<AppState>,
-// ) -> impl IntoResponse {
-//     (
-//         StatusCode::INTERNAL_SERVER_ERROR,
-//         json!({ "error": "Not implemented" }),
-//     )
-
-//     // let result = db::ecs::create_system_transaction(&state.db, user_id, amount, &reason).await;
-//     // match result {
-//     //     Ok(_) => (StatusCode::OK, json!({})),
-//     //     Err(e) => (
-//     //         StatusCode::INTERNAL_SERVER_ERROR,
-//     //         json!({ "error": e.to_string() }),
-//     //     ),
-//     // }
-// }
+    let result = db::ecs::create_system_transaction(&db_pool, transaction).await;
+    match result {
+        Ok(_) => (StatusCode::OK, Json(json!({}))),
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({ "error": e.to_string() })),
+        ),
+    }
+}

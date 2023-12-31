@@ -182,7 +182,8 @@ pub struct SystemTransaction {
     pub transaction_date: NaiveDateTime,
 
     /// The amount of ECS the user gained or lost
-    pub delta_ec: i16,
+    pub delta_ec: i64,
+    pub reason: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

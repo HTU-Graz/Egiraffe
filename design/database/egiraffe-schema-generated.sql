@@ -78,7 +78,8 @@ CREATE TABLE IF NOT EXISTS public.system_ec_transaction
 (
     affected_user uuid,
     transaction_date timestamp without time zone NOT NULL,
-    amount numeric NOT NULL,
+    delta_ec bigint NOT NULL,
+    reason character varying(1000),
     PRIMARY KEY (affected_user, transaction_date)
 );
 

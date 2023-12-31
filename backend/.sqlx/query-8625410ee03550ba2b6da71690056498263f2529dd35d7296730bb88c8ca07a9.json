@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO system_ec_transaction (affected_user, transaction_date, delta_ec, reason)\n            VALUES ($1, $2, $3, $4)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamp",
+        "Int8",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8625410ee03550ba2b6da71690056498263f2529dd35d7296730bb88c8ca07a9"
+}
