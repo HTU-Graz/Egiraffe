@@ -39,15 +39,22 @@ pub async fn handle_get_user_balance(
     }
 }
 
+#[derive(Deserialize, Debug)]
+pub struct CreateSystemTransactionRequest {
+    user_id: Uuid,
+    delta_ec: i64,
+    reason: Option<String>,
+}
+
 pub async fn handle_create_system_transaction(
     State(db_pool): State<AppState>,
-    Json((user_id, amount, reason)): Json<(Uuid, i64, String)>,
+    Json(req): Json<CreateSystemTransactionRequest>,
 ) -> impl IntoResponse {
     let transaction = SystemTransaction {
-        affected_user: user_id,
+        affected_user: req.user_id,
         transaction_date: chrono::Utc::now().naive_utc(),
-        delta_ec: amount.try_into().unwrap(), // FIXME
-        reason: Some(reason),
+        delta_ec: req.delta_ec,
+        reason: req.reason,
     };
 
     let result = db::ecs::create_system_transaction(&db_pool, transaction).await;
