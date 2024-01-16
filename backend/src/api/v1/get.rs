@@ -16,7 +16,7 @@ use uuid::Uuid;
 
 use crate::{
     api::{api_greeting, v1::auth::make_dead_cookie},
-    data::RedactedUser,
+    data::{File, RedactedUser, Upload},
     db, AppState,
 };
 
@@ -54,6 +54,8 @@ async fn handle_get_courses(State(db_pool): State<AppState>) -> impl IntoRespons
             })),
         );
     };
+
+    // TODO add some kind of upload approval status
 
     (
         StatusCode::OK,
@@ -293,11 +295,12 @@ pub struct GetUploadReq {
 
 async fn handle_get_files(
     State(db_pool): State<AppState>,
+    Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     Json(upload): Json<GetUploadReq>,
 ) -> impl IntoResponse {
     log::info!("Get details for upload {}", upload.upload_id);
 
-    let maybe_files = db::file::get_files_of_upload(&db_pool, upload.upload_id).await;
+    let maybe_files = db::file::get_files_and_join_upload(&db_pool, upload.upload_id).await;
 
     let Ok(files) = maybe_files else {
         log::error!("Failed to get files: {}", maybe_files.unwrap_err());
@@ -312,11 +315,28 @@ async fn handle_get_files(
         );
     };
 
+    let original_files_count = files.len();
+
+    // Option 1: the file is owned by the user
+    // or
+    // Option 2: the file has been approved by a moderator and by the uploader
+    let show_file_predicate = |(file, upload): &(File, Upload)| {
+        (upload.uploader == current_user_id) || (file.approval_mod && file.approval_uploader)
+    };
+
+    // Filter out files that have not been approved
+    // FIXME let people get their own files even if they are not approved
+    let files = files
+        .into_iter()
+        .filter(show_file_predicate)
+        .collect::<Vec<_>>();
+
     (
         StatusCode::OK,
         Json(json!({
             "success": true,
             "files": files,
+            "total_files_count": original_files_count,
         })),
     )
 }
