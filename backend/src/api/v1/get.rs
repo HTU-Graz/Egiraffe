@@ -348,6 +348,7 @@ async fn handle_get_files(
     let files = files
         .into_iter()
         .filter(show_file_predicate)
+        .map(|(file, _)| file)
         .collect::<Vec<_>>();
 
     (
