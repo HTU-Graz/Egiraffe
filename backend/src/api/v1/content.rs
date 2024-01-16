@@ -40,7 +40,7 @@ pub struct ModifyUploadRequest {
 
 pub async fn handle_modify_upload(
     State(db_pool): State<AppState>,
-    Json(user_id): Json<Uuid>,
+    Json(request): Json<ModifyUploadRequest>,
 ) -> impl IntoResponse {
     (
         StatusCode::INTERNAL_SERVER_ERROR,
@@ -62,7 +62,7 @@ pub struct ModifyFileRequest {
 
 pub async fn handle_modify_file(
     State(db_pool): State<AppState>,
-    Json(user_id): Json<Uuid>,
+    Json(request): Json<ModifyFileRequest>,
 ) -> impl IntoResponse {
     (
         StatusCode::INTERNAL_SERVER_ERROR,
