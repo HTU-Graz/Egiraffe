@@ -177,6 +177,7 @@ pub struct GetFileReq {
     pub file_id: Uuid,
 }
 
+/// Handles the actual download of a file to a client
 async fn handle_get_file(
     State(db_pool): State<AppState>,
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
@@ -248,6 +249,24 @@ async fn handle_get_file(
         return do_download_to_user.await;
     } else {
         log::info!("User {current_user_id} does not own file {}", file.id);
+        // Option 1: the file is owned by the user
+        // or
+        // Option 2: the file has been approved by a moderator and by the uploader
+        if !(file.approval_mod && file.approval_uploader) {
+            log::info!(
+                "User {current_user_id} is not authorized to access file {}",
+                file.id
+            );
+
+            // The user has not purchased this file
+            return Err((
+                StatusCode::UNAUTHORIZED,
+                Json(json!({
+                    "success": false,
+                    "message": "This file lacks approval from a moderator and/or the uploader",
+                })),
+            ));
+        }
     }
 
     // Check if there is a valid purchase for this file
