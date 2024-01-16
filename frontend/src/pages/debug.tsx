@@ -5,11 +5,13 @@ import { Upload, UploadRequest, upload } from '../api/uploads';
 import { File } from '../api/files';
 import { getUniversities } from '../api/universities';
 import { put } from '../api';
+import { useAuthContext } from '../context/AuthContext';
 
 const unis = await getUniversities();
 const tu_graz = unis.find((uni) => uni.short_name === "TUG")!;
 
 export default function Debug() {
+  const { login } = useAuthContext();
 
   const [course, setCourse] = createSignal<Course | null>(null);
   const [_upload, setUpload] = createSignal<Upload | null>(null);
@@ -86,11 +88,27 @@ export default function Debug() {
     setUpload(upload_);
   }
 
+
+  const handle_login_admin = async (e: Event) => {
+    await login({ email: "admin@tugraz.at", password: "admin" });
+    window.location.reload();
+  }
+
+  const handle_login_mod = async (e: Event) => {
+    await login({ email: "mod@tugraz.at", password: "mod" });
+    window.location.reload();
+  }
+
   return (
     <div>
       <h1 class="text-3xl font-bold">
         Debug page
       </h1>
+      <span>
+        <button type="submit" onClick={handle_login_admin} class="btn btn-sm btn-outline">Login admin</button>
+        &nbsp;&nbsp;&nbsp;
+        <button type="submit" onClick={handle_login_mod} class="btn btn-sm btn-outline">Login mod</button>
+      </span>
       <ol class="list-decimal">
         <li>Log in as Mod or Admin</li>
         <li>Click Create course</li>
