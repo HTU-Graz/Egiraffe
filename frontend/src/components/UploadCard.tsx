@@ -30,7 +30,7 @@ export default function UploadCard(props: Upload) {
       </figure>
       <div class="card-body">
         <h2 class="card-title">{props.name}</h2>
-        <p>Beschreibung</p>
+        <p>{props.description}</p>
         <div class="flex flex-wrap items-center">
           <svg
             class="inline-block mr-2"

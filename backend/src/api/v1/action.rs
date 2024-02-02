@@ -160,6 +160,7 @@ async fn handle_do_upload(
         let upload = {
             let DoUploadReq {
                 name,
+                description,
                 price,
                 belongs_to,
                 held_by, // This actually is optional
@@ -181,7 +182,7 @@ async fn handle_do_upload(
             Upload {
                 id: Uuid::new_v4(),
                 name,
-                description: String::new(),
+                description: description.unwrap_or(String::new()),
                 price,
                 uploader: current_user_id,
                 upload_date: now.clone(),
