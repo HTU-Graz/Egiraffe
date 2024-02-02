@@ -1,5 +1,6 @@
 import { Upload } from "../api/uploads";
 import DocumentPreview from "../assets/document-preview.png";
+import Rating from "./Rating";
 
 export default function UploadCard(props: Upload) {
   return (
@@ -49,39 +50,7 @@ export default function UploadCard(props: Upload) {
             <path d="M12 7v10" />
           </svg>
           {props.price} EC<span class="mx-2">•</span>
-          <div class="rating rating-sm">
-            <input
-              type="radio"
-              name={`rating-${props.id}`}
-              class="mask mask-star-2 bg-orange-400"
-              disabled
-            />
-            <input
-              type="radio"
-              name={`rating-${props.id}`}
-              class="mask mask-star-2 bg-orange-400"
-              disabled
-            />
-            <input
-              type="radio"
-              name={`rating-${props.id}`}
-              class="mask mask-star-2 bg-orange-400"
-              disabled
-            />
-            <input
-              type="radio"
-              name={`rating-${props.id}`}
-              class="mask mask-star-2 bg-orange-400"
-              disabled
-              checked
-            />
-            <input
-              type="radio"
-              name={`rating-${props.id}`}
-              class="mask mask-star-2 bg-orange-400"
-              disabled
-            />
-          </div>
+          <Rating value={0} disabled />
         </div>
       </div>
     </div>
