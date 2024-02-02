@@ -41,9 +41,13 @@ export async function upload(options: UploadRequest): Promise<Upload> {
   return response.upload;
 }
 
-export async function uploadFile(form: FormData): Promise<FileUploadResponse> {
+export async function uploadFile(uploadId: string, file: Blob): Promise<FileUploadResponse> {
+  const form = new FormData();
+  form.append("upload_id", uploadId);
+  form.append("file", file);
+
   const response = (await (
-    await fetch("/api/v1/do/files", {
+    await fetch("/api/v1/do/file", {
       method: "PUT",
       body: form,
     })

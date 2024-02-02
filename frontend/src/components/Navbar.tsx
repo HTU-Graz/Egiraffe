@@ -1,6 +1,7 @@
 import { Link } from "@solidjs/router";
 import { Show } from "solid-js";
 import { useAuthContext } from "../context/AuthContext";
+import UploadIcon from "../icons/UploadIcon";
 import SearchBar from "./SearchBar";
 import Sidebar from "./Sidebar";
 
@@ -28,8 +29,8 @@ export default function Navbar() {
                 ></path>
               </svg>
             </label>
-            <Link href="/">
-              <button class="btn btn-ghost normal-case text-xl hidden md:inline">Egiraffe</button>
+            <Link href="/" class="btn btn-ghost text-xl hidden md:flex" aria-label="Startseite">
+              Egiraffe
             </Link>
           </div>
 
@@ -38,6 +39,12 @@ export default function Navbar() {
           </div>
 
           <div class="navbar-end hidden md:inline-flex">
+            <div class="navbar-end hidden md:inline-flex">
+              <Link href="/upload" class="btn btn-outline">
+                <UploadIcon />
+                Hochladen
+              </Link>
+            </div>
             <div class="navbar-end hidden md:inline-flex">
               <Link href="/debug">
                 <button type="button" class="btn btn-ghost btn-sm rounded-btn">

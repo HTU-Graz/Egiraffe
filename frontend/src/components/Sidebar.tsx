@@ -1,6 +1,7 @@
 import { Link } from "@solidjs/router";
 import { Show } from "solid-js";
 import { useAuthContext } from "../context/AuthContext";
+import UploadIcon from "../icons/UploadIcon";
 
 export default function Sidebar() {
   const { user, logout, setLoginModal } = useAuthContext();
@@ -47,6 +48,12 @@ export default function Sidebar() {
             <a onClick={logout}>Abmelden</a>
           </li>
         </Show>
+        <li>
+          <Link href="/upload" class="btn btn-outline">
+            <UploadIcon />
+            Hochladen
+          </Link>
+        </li>
       </ul>
     </div>
   );
