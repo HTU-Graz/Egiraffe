@@ -3,13 +3,23 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
+    nix-node-package.url = "github:mkg20001/nix-node-package/master";
   };
 
-  outputs = { self, nixpkgs, ... }:
+  outputs = { self, nixpkgs, nix-node-package, ... }:
     let
       system = "x86_64-linux";
+      supportedSystems = [ "x86_64-linux" ];
+      forAllSystems = f: nixpkgs.lib.genAttrs supportedSystems (system: f system);
     in
     {
+      overlays.default = import ./overlay.nix nix-node-package;
+
+      packages = forAllSystems (system: (import nixpkgs {
+        inherit system;
+        overlays = [ self.overlays.default ];
+      }));
+
       devShells."${system}".default =
         let
           pkgs = import nixpkgs {
