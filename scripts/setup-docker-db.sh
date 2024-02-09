@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# -*- coding: utf-8 -*-
 # compatible with bash and zsh
 
 EGNG_CONTAINER_IMAGE=postgres:16.1-bookworm
@@ -136,8 +137,7 @@ egng-wait-db() {
 
     echo ">> waiting until database is up"
     secs=0
-    until egng-psql -c "SELECT 1" &> /dev/null
-    do
+    until egng-psql -c "SELECT 1" &>/dev/null; do
         secs=$((secs + 1))
         echo -n "."
         sleep 1
