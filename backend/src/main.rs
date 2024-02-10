@@ -15,6 +15,7 @@ use std::{
     net::{Ipv4Addr, SocketAddr},
 };
 
+use anyhow::Context;
 use axum::Router as AxumRouter;
 use sqlx::{Pool, Postgres};
 use tower_http::services::{ServeDir, ServeFile};
@@ -60,6 +61,7 @@ async fn main() -> anyhow::Result<()> {
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
+        .context("Failed to start server")
         .unwrap();
 
     Ok(())
