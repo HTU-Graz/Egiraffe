@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "start": "vite",
-    "dev": "vite",
+    "dev": "vite --host 127.0.0.1",
     "build": "vite build",
     "serve": "vite preview",
     "format": "prettier --write src"
