@@ -15,10 +15,32 @@
     {
       overlays.default = import ./overlay.nix nix-node-package;
 
-      packages = forAllSystems (system: (import nixpkgs {
-        inherit system;
-        overlays = [ self.overlays.default ];
-      }));
+      packages = forAllSystems (system:
+        let
+          pkgs = (import nixpkgs {
+            inherit system;
+            overlays = [ self.overlays.default ];
+          });
+        in
+        {
+          inherit (pkgs) egiraffe-ng egiraffe-ng-frontend egiraffe-ng-backend;
+        }
+      );
+
+      nixosModules = {
+        egiraffe-ng = import ./module.nix;
+      };
+
+      checks.x86_64-linux =
+        let
+          pkgs = (import nixpkgs {
+            system = "x86_64-linux";
+            overlays = [ self.overlays.default ];
+          });
+        in
+        {
+          egiraffe = pkgs.testers.runNixOSTest (import ./test.nix nix-node-package);
+        };
 
       devShells."${system}".default =
         let

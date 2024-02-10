@@ -4,4 +4,6 @@ nix-node-package: final: prev: rec {
   };
 
   egiraffe-ng-backend = prev.callPackage ./backend { };
+
+  egiraffe-ng = prev.callPackage ./. { };
 }
