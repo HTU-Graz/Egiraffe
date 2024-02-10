@@ -24,6 +24,7 @@
     after = [ "postgresql.service" "network.target" ];
     wants = [ "postgresql.service" ];
     serviceConfig = {
+      User = "egiraffe";
       ExecStart = "${pkgs.egiraffe-ng}/bin/egiraffe";
     };
   };
