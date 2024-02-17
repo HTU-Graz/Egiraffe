@@ -155,6 +155,66 @@ pub async fn get_files_and_join_upload(
     Ok(file_upload_joins)
 }
 
+pub async fn get_all_files_and_join_upload(
+    db_pool: &sqlx::Pool<sqlx::Postgres>,
+) -> anyhow::Result<Vec<(File, Upload)>> {
+    let file_upload_joins = sqlx::query!(
+        r#"
+            SELECT
+                file.id AS file_id,
+                file.name,
+                file.mime_type,
+                file.size,
+                file.revision_at,
+                file.approval_uploader,
+                file.approval_mod,
+                upload.id AS upload_id,
+                upload.upload_name,
+                upload.description,
+                upload.price,
+                upload.uploader,
+                upload.upload_date,
+                upload.last_modified_date,
+                upload.belongs_to,
+                upload.held_by
+            FROM file
+            INNER JOIN upload
+                ON file.upload_id = upload.id
+        "#,
+    )
+    .fetch_all(db_pool)
+    .await?
+    .into_iter()
+    .map(|row| {
+        (
+            File {
+                id: row.file_id,
+                name: row.name,
+                mime_type: row.mime_type,
+                size: row.size,
+                revision_at: row.revision_at,
+                upload_id: row.upload_id,
+                approval_uploader: row.approval_uploader,
+                approval_mod: row.approval_mod,
+            },
+            Upload {
+                id: row.upload_id,
+                name: row.upload_name,
+                description: row.description,
+                price: row.price,
+                uploader: row.uploader,
+                upload_date: row.upload_date,
+                last_modified_date: row.last_modified_date,
+                belongs_to: row.belongs_to,
+                held_by: row.held_by,
+            },
+        )
+    })
+    .collect();
+
+    Ok(file_upload_joins)
+}
+
 pub async fn get_upload_of_file(
     db_pool: &sqlx::Pool<sqlx::Postgres>,
     file_id: Uuid,

@@ -12,13 +12,15 @@ use serde::Deserialize;
 use serde_json::json;
 use uuid::Uuid;
 
-use crate::{api::api_greeting, AppState};
+use crate::{api::api_greeting, db, AppState};
 
 pub fn routes(state: &AppState) -> Router<AppState> {
     Router::new()
         .route("/", get(api_greeting).post(api_greeting).put(api_greeting))
         .route("/modify-upload", put(handle_modify_upload))
         .route("/modify-file", put(handle_modify_file))
+        .route("/get-all-uploads", put(handle_get_all_uploads))
+        .route("/get-all-files", put(handle_get_all_files))
 }
 
 #[derive(Debug, Deserialize)]
@@ -67,5 +69,31 @@ pub async fn handle_modify_file(
     (
         StatusCode::INTERNAL_SERVER_ERROR,
         Json(json!({ "error": "not implemented" })), // TODO
+    )
+}
+
+pub async fn handle_get_all_uploads(State(db_pool): State<AppState>) -> impl IntoResponse {
+    let uploads = db::upload::get_all_uploads(&db_pool, None).await.unwrap();
+
+    (
+        StatusCode::OK,
+        Json(json!({
+            "success": true,
+            "uploads": uploads,
+        })),
+    )
+}
+
+pub async fn handle_get_all_files(State(db_pool): State<AppState>) -> impl IntoResponse {
+    let files = db::file::get_all_files_and_join_upload(&db_pool)
+        .await
+        .unwrap();
+
+    (
+        StatusCode::OK,
+        Json(json!({
+            "success": true,
+            "files": files,
+        })),
     )
 }

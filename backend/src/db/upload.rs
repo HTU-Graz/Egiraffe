@@ -61,6 +61,34 @@ pub async fn get_uploads_of_course(
     .context("Failed to get courses")
 }
 
+pub async fn get_all_uploads(
+    db_pool: &PgPool,
+    sorting: Option<Sorting>,
+) -> anyhow::Result<Vec<Upload>> {
+    // TODO: implement sorting
+    let _sorting = sorting.unwrap_or_default();
+
+    sqlx::query_as!(
+        Upload,
+        r#"
+            SELECT upload.id,
+                upload_name AS name,
+                description,
+                price,
+                uploader,
+                upload_date,
+                last_modified_date,
+                belongs_to,
+                held_by
+            FROM upload
+                INNER JOIN course ON upload.belongs_to = course.id
+        "#,
+    )
+    .fetch_all(db_pool)
+    .await
+    .context("Failed to get courses")
+}
+
 pub async fn get_upload_by_id(db_pool: &PgPool, upload_id: Uuid) -> anyhow::Result<Option<Upload>> {
     sqlx::query_as!(
         Upload,
