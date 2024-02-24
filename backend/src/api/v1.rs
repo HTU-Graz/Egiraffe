@@ -8,8 +8,8 @@ mod profs;
 // mod university;
 
 use axum::{
-    extract::State,
-    http::{Request, StatusCode},
+    extract::{Request, State},
+    http::StatusCode,
     middleware::{self, Next},
     response::{IntoResponse, Response},
     routing::{get, put},
@@ -29,6 +29,8 @@ use super::api_greeting;
 const SESSION_COOKIE_NAME: &str = "egiraffe_session_token";
 
 pub fn routes(state: &AppState) -> Router<AppState> {
+    use AuthLevel::*;
+
     Router::new()
         .route("/", get(api_greeting).post(api_greeting).put(api_greeting))
         .nest(
@@ -42,14 +44,14 @@ pub fn routes(state: &AppState) -> Router<AppState> {
             "/get",
             get::routes(state).layer(middleware::from_fn_with_state(
                 state.clone(),
-                auth::<_, { AuthLevel::Anyone }>,
+                auth::<Anyone>,
             )),
         )
         .nest(
             "/do",
             action::routes(state).layer(middleware::from_fn_with_state(
                 state.clone(),
-                auth::<_, { AuthLevel::RegularUser }>,
+                auth::<RegularUser>,
             )),
         )
         .nest(
@@ -61,7 +63,7 @@ pub fn routes(state: &AppState) -> Router<AppState> {
                 .nest("/content", content::routes(state))
                 .route_layer(middleware::from_fn_with_state(
                     state.clone(),
-                    auth::<_, { AuthLevel::Moderator }>,
+                    auth::<Moderator>,
                 )),
         )
         .nest(
@@ -70,16 +72,13 @@ pub fn routes(state: &AppState) -> Router<AppState> {
                 .route("/demo-admin-route", get(handle_demo_protected_route))
                 .nest("/ecs", ecs::routes(state))
                 // .nest("/university", university::routes(state))
-                .layer(middleware::from_fn_with_state(
-                    state.clone(),
-                    auth::<_, { AuthLevel::Admin }>,
-                )),
+                .layer(middleware::from_fn_with_state(state.clone(), auth::<Admin>)),
         )
         .route(
             "/demo-protected-route",
             get(handle_demo_protected_route).layer(middleware::from_fn_with_state(
                 state.clone(),
-                auth::<_, { AuthLevel::RegularUser }>,
+                auth::<RegularUser>,
             )),
         )
 }
@@ -99,11 +98,11 @@ pub mod AuthLevel {
     pub const Admin: i16 = 3;
 }
 
-async fn auth<B, const REQUIRED_AUTH_LEVEL: i16>(
+async fn auth<const REQUIRED_AUTH_LEVEL: i16>(
     State(db_pool): State<AppState>,
     cookie_jar: CookieJar,
-    mut request: Request<B>,
-    next: Next<B>,
+    mut request: Request,
+    next: Next,
 ) -> Result<Response, (StatusCode, Json<serde_json::Value>)> {
     assert!(
         REQUIRED_AUTH_LEVEL >= AuthLevel::Anyone && REQUIRED_AUTH_LEVEL <= AuthLevel::Admin,

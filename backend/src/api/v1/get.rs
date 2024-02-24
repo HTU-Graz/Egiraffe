@@ -1,7 +1,7 @@
 use std::{path::PathBuf, vec};
 
 use axum::{
-    body::StreamBody,
+    body::Body,
     extract::State,
     http::{header, StatusCode},
     response::{AppendHeaders, IntoResponse},
@@ -213,7 +213,7 @@ async fn handle_get_file(
         let fs_file = fs_file.unwrap(); // TODO handle error
 
         let stream = ReaderStream::new(fs_file);
-        let body = StreamBody::new(stream);
+        let body = Body::from_stream(stream);
 
         return Ok((
             StatusCode::OK,

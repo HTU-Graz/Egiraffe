@@ -58,8 +58,8 @@ async fn main() -> anyhow::Result<()> {
     let addr = SocketAddr::from((IP, PORT));
 
     log::info!("Listening on http://127.0.0.1:{PORT}");
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    axum::serve(listener, app.into_make_service())
         .await
         .context("Failed to start server")
         .unwrap();
