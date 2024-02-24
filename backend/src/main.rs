@@ -25,7 +25,7 @@ const STATIC_DIR: &str = "../frontend/dist";
 const INDEX_FILE: &str = "../frontend/dist/index.html";
 
 // TODO improve address handling
-const IP: Ipv4Addr = Ipv4Addr::new(0, 0, 0, 0);
+const IP: Ipv4Addr = Ipv4Addr::new(127, 0, 0, 42);
 const PORT: u16 = 42002;
 
 type AppState = Pool<Postgres>;
@@ -57,8 +57,8 @@ async fn main() -> anyhow::Result<()> {
 
     let addr = SocketAddr::from((IP, PORT));
 
-    log::info!("Listening on http://127.0.0.1:{PORT}");
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    log::info!("Listening on http://{addr}");
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app.into_make_service())
         .await
         .context("Failed to start server")
