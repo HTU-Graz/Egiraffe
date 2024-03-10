@@ -4,6 +4,7 @@ import Navbar from "./components/Navbar";
 import { routes } from "./routes";
 import { useAuthContext } from "./context/AuthContext";
 import LoginModal from "./components/LoginModal";
+import Breadcrumbs from "./components/Breadcrumbs";
 
 const App: Component = () => {
   const Route = useRoutes(routes);
@@ -12,6 +13,9 @@ const App: Component = () => {
   return (
     <>
       <Navbar />
+
+      <Breadcrumbs />
+
       <Show when={loginModal()}>
         <LoginModal onClose={() => setLoginModal(false)} />
       </Show>
