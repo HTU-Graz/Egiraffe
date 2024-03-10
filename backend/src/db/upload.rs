@@ -112,6 +112,51 @@ pub async fn get_upload_by_id(db_pool: &PgPool, upload_id: Uuid) -> anyhow::Resu
     .context("Failed to get upload by ID")
 }
 
+pub async fn get_upload_by_id_and_join_course(
+    db_pool: &PgPool,
+    upload_id: Uuid,
+) -> anyhow::Result<Option<(Upload, String)>> {
+    let row = sqlx::query!(
+        r#"
+            SELECT upload.id,
+                upload_name AS name,
+                description,
+                price,
+                uploader,
+                upload_date,
+                last_modified_date,
+                belongs_to,
+                held_by,
+                course_name AS course_name
+            FROM upload
+                INNER JOIN course ON upload.belongs_to = course.id
+            WHERE upload.id = $1
+        "#,
+        upload_id,
+    )
+    .fetch_optional(db_pool)
+    .await
+    .context("Failed to get upload by ID");
+
+    match row {
+        Some(row) => Ok(Some((
+            Upload {
+                id: row.id,
+                name: row.name,
+                description: row.description,
+                price: row.price,
+                uploader: row.uploader,
+                upload_date: row.upload_date,
+                last_modified_date: row.last_modified_date,
+                belongs_to: row.belongs_to,
+                held_by: row.held_by,
+            },
+            row.course_name,
+        ))),
+        Ok(None) => Ok(None),
+    }
+}
+
 pub async fn update_upload(
     db_pool: &sqlx::Pool<sqlx::Postgres>,
     upload: &Upload,
