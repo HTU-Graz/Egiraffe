@@ -43,9 +43,10 @@ impl From<SelectExistsTmp> for SelectExists {
 pub async fn reset_and_init(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
     log::info!("Resetting and initializing database");
 
+    // HACK use [`sqlx::migrate`] instead
     let pool_connection = &mut db_pool.acquire().await?;
     let db_con = pool_connection.acquire().await?;
-    yeet_everything(db_con).await?;
+    drop_everything(db_con).await?;
 
     let mut tx = db_pool.begin().await?;
     let db_con = tx.acquire().await?;
@@ -72,7 +73,7 @@ async fn create_schema(db_con: &mut PgConnection) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-async fn yeet_everything(db_con: &mut PgConnection) -> Result<(), anyhow::Error> {
+async fn drop_everything(db_con: &mut PgConnection) -> Result<(), anyhow::Error> {
     log::warn!("Dropping everything (yeet)");
 
     const RESET_SEQUENCE: [&str; 4] = [

@@ -114,7 +114,7 @@ export default function Debug() {
         <li>Click Create course</li>
         <li>Click Create upload</li>
         <li>Select a file</li>
-        <li>Click yeet</li>
+        <li>Click upload file</li>
         <li>Check JS & backend consoles</li>
       </ol>
 
@@ -140,7 +140,7 @@ export default function Debug() {
         <input type="file" name="file" />
         <br />
         <br />
-        <button type="submit" onClick={handle_upload} class="btn btn-accent">Yeet</button>
+        <button type="submit" onClick={handle_upload} class="btn btn-accent">Upload file</button>
       </form>
 
       <br />
@@ -151,7 +151,7 @@ export default function Debug() {
 
       <button type="submit" onClick={handle_get_files} class="btn btn-accent">Get files</button>
       &nbsp;&nbsp;&nbsp;
-      <button type="submit" onClick={handle_download} class="btn btn-accent">Unyeet</button>
+      <button type="submit" onClick={handle_download} class="btn btn-accent">Download file</button>
 
 
     </div>
