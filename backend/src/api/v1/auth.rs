@@ -11,7 +11,7 @@ use uuid::Uuid;
 use crate::{
     api::v1::{AuthLevel, SESSION_COOKIE_NAME},
     data::UserWithEmails,
-    db, AppState,
+    db::{self, DB_POOL},
 };
 
 #[derive(Deserialize, Debug)]
@@ -47,10 +47,11 @@ pub struct LogoutRes {
 }
 
 pub async fn handle_login(
-    State(db_pool): State<AppState>,
     cookie_jar: CookieJar,
     Json(login_data): Json<LoginReq>,
 ) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     let Some(user) = db::user::get_user_by_email(&db_pool, &login_data.email).await else {
         log::info!("Login failed: no user with email {}", login_data.email);
         return (
@@ -103,10 +104,9 @@ pub async fn handle_login(
     )
 }
 
-pub async fn handle_register(
-    State(db_pool): State<AppState>,
-    Json(register_data): Json<RegisterReq>,
-) -> impl IntoResponse {
+pub async fn handle_register(Json(register_data): Json<RegisterReq>) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     log::info!("Register attempt for email {}", register_data.email);
 
     let RegisterReq {
@@ -156,10 +156,9 @@ pub async fn handle_register(
     }
 }
 
-pub async fn handle_logout(
-    State(db_pool): State<AppState>,
-    cookie_jar: CookieJar,
-) -> impl IntoResponse {
+pub async fn handle_logout(cookie_jar: CookieJar) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     let Some(cookie) = cookie_jar.get(SESSION_COOKIE_NAME) else {
         log::info!("Logout failed: no session cookie");
         return (

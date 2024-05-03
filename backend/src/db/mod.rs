@@ -10,10 +10,13 @@ pub mod upload;
 pub mod user;
 
 use anyhow::Context;
+use once_cell::sync::OnceCell;
 use serde::Deserialize;
 use sqlx::{postgres::PgPoolOptions, Acquire, Executor, PgConnection, Pool, Postgres};
 use std::env;
 use tokio::fs::read_to_string;
+
+pub static DB_POOL: OnceCell<&'static sqlx::PgPool> = OnceCell::new();
 
 pub async fn connect() -> anyhow::Result<Pool<Postgres>> {
     let pool =

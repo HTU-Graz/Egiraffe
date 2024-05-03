@@ -9,9 +9,13 @@ use serde::Deserialize;
 use serde_json::json;
 use uuid::Uuid;
 
-use crate::{api::api_greeting, data::Prof, db, AppState};
+use crate::{
+    api::api_greeting,
+    data::Prof,
+    db::{self, DB_POOL},
+};
 
-pub fn routes(state: &AppState) -> Router<AppState> {
+pub fn routes() -> Router {
     Router::new()
         .route("/", get(api_greeting).post(api_greeting).put(api_greeting))
         .route("/create", put(handle_create_prof))
@@ -23,10 +27,9 @@ pub struct CreateProfReq {
     pub name: String,
 }
 
-async fn handle_create_prof(
-    State(db_pool): State<AppState>,
-    Json(prof): Json<CreateProfReq>,
-) -> impl IntoResponse {
+async fn handle_create_prof(Json(prof): Json<CreateProfReq>) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     let prof = Prof {
         id: Uuid::new_v4(),
         name: prof.name,
@@ -50,10 +53,9 @@ async fn handle_create_prof(
     )
 }
 
-async fn handle_replace_prof(
-    State(db_pool): State<AppState>,
-    Json(prof): Json<Prof>,
-) -> impl IntoResponse {
+async fn handle_replace_prof(Json(prof): Json<Prof>) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     let db_action_result = db::prof::update_prof(&db_pool, &prof).await;
 
     if let Err(error) = db_action_result {

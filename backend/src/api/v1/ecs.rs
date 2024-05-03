@@ -12,10 +12,10 @@ use uuid::Uuid;
 use crate::{
     api::api_greeting,
     data::{Prof, SystemTransaction},
-    db, AppState,
+    db::{self, DB_POOL},
 };
 
-pub fn routes(state: &AppState) -> Router<AppState> {
+pub fn routes() -> Router {
     Router::new()
         .route("/", get(api_greeting).post(api_greeting).put(api_greeting))
         .route("/get-user-balance", put(handle_get_user_balance))
@@ -25,10 +25,9 @@ pub fn routes(state: &AppState) -> Router<AppState> {
         )
 }
 
-pub async fn handle_get_user_balance(
-    State(db_pool): State<AppState>,
-    Json(user_id): Json<Uuid>,
-) -> impl IntoResponse {
+pub async fn handle_get_user_balance(Json(user_id): Json<Uuid>) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     let balance = db::ecs::calculate_available_funds(&db_pool, user_id).await;
     match balance {
         Ok(balance) => (StatusCode::OK, Json(json!({ "balance": balance }))),
@@ -47,9 +46,10 @@ pub struct CreateSystemTransactionRequest {
 }
 
 pub async fn handle_create_system_transaction(
-    State(db_pool): State<AppState>,
     Json(req): Json<CreateSystemTransactionRequest>,
 ) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     let transaction = SystemTransaction {
         affected_user: req.user_id,
         transaction_date: chrono::Utc::now().naive_utc(),

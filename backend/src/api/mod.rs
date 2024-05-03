@@ -1,14 +1,12 @@
 pub mod v1;
 
-use axum::{response::IntoResponse, routing::get, Json};
+use axum::{response::IntoResponse, routing::get, Json, Router};
 use serde_json::json;
 
-use crate::{AppState, Router};
-
-pub fn routes(state: &AppState) -> Router {
+pub fn routes() -> Router {
     Router::new()
         .route("/", get(api_greeting))
-        .nest("/v1", v1::routes(state))
+        .nest("/v1", v1::routes())
 }
 
 async fn api_greeting() -> impl IntoResponse {

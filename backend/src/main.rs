@@ -16,9 +16,11 @@ use std::{
 };
 
 use anyhow::Context;
-use axum::Router as AxumRouter;
+use axum::Router;
 use sqlx::{Pool, Postgres};
 use tower_http::services::{ServeDir, ServeFile};
+
+use crate::db::DB_POOL;
 
 // Make sure to build the frontend first!
 const STATIC_DIR: &str = "../frontend/dist";
@@ -28,17 +30,16 @@ const INDEX_FILE: &str = "../frontend/dist/index.html";
 const IP: Ipv4Addr = Ipv4Addr::new(127, 0, 0, 42);
 const PORT: u16 = 42002;
 
-type AppState = Pool<Postgres>;
-type Router = AxumRouter<AppState>;
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     env_logger::builder()
         .filter_level(log::LevelFilter::Info)
         .init();
 
-    log::info!("Connecting to database");
-    let db_pool = db::connect().await?;
+    // Prepare the database
+    let db_pool = db::connect().await.context("DB connection failed")?;
+    DB_POOL.set(Box::leak(Box::new(db_pool))).unwrap();
+    let db_pool = *DB_POOL.get().unwrap();
     log::info!("Connected to database");
 
     db::reset_and_init(&db_pool).await?;
@@ -51,9 +52,8 @@ async fn main() -> anyhow::Result<()> {
     );
 
     let app = Router::new()
-        .nest("/api", api::routes(&db_pool))
-        .nest_service("/", static_files)
-        .with_state(db_pool);
+        .nest("/api", api::routes())
+        .nest_service("/", static_files);
 
     let addr = SocketAddr::from((IP, PORT));
 

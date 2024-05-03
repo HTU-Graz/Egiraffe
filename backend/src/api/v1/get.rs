@@ -17,12 +17,12 @@ use uuid::Uuid;
 use crate::{
     api::{api_greeting, v1::auth::make_dead_cookie},
     data::{File, RedactedUser, Upload},
-    db, AppState,
+    db::{self, DB_POOL},
 };
 
 use super::SESSION_COOKIE_NAME;
 
-pub fn routes(state: &AppState) -> Router<AppState> {
+pub fn routes() -> Router {
     Router::new()
         .route("/", get(api_greeting).post(api_greeting).put(api_greeting))
         .route("/courses", put(handle_get_courses))
@@ -40,7 +40,9 @@ pub struct GetUploadsReq {
     pub sorting: Option<db::upload::Sorting>,
 }
 
-async fn handle_get_courses(State(db_pool): State<AppState>) -> impl IntoResponse {
+async fn handle_get_courses() -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     let maybe_courses = db::course::get_courses(&db_pool).await;
 
     let Ok(courses) = maybe_courses else {
@@ -66,10 +68,9 @@ async fn handle_get_courses(State(db_pool): State<AppState>) -> impl IntoRespons
     )
 }
 
-async fn handle_get_uploads(
-    State(db_pool): State<AppState>,
-    Json(course): Json<GetUploadsReq>,
-) -> impl IntoResponse {
+async fn handle_get_uploads(Json(course): Json<GetUploadsReq>) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     log::info!("Get uploads for course {}", course.course_id);
 
     let maybe_uploads =
@@ -97,7 +98,9 @@ async fn handle_get_uploads(
     )
 }
 
-async fn handle_get_universities(State(db_pool): State<AppState>) -> impl IntoResponse {
+async fn handle_get_universities() -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     let maybe_universities = db::university::get_universities(&db_pool).await;
 
     let Ok(universities) = maybe_universities else {
@@ -124,10 +127,9 @@ async fn handle_get_universities(State(db_pool): State<AppState>) -> impl IntoRe
     )
 }
 
-async fn handle_get_me(
-    State(db_pool): State<AppState>,
-    cookie_jar: CookieJar,
-) -> impl IntoResponse {
+async fn handle_get_me(cookie_jar: CookieJar) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     // We return a generic error response if the user is not logged in
     //  to avoid leaking private information
     let generic_error_response = json!({
@@ -179,10 +181,11 @@ pub struct GetFileReq {
 
 /// Handles the actual download of a file to a client
 async fn handle_get_file(
-    State(db_pool): State<AppState>,
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     Json(req): Json<GetFileReq>,
 ) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     // Most `/get` endpoints do not require authentication; this one does
     if current_user_id.is_nil() {
         return Err((
@@ -313,10 +316,11 @@ pub struct GetUploadReq {
 }
 
 async fn handle_get_files(
-    State(db_pool): State<AppState>,
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     Json(upload): Json<GetUploadReq>,
 ) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     log::info!("Get details for upload {}", upload.upload_id);
 
     let maybe_files = db::file::get_files_and_join_upload(&db_pool, upload.upload_id).await;
@@ -367,10 +371,11 @@ pub struct GetProfReq {
 }
 
 async fn handle_get_prof(
-    State(db_pool): State<AppState>,
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     Json(prof_req): Json<GetProfReq>,
 ) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     log::info!("Get details for prof {}", prof_req.prof_id);
 
     if current_user_id.is_nil() {

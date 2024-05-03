@@ -12,9 +12,12 @@ use serde::Deserialize;
 use serde_json::json;
 use uuid::Uuid;
 
-use crate::{api::api_greeting, db, AppState};
+use crate::{
+    api::api_greeting,
+    db::{self, DB_POOL},
+};
 
-pub fn routes(state: &AppState) -> Router<AppState> {
+pub fn routes() -> Router {
     Router::new()
         .route("/", get(api_greeting).post(api_greeting).put(api_greeting))
         .route("/modify-upload", put(handle_modify_upload))
@@ -40,10 +43,9 @@ pub struct ModifyUploadRequest {
     pub held_by: Option<Option<Uuid>>,
 }
 
-pub async fn handle_modify_upload(
-    State(db_pool): State<AppState>,
-    Json(request): Json<ModifyUploadRequest>,
-) -> impl IntoResponse {
+pub async fn handle_modify_upload(Json(request): Json<ModifyUploadRequest>) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     (
         StatusCode::INTERNAL_SERVER_ERROR,
         Json(json!({ "error": "not implemented" })), // TODO
@@ -62,17 +64,18 @@ pub struct ModifyFileRequest {
     pub approval_mod: Option<bool>,
 }
 
-pub async fn handle_modify_file(
-    State(db_pool): State<AppState>,
-    Json(request): Json<ModifyFileRequest>,
-) -> impl IntoResponse {
+pub async fn handle_modify_file(Json(request): Json<ModifyFileRequest>) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     (
         StatusCode::INTERNAL_SERVER_ERROR,
         Json(json!({ "error": "not implemented" })), // TODO
     )
 }
 
-pub async fn handle_get_all_uploads(State(db_pool): State<AppState>) -> impl IntoResponse {
+pub async fn handle_get_all_uploads() -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     let uploads = db::upload::get_all_uploads(&db_pool, None).await.unwrap();
 
     (
@@ -84,7 +87,9 @@ pub async fn handle_get_all_uploads(State(db_pool): State<AppState>) -> impl Int
     )
 }
 
-pub async fn handle_get_all_files(State(db_pool): State<AppState>) -> impl IntoResponse {
+pub async fn handle_get_all_files() -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     let files = db::file::get_all_files_and_join_upload(&db_pool)
         .await
         .unwrap();

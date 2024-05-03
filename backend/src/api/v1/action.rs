@@ -17,13 +17,12 @@ use uuid::Uuid;
 use crate::{
     api::api_greeting,
     data::{File, Purchase, RedactedUser, Upload},
-    db::{self, user::make_pwd_hash},
+    db::{self, user::make_pwd_hash, DB_POOL},
     util::bad_request,
-    AppState,
 };
 
 // Handles resource-modifying requests from authenticated users
-pub fn routes(state: &AppState) -> Router<AppState> {
+pub fn routes() -> Router {
     Router::new()
         .route("/", get(api_greeting).post(api_greeting).put(api_greeting))
         // .route("/courses", put(handle_get_courses))
@@ -50,10 +49,11 @@ pub struct DoUploadReq {
 }
 
 async fn handle_do_upload(
-    State(db_pool): State<AppState>,
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     Json(req): Json<DoUploadReq>,
 ) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     // log::info!("Create/alter upload for course {}", req.belongs_to.unwrap_or("default"));
 
     // TODO handle updating the description
@@ -235,10 +235,11 @@ pub struct DoMeReq {
 ///
 /// Also: UwU
 async fn handle_do_me(
-    State(db_pool): State<AppState>,
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     Json(req): Json<DoMeReq>,
 ) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     // 1. Get the user from the database
     let maybe_user = db::user::get_user_by_id(&db_pool, current_user_id).await;
     let Ok(user) = maybe_user else {
@@ -323,10 +324,11 @@ struct DoFileReq {
 }
 
 async fn handle_do_file(
-    State(db_pool): State<AppState>,
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     mut multipart: Multipart,
 ) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     // 0. Get the form fields
     // 0.a. Get the upload ID
     let Some(field) = multipart.next_field().await.unwrap() else {
@@ -481,10 +483,11 @@ struct DoPurchaseReq {
 }
 
 async fn handle_do_purchase(
-    State(db_pool): State<AppState>,
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     Json(req): Json<DoPurchaseReq>,
 ) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     // 1. Get the upload from the database
     let maybe_upload = db::upload::get_upload_by_id(&db_pool, req.upload_id).await;
     let Ok(upload) = maybe_upload else {

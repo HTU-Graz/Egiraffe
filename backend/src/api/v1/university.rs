@@ -9,9 +9,13 @@ use serde::Deserialize;
 use serde_json::json;
 use uuid::Uuid;
 
-use crate::{api::api_greeting, data::OwnedUniversity, db, AppState};
+use crate::{
+    api::api_greeting,
+    data::{Course, OwnedUniversity},
+    db::{self, DB_POOL},
+};
 
-pub fn routes(state: &AppState) -> Router<AppState> {
+pub fn routes() -> Router {
     Router::new()
         .route("/", get(api_greeting).post(api_greeting).put(api_greeting))
         .route("/create", put(handle_create_university))
@@ -27,9 +31,10 @@ pub struct CreateUniversityReq {
 }
 
 async fn handle_create_university(
-    State(db_pool): State<AppState>,
     Json(university): Json<CreateUniversityReq>,
 ) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     let university = OwnedUniversity {
         id: Uuid::new_v4(),
         full_name: university.full_name,
@@ -53,10 +58,9 @@ async fn handle_create_university(
     (StatusCode::OK, Json(json!({ "success": true })))
 }
 
-async fn handle_replace_university(
-    State(db_pool): State<AppState>,
-    Json(course): Json<Course>,
-) -> impl IntoResponse {
+async fn handle_replace_university(Json(course): Json<Course>) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
     let db_action_result = db::course::replace_course(&db_pool, course).await;
 
     if let Err(error) = db_action_result {
