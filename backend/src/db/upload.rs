@@ -139,7 +139,7 @@ pub async fn get_upload_by_id_and_join_course(
     .context("Failed to get upload by ID");
 
     match row {
-        Some(row) => Ok(Some((
+        Ok(Some(row)) => Ok(Some((
             Upload {
                 id: row.id,
                 name: row.name,
@@ -154,6 +154,7 @@ pub async fn get_upload_by_id_and_join_course(
             row.course_name,
         ))),
         Ok(None) => Ok(None),
+        Err(err) => Err(err).context("Failed to get upload by ID"),
     }
 }
 
