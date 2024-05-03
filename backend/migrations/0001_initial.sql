@@ -4,43 +4,40 @@
 -- Once the system goes in production, this file becomes finalized, as it's hash must stay the same.
 BEGIN;
 
-CREATE TABLE IF NOT EXISTS public.university (
-    id uuid,
+CREATE TABLE IF NOT EXISTS university (
+    id uuid PRIMARY KEY,
     name_full character varying(100) NOT NULL,
     name_mid character varying(50) NOT NULL,
     name_short character varying(50) NOT NULL,
-    domain_names character varying(100) [] NOT NULL,
-    PRIMARY KEY (id)
+    domain_names character varying(100) [] NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS public."user" (
-    id uuid,
+CREATE TABLE IF NOT EXISTS "user" (
+    id uuid PRIMARY KEY,
     first_names character varying(200),
     last_name character varying(200),
     primary_email uuid NOT NULL,
     password_hash character varying(250) NOT NULL,
     totp_secret character varying(50),
     nick character varying(100),
-    user_role smallint NOT NULL DEFAULT 1,
-    PRIMARY KEY (id)
+    user_role smallint NOT NULL DEFAULT 1
 );
 
-CREATE TABLE IF NOT EXISTS public.email (
-    id uuid,
+CREATE TABLE IF NOT EXISTS email (
+    id uuid PRIMARY KEY,
     address character varying(500),
     belongs_to_user uuid NOT NULL,
     of_university uuid,
-    STATUS character(20) NOT NULL,
-    PRIMARY KEY (id)
+    STATUS character(20) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS public.email_status (
+CREATE TABLE IF NOT EXISTS email_status (
     STATUS character(20) NOT NULL,
     PRIMARY KEY (STATUS)
 );
 
-CREATE TABLE IF NOT EXISTS public.upload (
-    id uuid,
+CREATE TABLE IF NOT EXISTS upload (
+    id uuid PRIMARY KEY,
     upload_name character varying(200) NOT NULL,
     description text NOT NULL,
     price smallint NOT NULL,
@@ -48,18 +45,17 @@ CREATE TABLE IF NOT EXISTS public.upload (
     upload_date timestamp without time zone NOT NULL,
     last_modified_date timestamp without time zone NOT NULL,
     belongs_to uuid NOT NULL,
-    held_by uuid,
-    PRIMARY KEY (id)
+    held_by uuid
 );
 
-CREATE TABLE IF NOT EXISTS public.course (
+CREATE TABLE IF NOT EXISTS course (
     id uuid NOT NULL,
     held_at uuid NOT NULL,
-    course_name character varying(200) NOT NULL,
-    PRIMARY KEY (id)
+    course_name character varying(200) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS public.purchase (
+CREATE TABLE IF NOT EXISTS purchase (
+    -- This table uses a composite primary key
     user_id uuid,
     upload_id uuid,
     ecs_spent smallint NOT NULL,
@@ -68,7 +64,8 @@ CREATE TABLE IF NOT EXISTS public.purchase (
     PRIMARY KEY (user_id, upload_id)
 );
 
-CREATE TABLE IF NOT EXISTS public.system_ec_transaction (
+CREATE TABLE IF NOT EXISTS system_ec_transaction (
+    -- This table uses a composite primary key
     affected_user uuid,
     transaction_date timestamp without time zone NOT NULL,
     delta_ec bigint NOT NULL,
@@ -76,98 +73,95 @@ CREATE TABLE IF NOT EXISTS public.system_ec_transaction (
     PRIMARY KEY (affected_user, transaction_date)
 );
 
-CREATE TABLE IF NOT EXISTS public.session (
-    id uuid,
+CREATE TABLE IF NOT EXISTS SESSION (
+    id uuid PRIMARY KEY,
     of_user uuid,
     token character(43) NOT NULL,
     initial_user_agent character varying(275),
     latest_user_agent character varying(275),
     initial_ip inet,
-    latest_ip inet,
-    PRIMARY KEY (id)
+    latest_ip inet
 );
 
-CREATE TABLE IF NOT EXISTS public.prof (
-    id uuid,
-    prof_name character varying(500) NOT NULL,
-    PRIMARY KEY (id)
+CREATE TABLE IF NOT EXISTS prof (
+    id uuid PRIMARY KEY,
+    prof_name character varying(500) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS public.file (
-    id uuid,
+CREATE TABLE IF NOT EXISTS FILE (
+    id uuid PRIMARY KEY,
     name character varying(255) NOT NULL,
     mime_type character varying(200) NOT NULL,
     size bigint NOT NULL,
     revision_at timestamp without time zone NOT NULL,
     upload_id uuid NOT NULL,
     approval_uploader boolean NOT NULL,
-    approval_mod boolean NOT NULL,
-    PRIMARY KEY (id)
+    approval_mod boolean NOT NULL
 );
 
 ALTER TABLE
-    IF EXISTS public."user"
+    IF EXISTS "user"
 ADD
-    FOREIGN KEY (primary_email) REFERENCES public.email (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
+    FOREIGN KEY (primary_email) REFERENCES email (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
 
 ALTER TABLE
-    IF EXISTS public.email
+    IF EXISTS email
 ADD
-    CONSTRAINT belongs_to_user_fk FOREIGN KEY (belongs_to_user) REFERENCES public."user" (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
+    CONSTRAINT belongs_to_user_fk FOREIGN KEY (belongs_to_user) REFERENCES "user" (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
 
 ALTER TABLE
-    IF EXISTS public.email
+    IF EXISTS email
 ADD
-    CONSTRAINT of_university_fk FOREIGN KEY (of_university) REFERENCES public.university (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
+    CONSTRAINT of_university_fk FOREIGN KEY (of_university) REFERENCES university (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
 
 ALTER TABLE
-    IF EXISTS public.email
+    IF EXISTS email
 ADD
-    CONSTRAINT email_status_fk FOREIGN KEY (STATUS) REFERENCES public.email_status (STATUS) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
+    CONSTRAINT email_status_fk FOREIGN KEY (STATUS) REFERENCES email_status (STATUS) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
 
 ALTER TABLE
-    IF EXISTS public.upload
+    IF EXISTS upload
 ADD
-    FOREIGN KEY (uploader) REFERENCES public."user" (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
+    FOREIGN KEY (uploader) REFERENCES "user" (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
 
 ALTER TABLE
-    IF EXISTS public.upload
+    IF EXISTS upload
 ADD
-    FOREIGN KEY (belongs_to) REFERENCES public.course (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
+    FOREIGN KEY (belongs_to) REFERENCES course (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
 
 ALTER TABLE
-    IF EXISTS public.upload
+    IF EXISTS upload
 ADD
-    FOREIGN KEY (held_by) REFERENCES public.prof (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
+    FOREIGN KEY (held_by) REFERENCES prof (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
 
 ALTER TABLE
-    IF EXISTS public.course
+    IF EXISTS course
 ADD
-    FOREIGN KEY (held_at) REFERENCES public.university (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
+    FOREIGN KEY (held_at) REFERENCES university (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
 
 ALTER TABLE
-    IF EXISTS public.purchase
+    IF EXISTS purchase
 ADD
-    FOREIGN KEY (user_id) REFERENCES public."user" (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
+    FOREIGN KEY (user_id) REFERENCES "user" (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
 
 ALTER TABLE
-    IF EXISTS public.purchase
+    IF EXISTS purchase
 ADD
-    FOREIGN KEY (upload_id) REFERENCES public.upload (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
+    FOREIGN KEY (upload_id) REFERENCES upload (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
 
 ALTER TABLE
-    IF EXISTS public.system_ec_transaction
+    IF EXISTS system_ec_transaction
 ADD
-    FOREIGN KEY (affected_user) REFERENCES public."user" (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
+    FOREIGN KEY (affected_user) REFERENCES "user" (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
 
 ALTER TABLE
-    IF EXISTS public.session
+    IF EXISTS SESSION
 ADD
-    FOREIGN KEY (of_user) REFERENCES public."user" (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
+    FOREIGN KEY (of_user) REFERENCES "user" (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
 
 ALTER TABLE
-    IF EXISTS public.file
+    IF EXISTS FILE
 ADD
-    FOREIGN KEY (upload_id) REFERENCES public.upload (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
+    FOREIGN KEY (upload_id) REFERENCES upload (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION NOT VALID;
 
 END;
