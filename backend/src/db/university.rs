@@ -29,3 +29,10 @@ pub async fn get_universities(db_pool: &PgPool) -> anyhow::Result<Vec<OwnedUnive
             .collect()
     })
 }
+
+pub(crate) async fn create_university(
+    db_pool: &&sqlx::Pool<sqlx::Postgres>,
+    university: OwnedUniversity,
+) -> anyhow::Result<()> {
+    todo!()
+}
