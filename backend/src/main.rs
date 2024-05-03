@@ -42,6 +42,9 @@ async fn main() -> anyhow::Result<()> {
     let db_pool = *DB_POOL.get().unwrap();
     log::info!("Connected to database");
 
+    sqlx::migrate!().run(db_pool).await.unwrap();
+    log::info!("Database migrations completed");
+
     db::reset_and_init(&db_pool).await?;
 
     let static_files = ServeDir::new(STATIC_DIR).not_found_service(ServeFile::new(INDEX_FILE));
