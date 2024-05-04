@@ -43,7 +43,7 @@ impl From<SelectExistsTmp> for SelectExists {
     }
 }
 
-pub async fn reset_and_init(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
+pub async fn insert_default_entries(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
     let mut tx = db_pool.begin().await?;
     let db_con = tx.acquire().await?;
 
