@@ -44,18 +44,10 @@ impl From<SelectExistsTmp> for SelectExists {
 }
 
 pub async fn reset_and_init(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
-    log::info!("Resetting and initializing database");
-
-    // HACK use [`sqlx::migrate`] instead
-    let pool_connection = &mut db_pool.acquire().await?;
-    let db_con = pool_connection.acquire().await?;
-    drop_everything(db_con).await?;
-
     let mut tx = db_pool.begin().await?;
     let db_con = tx.acquire().await?;
 
-    create_schema(db_con).await?;
-
+    // TODO make sure this works when half ot it is already initialized
     init::create_universities(db_con).await?;
     init::create_email_states(db_con).await?;
     init::create_admin_users(db_pool).await?;
@@ -63,32 +55,6 @@ pub async fn reset_and_init(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
     tx.commit().await?;
 
     log::info!("Database reset and initialized");
-
-    Ok(())
-}
-
-async fn create_schema(db_con: &mut PgConnection) -> Result<(), anyhow::Error> {
-    log::info!("Creating schema");
-
-    let query = read_to_string("../design/database/egiraffe-schema-generated.sql").await?;
-    db_con.execute(&*query).await?;
-
-    Ok(())
-}
-
-async fn drop_everything(db_con: &mut PgConnection) -> Result<(), anyhow::Error> {
-    log::warn!("Dropping everything (yeet)");
-
-    const RESET_SEQUENCE: [&str; 4] = [
-        "DROP SCHEMA public CASCADE;",
-        "CREATE SCHEMA public;",
-        "GRANT ALL ON SCHEMA public TO postgres;",
-        "GRANT ALL ON SCHEMA public TO public;",
-    ];
-
-    for query in RESET_SEQUENCE {
-        sqlx::query(query).execute(&mut *db_con).await?;
-    }
 
     Ok(())
 }
