@@ -48,10 +48,13 @@ pub async fn insert_default_entries(db_pool: &Pool<Postgres>) -> anyhow::Result<
     let db_con = tx.acquire().await?;
 
     // TODO make sure this works when half ot it is already initialized
-    init::create_universities(db_con).await?;
-    init::create_email_states(db_con).await?;
-    init::create_admin_users(db_pool).await?;
+    let _res = init::create_universities(db_con).await;
+    let _res = init::create_email_states(db_con).await;
+    tx.commit().await?;
 
+    let mut tx = db_pool.begin().await?;
+    let db_con = tx.acquire().await?;
+    let _res = init::create_admin_users(db_pool).await;
     tx.commit().await?;
 
     log::info!("Database reset and initialized");
