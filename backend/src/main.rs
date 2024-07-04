@@ -49,8 +49,7 @@ async fn main() -> anyhow::Result<()> {
 
     let static_files = ServeDir::new(STATIC_DIR).not_found_service(ServeFile::new(INDEX_FILE));
     log::info!(
-        "Serving static files from {}, canonicalized to {}",
-        STATIC_DIR,
+        "Serving static files from {STATIC_DIR}, canonicalized to {}",
         canonicalize(STATIC_DIR)?.display()
     );
 
