@@ -4,15 +4,15 @@ The backend of Egiraffe is written in [Rust](https://www.rust-lang.org/) using t
 
 ## Development
 
-> [!IMPORTANT]  
-> 
+> [!IMPORTANT]
+>
 > **Notice: currently, you need to have a db running _WITH AN ENVIRONMENT VARIABLE WITH THE DB URL_ because the framework needs it**
-> 
+>
 > We're planing to alleviate this, but for now, it helps validate queries against the db schema in the IDE, and at compile time.
-> 
+>
 > ```zsh
 > # For example, this code prepares the environment, launches VS Code(ium), and exits the shell
-> export DATABASE_URL=postgres://postgres@127.0.0.1/egiraffe && code ~/Repos/egiraffe-ng && exit
+> export DATABASE_URL='postgresql://egiraffe:hunter2@localhost:5432/egiraffe?sslmode=disable' && code ~/Repos/egiraffe-ng && exit
 > ```
 
 To install all dependencies, build, and run the server, run:
@@ -34,11 +34,15 @@ as the dependencies are cached, and incremental compilation is enabled.
 
 Use [rustup](https://rustup.rs/) to install Rust and Cargo, if you haven't already.
 
-You may also need to define the database URL in the environment variable `DATABASE_URL`.
+You may also need to define the database URL in the environment variable `DATABASE_URL`:
+
+Our SQL library `sqlx` utilizes optional macros (which we use) to check the SQL statements at compile time.  
+It needs a working connection to a db to do so.
+Not providing a db url may confuse your LSP server; consider running:
 
 ```zsh
 # For example
-export DATABASE_URL=postgres://postgres@127.0.0.1/egiraffe # define the database URL
+export DATABASE_URL='postgresql://egiraffe:hunter2@localhost:5432/egiraffe?sslmode=disable' # define the database URL
 code # open VSCode
 # then open the repo in VSCode
 ```

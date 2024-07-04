@@ -6,6 +6,20 @@ Since 2005, when the first version of Egiraffe was released, it has been used by
 
 Now, in 2023, Egiraffe is being rewritten from scratch to provide a more modern and easier to use experience.
 
+## TL;DR
+
+Assuming you installed all the tools (Node, Rust, pnpm, docker) just run:
+
+```zsh
+cd frontend
+pnpm i
+pnpm build
+
+cd ../backend
+sudo docker compose up -d
+cargo run
+```
+
 ## Development
 
 The project is structured in two parts: the frontend and the backend.
@@ -22,16 +36,16 @@ The backend of Egiraffe is written in [Rust](https://www.rust-lang.org/) using t
 
 See its code in the [`backend`](backend) directory, and its README in [`backend/README.md`](backend/README.md).
 
-> [!IMPORTANT]  
-> 
-> **Notice: currently, you need to have a db running _WITH AN ENVIRONMENT VARIABLE WITH THE DB URL_ because the framework needs it**
-> 
-> We're planing to alleviate this, but for now, it helps validate queries against the db schema in the IDE, and at compile time.
-> 
+Our SQL library `sqlx` utilizes optional macros (which we use) to check the SQL statements at compile time.  
+It needs a working connection to a db to do so.
+Not providing a db url may confuse your LSP server; consider running:
+
 > ```zsh
 > # For example, this code prepares the environment, launches VS Code(ium), and exits the shell
 > export DATABASE_URL=postgres://postgres@127.0.0.1/egiraffe && code ~/Repos/egiraffe-ng && exit
 > ```
+
+Update: these days, you can just tell rust-analyzer to restart, which seems to help.
 
 ## Devops
 
