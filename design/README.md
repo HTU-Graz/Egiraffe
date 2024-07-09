@@ -2,17 +2,16 @@
 
 This directory contains design documents for Egiraffe, documenting technical decisions and the overall architecture of the project.
 
-It contains a file named `egiraffe-erd.pgerd`, which is an [ERD](https://en.wikipedia.org/wiki/Entity%E2%80%93relationship_model) diagram of the database schema of Egiraffe, and was/is made and maintained using [pgAdmin](https://www.pgadmin.org/)'s integrated ERD editor.
+This used to contain [ERD](https://en.wikipedia.org/wiki/Entity%E2%80%93relationship_model) diagrams of the database schema of Egiraffe.
+However, as we now use hand-written SQL migration files, this has been dropped.
 
 For the time being, the old design documents are still available in the [`old`](old) directory.
 
 ## Directory structure
 
-- [`database`](database): Database design documents
-  - [`egiraffe-erd.pgerd`](database/egiraffe-erd.pgerd): ERD diagram of the database schema made with pgAdmin
-  - [`egiraffe-schema-generated.sql`](database/egiraffe-schema-generated.sql): SQL script to generate the database schema
-- [`api`](api): HTTP API design documents
+- [`api`](api): HTTP API design documents (Bruno, see below)
 - [`old`](old): Old design documents, which are no longer maintained
+- `database`: This directory used to contain database design documents
 
 ## API design
 
