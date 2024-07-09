@@ -20,6 +20,12 @@ sudo docker compose up -d
 cargo run
 ```
 
+---
+
+See the [requirements](./design/README.md#requirements) for a list of things needing to be done.
+
+---
+
 ## Development
 
 The project is structured in two parts: the frontend and the backend.
