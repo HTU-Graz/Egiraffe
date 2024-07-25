@@ -1,4 +1,5 @@
 export default function Breadcrumbs() {
+    //TODO: render dynamically
     return (
         <div class="text-sm breadcrumbs p-6">
             <ul>
