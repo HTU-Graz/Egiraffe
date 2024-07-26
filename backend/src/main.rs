@@ -13,6 +13,7 @@ mod util;
 use std::{
     fs::canonicalize,
     net::{Ipv4Addr, SocketAddr},
+    env,
 };
 
 use anyhow::Context;
@@ -36,6 +37,17 @@ async fn main() -> anyhow::Result<()> {
         .filter_level(log::LevelFilter::Info)
         .init();
 
+    //I hope its not an issue since it is only included in debug builds ...
+    #[cfg(debug_assertions)]
+    {
+        println!("\x1B[31mDEBUG Mode!\x1B[0m Never use this in Production!");
+        log::warn!("DEBUG Mode! Never use this in Production!");
+
+        unsafe {
+            env::set_var("DATABASE_URL", "postgresql://egiraffe:hunter2@localhost:5432/egiraffe?sslmode=disable");
+        }
+    }
+
     // Prepare the database
     let db_pool = db::connect().await.context("DB connection failed")?;
     DB_POOL.set(Box::leak(Box::new(db_pool))).unwrap();
@@ -45,7 +57,10 @@ async fn main() -> anyhow::Result<()> {
     sqlx::migrate!().run(db_pool).await.unwrap();
     log::info!("Database migrations completed");
 
-    db::insert_default_entries(&db_pool).await?;
+    #[cfg(debug_assertions)]
+    if env::var("NO_DEFAULT_ENTRIES").is_err() {
+        db::DEBUG_insert_default_entries(&db_pool).await?;
+    }
 
     let static_files = ServeDir::new(STATIC_DIR).not_found_service(ServeFile::new(INDEX_FILE));
     log::info!(
