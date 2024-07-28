@@ -109,6 +109,7 @@ You should have received a copy of the [GNU Affero General Public License](/LICE
   - Not too cluttered/bloated
   - Suggestions for relevant items given user's interests (which LVs?)
   - Suggestions based on the general users per uni (tending LVs)
+  - German and English language
 - Database
   - Define schema as list of migration files
     - Immutable SQL files
