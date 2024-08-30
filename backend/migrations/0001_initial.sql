@@ -12,12 +12,16 @@ CREATE TABLE IF NOT EXISTS "user" (
     id uuid PRIMARY KEY,
     first_names character varying(200),
     last_name character varying(200),
-    primary_email uuid NOT NULL REFERENCES email (id),
+    -- REFERENCES email (id):
+    primary_email uuid NOT NULL,
     password_hash character varying(250) NOT NULL,
     totp_secret character varying(50),
     nick character varying(100),
     user_role smallint NOT NULL DEFAULT 1
 );
+
+-- HACK convert this to an enum
+CREATE TABLE IF NOT EXISTS email_status ("status" character(20) NOT NULL PRIMARY KEY);
 
 CREATE TABLE IF NOT EXISTS email (
     id uuid PRIMARY KEY,
@@ -27,7 +31,21 @@ CREATE TABLE IF NOT EXISTS email (
     "status" character(20) NOT NULL REFERENCES email_status ("status")
 );
 
-CREATE TABLE IF NOT EXISTS email_status ("status" character(20) NOT NULL PRIMARY KEY);
+ALTER TABLE
+    "user"
+ADD
+    CONSTRAINT "user_primary_email_fkey" FOREIGN KEY (primary_email) REFERENCES email (id);
+
+CREATE TABLE IF NOT EXISTS course (
+    id uuid NOT NULL PRIMARY KEY,
+    held_at uuid NOT NULL REFERENCES university (id),
+    course_name character varying(200) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS prof (
+    id uuid PRIMARY KEY,
+    prof_name character varying(500) NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS upload (
     id uuid PRIMARY KEY,
@@ -38,13 +56,7 @@ CREATE TABLE IF NOT EXISTS upload (
     upload_date timestamp without time zone NOT NULL,
     last_modified_date timestamp without time zone NOT NULL,
     belongs_to uuid NOT NULL REFERENCES course (id),
-    held_by uuid REFERENCES prof (id),
-);
-
-CREATE TABLE IF NOT EXISTS course (
-    id uuid NOT NULL PRIMARY KEY,
-    held_at uuid NOT NULL REFERENCES university (id),
-    course_name character varying(200) NOT NULL
+    held_by uuid REFERENCES prof (id)
 );
 
 CREATE TABLE IF NOT EXISTS purchase (
@@ -74,11 +86,6 @@ CREATE TABLE IF NOT EXISTS "session" (
     latest_user_agent character varying(275),
     initial_ip inet,
     latest_ip inet
-);
-
-CREATE TABLE IF NOT EXISTS prof (
-    id uuid PRIMARY KEY,
-    prof_name character varying(500) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "file" (
