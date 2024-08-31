@@ -4,6 +4,7 @@ import { useAuthContext } from "../context/AuthContext";
 import UploadIcon from "../icons/UploadIcon";
 import SearchBar from "./SearchBar";
 import Sidebar from "./Sidebar";
+import { AuthLevel } from "../api/users";
 
 export default function Navbar() {
   const { user, logout, setLoginModal } = useAuthContext();
@@ -45,6 +46,7 @@ export default function Navbar() {
                 Hochladen
               </Link>
             </div>
+
             <div class="navbar-end hidden md:inline-flex">
               <Link href="/debug">
                 <button type="button" class="btn btn-ghost btn-sm rounded-btn">
@@ -52,6 +54,7 @@ export default function Navbar() {
                 </button>
               </Link>
             </div>
+
             <div class="flex-none gap-2">
               <div class="dropdown dropdown-end">
                 <Show
@@ -92,6 +95,17 @@ export default function Navbar() {
                     <li>
                       <Link href="/settings">Einstellungen</Link>
                     </li>
+                    <Show when={user()!.user_role >= AuthLevel.MODERATOR}>
+                      <li>
+                        <Link href="/moderation">Moderation</Link>
+                      </li>
+                    </Show>
+                    <Show when={user()!.user_role >= AuthLevel.ADMIN}>
+                      <li>
+                        <Link href="/admin">Admin</Link>
+                      </li>
+                    </Show>
+                    <div class="divider my-0" />
                     <li>
                       <a onClick={logout}>Abmelden</a>
                     </li>
