@@ -47,6 +47,14 @@ code # open VSCode
 # then open the repo in VSCode
 ```
 
+You may also need to apply the migrations before compilation, by running
+
+```zsh
+# in the backend directory
+export DATABASE_URL='postgresql://egiraffe:hunter2@localhost:5432/egiraffe?sslmode=disable' # in case you haven't set that one yet
+sqlx migrate run
+```
+
 ## License
 
 [![GNU Affero General Public License v3.0](https://www.gnu.org/graphics/agplv3-with-text-162x68.png)](https://www.gnu.org/licenses/agpl-3.0.html)

@@ -17,6 +17,8 @@ pnpm build
 
 cd ../backend
 sudo docker compose up -d
+export DATABASE_URL='postgresql://egiraffe:hunter2@localhost:5432/egiraffe?sslmode=disable'
+sqlx migrate run
 cargo run
 ```
 
@@ -48,7 +50,7 @@ Not providing a db url may confuse your LSP server; consider running:
 
 > ```zsh
 > # For example, this code prepares the environment, launches VS Code(ium), and exits the shell
-> export DATABASE_URL=postgres://postgres@127.0.0.1/egiraffe && code ~/Repos/egiraffe-ng && exit
+> export DATABASE_URL='postgresql://egiraffe:hunter2@localhost:5432/egiraffe?sslmode=disable' && code ~/Repos/egiraffe-ng && exit
 > ```
 
 Update: these days, you can just tell rust-analyzer to restart, which seems to help.
