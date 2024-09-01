@@ -11,9 +11,9 @@ mod db;
 mod util;
 
 use std::{
+    env,
     fs::canonicalize,
     net::{Ipv4Addr, SocketAddr},
-    env,
 };
 
 use anyhow::Context;
@@ -36,17 +36,6 @@ async fn main() -> anyhow::Result<()> {
     env_logger::builder()
         .filter_level(log::LevelFilter::Info)
         .init();
-
-    //I hope its not an issue since it is only included in debug builds ...
-    #[cfg(debug_assertions)]
-    {
-        println!("\x1B[31mDEBUG Mode!\x1B[0m Never use this in Production!");
-        log::warn!("DEBUG Mode! Never use this in Production!");
-
-        unsafe {
-            env::set_var("DATABASE_URL", "postgresql://egiraffe:hunter2@localhost:5432/egiraffe?sslmode=disable");
-        }
-    }
 
     // Prepare the database
     let db_pool = db::connect().await.context("DB connection failed")?;
