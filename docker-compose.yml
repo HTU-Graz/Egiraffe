@@ -14,8 +14,7 @@ services:
     #   #  in the DB.
     #   - ./design/database/egiraffe-schema-generated.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - 5433:5432
-    network_mode: host # hmmmmm.... Published ports are discarded when using host network mode
+      - 5432:5432
 #
 #
 # WARNING Again, do not use this file in production. It is only meant for local development.

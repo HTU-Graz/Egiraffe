@@ -9,7 +9,7 @@ use crate::{
 
 use super::user::make_pwd_hash;
 
-pub async fn create_universities(db_con: &mut PgConnection) -> anyhow::Result<()> {
+pub async fn DEBUG_create_universities(db_con: &mut PgConnection) -> anyhow::Result<()> {
     log::info!("Creating universities");
 
     let unis = [
@@ -56,7 +56,7 @@ pub async fn create_universities(db_con: &mut PgConnection) -> anyhow::Result<()
     Ok(())
 }
 
-pub async fn create_email_states(db_con: &mut PgConnection) -> anyhow::Result<()> {
+pub async fn DEBUG_create_email_states(db_con: &mut PgConnection) -> anyhow::Result<()> {
     log::info!("Creating email states");
 
     let email_states = ["unverified", "verified"];
@@ -76,7 +76,7 @@ pub async fn create_email_states(db_con: &mut PgConnection) -> anyhow::Result<()
     Ok(())
 }
 
-pub async fn create_admin_users(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
+pub async fn DEBUG_create_admin_users(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
     log::info!("Creating admin users");
 
     let users = [

@@ -11,6 +11,7 @@ mod db;
 mod util;
 
 use std::{
+    env,
     fs::canonicalize,
     net::{Ipv4Addr, SocketAddr},
 };
@@ -45,7 +46,10 @@ async fn main() -> anyhow::Result<()> {
     sqlx::migrate!().run(db_pool).await.unwrap();
     log::info!("Database migrations completed");
 
-    db::insert_default_entries(&db_pool).await?;
+    #[cfg(debug_assertions)]
+    if env::var("NO_DEFAULT_ENTRIES").is_err() {
+        db::DEBUG_insert_default_entries(&db_pool).await?;
+    }
 
     let static_files = ServeDir::new(STATIC_DIR).not_found_service(ServeFile::new(INDEX_FILE));
     log::info!(
