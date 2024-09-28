@@ -3,7 +3,7 @@
 This directory contains the documentation for Egiraffe.
 
 ## Debug vs. Production Build
-If you want to make a production build, pass `--features pro` to cargo. This will change the default configuration and add some safety assertions.
+If you want to make a production build, pass `--features prod` to cargo. This will change the default configuration and add some safety assertions.
 
 ## Configuration
 See conf.rs

@@ -19,11 +19,5 @@ services:
 #
 # WARNING Again, do not use this file in production. It is only meant for local development.
 #
-# Use
-# export DATABASE_URL='postgresql://egiraffe:hunter2@localhost:5432/egiraffe?sslmode=disable'
-# to connect to the database from the host machine, then
-# cargo run
-# (in the backend directory) to start the server.
-#
 # WARNING Again 2, do not use this file in production. It is only meant for local development.
 #

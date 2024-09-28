@@ -3,6 +3,7 @@ use figment::{Figment, providers::{Format, Toml, Env, Serialized}};
 use once_cell::sync::Lazy;
 use std::net::{Ipv4Addr, IpAddr};
 
+//Sadly the variables with underscores can't be dynamically changed using environment variables - therefore I just concationate everything
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
     pub database: DatabaseConfig,
