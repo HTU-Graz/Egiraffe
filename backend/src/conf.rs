@@ -118,16 +118,13 @@ pub fn load() -> Self {
     }
 
     pub fn validate(s: &Config) {
-        println!("DEBUG: Entering validate()");
         #[cfg(not(feature = "prod"))]
         {
-            println!("DEBUG: Non-Prod");
             //No Validations (yet)
         }
         
         #[cfg(feature = "prod")]
         {
-            println!("DEBUG: Prod");
             assert!(s.database.debugdefaultentries == false);
             assert!(s.mail.encryption != EncryptionType::None); //if desired, remove the check
             assert!(s.mail.activated == true);
