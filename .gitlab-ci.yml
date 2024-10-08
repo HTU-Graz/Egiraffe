@@ -1,0 +1,42 @@
+stages:
+  - build
+
+backend-build:
+  image: rust:slim
+  stage: build
+  variables:
+    CARGO_HOME: ${CI_PROJECT_DIR}/.cargo
+  cache:
+    paths:
+      - .cargo
+      - backend/target
+  script:
+    - cd backend && cargo build
+  rules:
+    - changes:
+        - backend/**/*
+  artifacts:
+    paths:
+      - backend/target/debug/egiraffe
+
+frontend-build:
+  image: node:latest
+  stage: build
+  rules:
+    - changes:
+        - frontend/**/*
+  before_script:
+    - corepack enable
+    - corepack prepare pnpm@latest-9 --activate
+    - pnpm config set store-dir .pnpm-store
+  script:
+    - cd frontend && pnpm install && pnpm run build
+  cache:
+    key:
+      files:
+        - pnpm-lock.yaml
+    paths:
+      - .pnpm-store
+  artifacts:
+    paths:
+      - frontend/dist/
