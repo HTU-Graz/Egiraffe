@@ -43,18 +43,18 @@ impl From<SelectExistsTmp> for SelectExists {
     }
 }
 
-pub async fn DEBUG_insert_default_entries(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
+pub async fn debug_insert_default_entries(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
     let mut tx = db_pool.begin().await?;
     let db_con = tx.acquire().await?;
 
     // TODO make sure this works when half ot it is already initialized
-    let _res = init::DEBUG_create_universities(db_con).await;
-    let _res = init::DEBUG_create_email_states(db_con).await;
+    let _res = init::debug_create_universities(db_con).await;
+    let _res = init::debug_create_email_states(db_con).await;
     tx.commit().await?;
 
     let mut tx = db_pool.begin().await?;
     let db_con = tx.acquire().await?;
-    let _res = init::DEBUG_create_admin_users(db_pool).await;
+    let _res = init::debug_create_admin_users(db_pool).await;
     tx.commit().await?;
 
     log::info!("Database reset and initialized");

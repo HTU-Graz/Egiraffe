@@ -48,7 +48,7 @@ async fn main() -> anyhow::Result<()> {
 
     #[cfg(debug_assertions)]
     if env::var("NO_DEFAULT_ENTRIES").is_err() {
-        db::DEBUG_insert_default_entries(&db_pool).await?;
+        db::debug_insert_default_entries(&db_pool).await?;
     }
 
     let static_files = ServeDir::new(STATIC_DIR).not_found_service(ServeFile::new(INDEX_FILE));
