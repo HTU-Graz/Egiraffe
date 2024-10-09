@@ -1,0 +1,7 @@
+Hallo {{username}},
+Du hast dich bei uns angemeldet.
+Um deinen Account verwenden zu können musst du ihn noch freischalten indem du diesem Link folgst:
+{activationLink}
+Dieser Link ist für {{acitvationValidityPeriod}} Tage gültig.
+
+Grüße, dein Egiraffe-Team
