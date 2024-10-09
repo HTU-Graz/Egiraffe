@@ -96,7 +96,7 @@ pub async fn handle_login(
 
     (
         StatusCode::OK,
-        cookie_jar.add(session_cookie),
+        cookie_jar.add(session_cookie), // Good that this forces a new session in case a session already exists :) Otherwise we would have a session fixation vulnerability.
         Json(LoginRes {
             success: true,
             email: login_data.email,
