@@ -13,8 +13,8 @@ use anyhow::Context;
 use once_cell::sync::OnceCell;
 use serde::Deserialize;
 use sqlx::{postgres::PgPoolOptions, Acquire, Executor, PgConnection, Pool, Postgres};
-use std::env;
 use tokio::fs::read_to_string;
+use crate::conf::CONF;
 
 pub static DB_POOL: OnceCell<&'static sqlx::PgPool> = OnceCell::new();
 
@@ -22,9 +22,7 @@ pub async fn connect() -> anyhow::Result<Pool<Postgres>> {
     let pool =
         PgPoolOptions::new()
             .max_connections(5)
-            .connect(&env::var("DATABASE_URL").context(
-                "Needs the env var DATABASE_URL set to the connection string of the pg db",
-            )?)
+            .connect(&CONF.database.url)
             .await?;
 
     Ok(pool)

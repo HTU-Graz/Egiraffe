@@ -17,8 +17,6 @@ pnpm build
 
 cd ../backend
 sudo docker compose up -d
-export DATABASE_URL='postgresql://egiraffe:hunter2@localhost:5432/egiraffe?sslmode=disable'
-sqlx migrate run
 cargo run
 ```
 
@@ -45,14 +43,14 @@ The backend of Egiraffe is written in [Rust](https://www.rust-lang.org/) using t
 See its code in the [`backend`](backend) directory, and its README in [`backend/README.md`](backend/README.md).
 
 Our SQL library `sqlx` utilizes optional macros (which we use) to check the SQL statements at compile time.  
-It needs a working connection to a db to do so.
-Not providing a db url may confuse your LSP server; consider running:
+It needs a working connection to a db to do so, so be sure to start docker-compose before. e.g.:
 
 > ```zsh
-> # For example, this code prepares the environment, launches VS Code(ium), and exits the shell
-> export DATABASE_URL='postgresql://egiraffe:hunter2@localhost:5432/egiraffe?sslmode=disable' && code ~/Repos/egiraffe-ng && exit
+> # For example, this code starts the db, launches VS Code(ium), and exits the shell
+> sudo docker-compose up -d && code ~/Repos/egiraffe-ng && exit
 > ```
 
+<!-- TODO: Which context? I don't understand -->
 Update: these days, you can just tell rust-analyzer to restart, which seems to help.
 
 ## Devops
