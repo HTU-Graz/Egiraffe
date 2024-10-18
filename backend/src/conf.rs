@@ -29,7 +29,7 @@ pub struct MailConfig {
     pub sendername: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub enum EncryptionType {
     None,
     StartTLS,
