@@ -9,7 +9,6 @@ mod api;
 mod data;
 mod db;
 mod util;
-mod constantes;
 mod conf;
 
 use std::{
@@ -22,10 +21,10 @@ use anyhow::Context;
 use axum::Router;
 use sqlx::{Pool, Postgres};
 use tower_http::services::{ServeDir, ServeFile};
+use owo_colors::OwoColorize;
 
 use crate::db::DB_POOL;
 use crate::conf::CONF;
-use crate::constantes::*;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -35,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
 
     #[cfg(not(feature = "prod"))]
     {
-        println!("{}DEBUG Mode!{} Never use this in Production!", CLI_COLOR_RED, CLI_COLOR_DEFAULT);
+        println!("{} Never use this in Production!", "DEBUG Mode!".on_red());
         log::warn!("DEBUG Mode! Never use this in Production!");
     }
 
