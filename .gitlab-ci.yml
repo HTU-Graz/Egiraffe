@@ -19,6 +19,16 @@ backend-build:
     paths:
       - backend/target/debug/egiraffe
 
+backend-build-prod:
+  image: rust:slim
+  stage: build
+  script:
+    - cd backend && cargo build -r --features prod
+  when: manual
+  artifacts:
+    paths:
+      - backend/target/release/egiraffe
+
 frontend-build:
   image: node:latest
   stage: build
