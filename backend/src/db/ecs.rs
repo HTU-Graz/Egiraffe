@@ -13,6 +13,7 @@ pub async fn calculate_available_funds(
     db_pool: &sqlx::Pool<sqlx::Postgres>,
     user_id: Uuid,
 ) -> anyhow::Result<f64> {
+    // FIXME figure out what data type should be returned for this query
     // sqlx::query_file!("src/db/sql/get_available_ecs.sql", user_id,)
     //     .fetch_one(db_pool)
     //     .await
