@@ -15,7 +15,7 @@ WITH cte AS (
             INNER JOIN purchase AS pu ON pu.upload_id = up.id
             INNER JOIN "user" AS us ON us.id = up.uploader
         WHERE
-            up.uploader = $ 1
+            up.uploader = $1
             AND pu.user_id <> up.uploader -- exclude self-purchases
         GROUP BY
             up.uploader
@@ -27,7 +27,7 @@ WITH cte AS (
         FROM
             purchase AS pu
         WHERE
-            pu.user_id = $ 1
+            pu.user_id = $1
         GROUP BY
             pu.user_id
     ),
@@ -38,7 +38,7 @@ WITH cte AS (
         FROM
             system_ec_transaction AS systrans
         WHERE
-            systrans.affected_user = $ 1
+            systrans.affected_user = $1
         GROUP BY
             systrans.affected_user
     )
