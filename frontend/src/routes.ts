@@ -47,6 +47,10 @@ export const routes: RouteDefinition[] = [
     component: lazy(() => import("./pages/moderation")),
   },
   {
+    path: "/admin/users",
+    component: lazy(() => import("./pages/admin/users")),
+  },
+  {
     path: "/debug",
     component: lazy(() => import("./pages/debug")),
   },
