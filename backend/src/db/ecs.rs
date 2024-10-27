@@ -2,8 +2,6 @@ use anyhow::Context;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::data::SystemTransaction;
-
 /// Calculates the amount of ECS the user has available to spend
 ///
 /// Takes into account:
@@ -21,25 +19,4 @@ pub async fn calculate_available_funds(
     //     .map(|row| row.ecs_available)
     //     .context("Failed to calculate available funds")
     Ok(42.0) // FIXME this darn thing doesn't work
-}
-
-pub async fn create_system_transaction(
-    db_pool: &PgPool,
-    transaction: SystemTransaction,
-) -> anyhow::Result<()> {
-    sqlx::query!(
-        r#"
-            INSERT INTO system_ec_transaction (affected_user, transaction_date, delta_ec, reason)
-            VALUES ($1, $2, $3, $4)
-        "#,
-        transaction.affected_user,
-        transaction.transaction_date,
-        transaction.delta_ec,
-        transaction.reason,
-    )
-    .execute(db_pool)
-    .await
-    .context("Failed to create system transaction")?;
-
-    Ok(())
 }

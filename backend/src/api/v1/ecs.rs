@@ -1,3 +1,4 @@
+use anyhow::Context;
 use axum::{
     extract::State,
     http::StatusCode,
@@ -5,13 +6,15 @@ use axum::{
     routing::{get, put},
     Json, Router,
 };
-use serde::Deserialize;
+use chrono::NaiveDateTime;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
+use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::{
     api::api_greeting,
-    data::{Prof, SystemTransaction},
+    data::Prof,
     db::{self, DB_POOL},
 };
 
@@ -57,7 +60,7 @@ pub async fn handle_create_system_transaction(
         reason: req.reason,
     };
 
-    let result = db::ecs::create_system_transaction(&db_pool, transaction).await;
+    let result = create_system_transaction(&db_pool, transaction).await;
     match result {
         Ok(_) => (StatusCode::OK, Json(json!({}))),
         Err(e) => (
@@ -65,4 +68,35 @@ pub async fn handle_create_system_transaction(
             Json(json!({ "error": e.to_string() })),
         ),
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SystemTransaction {
+    pub affected_user: Uuid,
+    pub transaction_date: NaiveDateTime,
+
+    /// The amount of ECS the user gained or lost
+    pub delta_ec: i64,
+    pub reason: Option<String>,
+}
+
+pub async fn create_system_transaction(
+    db_pool: &PgPool,
+    transaction: SystemTransaction,
+) -> anyhow::Result<()> {
+    sqlx::query!(
+        r#"
+            INSERT INTO system_ec_transaction (affected_user, transaction_date, delta_ec, reason)
+            VALUES ($1, $2, $3, $4)
+        "#,
+        transaction.affected_user,
+        transaction.transaction_date,
+        transaction.delta_ec,
+        transaction.reason,
+    )
+    .execute(db_pool)
+    .await
+    .context("Failed to create system transaction")?;
+
+    Ok(())
 }

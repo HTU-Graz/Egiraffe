@@ -177,16 +177,6 @@ pub struct Purchase {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct SystemTransaction {
-    pub affected_user: Uuid,
-    pub transaction_date: NaiveDateTime,
-
-    /// The amount of ECS the user gained or lost
-    pub delta_ec: i64,
-    pub reason: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 pub struct File {
     pub id: Uuid,
     pub name: String,
