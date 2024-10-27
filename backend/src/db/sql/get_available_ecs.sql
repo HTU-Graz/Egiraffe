@@ -8,12 +8,13 @@
 WITH cte AS (
     -- ECS earned from uploads
     ecs_earned AS (
-        SELECT SUM(pu.ecs_spent)
+        SELECT SUM(pu.ecs_spent * 0.8)
         FROM upload AS up
             INNER JOIN purchase AS pu ON pu.upload_id = up.id
             INNER JOIN "user" AS us ON us.id = up.uploader
         WHERE up.uploader = $1
-        GROUP BY up.uploader -- FIXME also consider the case where the purchaser has rated the upload
+        AND pu.user_id <> up.uploader -- exclude self-purchases
+        GROUP BY up.uploader
     ),
     -- ECS spent on purchases
     ecs_spent AS (
