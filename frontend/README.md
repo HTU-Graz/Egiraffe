@@ -1,5 +1,7 @@
 # Egiraffe Frontend
 
+To see what needs to get done, check out the work packages in [`work_pkgs.md`](design/work_pkgs.md).
+
 The frontend of Egiraffe is written in [Solid.js](https://www.solidjs.com/) and [Tailwind CSS](https://tailwindcss.com/).
 
 ## Development
