@@ -1,6 +1,6 @@
 # Egiraffe Backend
 
-To see what needs to get done, check out the work packages in [`work_pkgs.md`](design/work_pkgs.md).
+To see what needs to get done, check out the work packages in [`work_pkgs.md`](../design/work_pkgs.md).
 
 The backend of Egiraffe is written in [Rust](https://www.rust-lang.org/) using the [Axum](https://docs.rs/axum/latest/axum/) framework.
 

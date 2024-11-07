@@ -2,6 +2,8 @@
 
 This directory contains design documents for Egiraffe, documenting technical decisions and the overall architecture of the project.
 
+To see a simple list of what needs to get done, check out the work packages in [`work_pkgs.md`](./work_pkgs.md).
+
 This used to contain [ERD](https://en.wikipedia.org/wiki/Entity%E2%80%93relationship_model) diagrams of the database schema of Egiraffe.
 However, as we now use hand-written SQL migration files, this has been dropped.
 

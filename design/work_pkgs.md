@@ -15,3 +15,5 @@ The things which need to get done
 - Upload view
 - Deployment strategy (DevOps stuff)
 - Migration of the OG Egiraffe
+
+For a rough design document detailing the requirements of the finished project, see the [Design README file](./README.md).
