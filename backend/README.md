@@ -1,5 +1,7 @@
 # Egiraffe Backend
 
+To see what needs to get done, check out the work packages in [`work_pkgs.md`](../design/work_pkgs.md).
+
 The backend of Egiraffe is written in [Rust](https://www.rust-lang.org/) using the [Axum](https://docs.rs/axum/latest/axum/) framework.
 
 ## Development
@@ -34,6 +36,7 @@ It needs a working connection to a db to do so, so be sure to start docker-compo
 > ```
 
 <!-- TODO: Still needed? -->
+
 You may also need to apply the migrations before compilation, by running
 
 ```zsh

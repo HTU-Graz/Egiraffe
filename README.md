@@ -6,6 +6,8 @@ Since 2005, when the first version of Egiraffe was released, it has been used by
 
 Now, in 2023, Egiraffe is being rewritten from scratch to provide a more modern and easier to use experience.
 
+To see what needs to get done, check out the work packages in [`work_pkgs.md`](design/work_pkgs.md).
+
 ## TL;DR
 
 Assuming you installed all the tools (Node, Rust, pnpm, docker) just run:
@@ -22,7 +24,9 @@ cargo run
 
 ---
 
-See the [requirements](./design/README.md#requirements) for a list of things needing to be done.
+See the [requirements](./design/README.md#requirements) for a list of things needing to be done (detailed list).
+
+To see a simple list of what needs to get done, check out the work packages in [`work_pkgs.md`](design/work_pkgs.md).
 
 ---
 
@@ -51,6 +55,7 @@ It needs a working connection to a db to do so, so be sure to start docker-compo
 > ```
 
 <!-- TODO: Which context? I don't understand -->
+
 Update: these days, you can just tell rust-analyzer to restart, which seems to help.
 
 ## Devops
