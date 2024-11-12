@@ -1,5 +1,5 @@
 import { useRouteData } from "@solidjs/router";
-import { createResource, createSignal, Match, Show, Switch } from "solid-js";
+import { createResource, createSignal, For, Match, Show, Switch } from "solid-js";
 import { AscendingIcon, DescendingIcon } from "../../icons/Sorting";
 import { getAllUsers } from "../../api/admin";
 
@@ -22,7 +22,24 @@ export default function Users() {
                     <span>Error: {users.error}</span>
                 </Match>
                 <Match when={users()}>
-                    <div>{JSON.stringify(users())}</div>
+                    <For each={users()!!}>
+                        {(user) => (
+                            <div class="card shadow-md">
+                                <div class="card-body grid grid-cols-2">
+                                    <span>User ID</span>
+                                    <span>{user.id}</span>
+                                    <span>First Names</span>
+                                    <span>{user.first_names}</span>
+                                    <span>Last Name</span>
+                                    <span>{user.last_name}</span>
+                                    <span>2FA Enabled</span>
+                                    <span>{user.totp_enabled ? "Yes" : "No"}</span>
+                                    <span>User Role</span>
+                                    <span>{user.user_role}</span>
+                                </div>
+                            </div>
+                        )}
+                    </For>
                 </Match>
             </Switch>
         </>
