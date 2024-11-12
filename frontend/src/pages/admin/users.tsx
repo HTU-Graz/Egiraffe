@@ -25,17 +25,26 @@ export default function Users() {
                     <For each={users()!!}>
                         {(user) => (
                             <div class="card shadow-md">
-                                <div class="card-body grid grid-cols-2">
-                                    <span>User ID</span>
-                                    <span>{user.id}</span>
-                                    <span>First Names</span>
-                                    <span>{user.first_names}</span>
-                                    <span>Last Name</span>
-                                    <span>{user.last_name}</span>
-                                    <span>2FA Enabled</span>
-                                    <span>{user.totp_enabled ? "Yes" : "No"}</span>
-                                    <span>User Role</span>
-                                    <span>{user.user_role}</span>
+                                <div class="card-body">
+                                    <div class="grid grid-cols-2">
+                                        <span>User ID</span>
+                                        <span>{user.id}</span>
+                                        <span>First Names</span>
+                                        <span>{user.first_names}</span>
+                                        <span>Last Name</span>
+                                        <span>{user.last_name}</span>
+                                        <span>2FA Enabled</span>
+                                        <span>{user.totp_enabled ? "Yes" : "No"}</span>
+                                        <span>User Role</span>
+                                        <span>{user.user_role}</span>
+
+                                        <span>Add/remove ECs</span>
+                                        <div>
+                                            <input></input>
+                                            <button class="btn">Todo</button>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
                         )}
