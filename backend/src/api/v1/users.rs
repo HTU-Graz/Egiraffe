@@ -28,11 +28,11 @@ pub async fn handle_get_users() -> impl IntoResponse {
     let db_pool = *DB_POOL.get().unwrap();
 
     // Select totp_secret as totp_enabled (check if it's null or if the string has length > 0)
+    // TODO consider going back to a macro for this one
     // let users = sqlx::query_as!(
-    let users: anyhow::Result<Vec<(Uuid, Option<String>, Option<String>, bool, i16)>> =
-        sqlx::query_as(
-            // RedactedUser,
-            r#"
+    let users: anyhow::Result<Vec<RedactedUser>> = sqlx::query_as(
+        // RedactedUser,
+        r#"
             SELECT
                 id,
                 first_names,
@@ -42,17 +42,20 @@ pub async fn handle_get_users() -> impl IntoResponse {
             FROM
                 "user"
             "#,
-        )
-        .fetch_all(&*db_pool)
-        .await
-        .context("Failed to fetch users");
+    )
+    .fetch_all(&*db_pool)
+    .await
+    .context("Failed to fetch users");
 
     let Ok(users) = users else {
         return (
             StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({ "error": "Failed to fetch users" })),
+            Json(json!({ "success": false, "message": "Failed to fetch users" })),
         );
     };
 
-    return (StatusCode::OK, Json(json!({ "users": users })));
+    return (
+        StatusCode::OK,
+        Json(json!({ "success": true, "users": users })),
+    );
 }
