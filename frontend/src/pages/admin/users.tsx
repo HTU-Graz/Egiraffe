@@ -1,7 +1,7 @@
 import { useRouteData } from "@solidjs/router";
 import { createResource, createSignal, For, Match, Show, Switch } from "solid-js";
 import { AscendingIcon, DescendingIcon } from "../../icons/Sorting";
-import { getAllUsers } from "../../api/admin";
+import { createSystemTransaction, getAllUsers } from "../../api/admin";
 import { RedactedUser } from "../../api/users";
 
 /**
@@ -39,11 +39,21 @@ function UserCard({ user }: { user: RedactedUser }) {
     const ecInputId = `ecInput-${user.id}`;
     const reasonInputId = `reasonInput-${user.id}`;
 
+    const handleCreateTransaction = async () => {
+        try {
+            await createSystemTransaction({
+                user_id: user.id,
+                delta_ec: parseInt(ecInput(), 10),
+                reason: reasonInput(),
+            });
+            alert('Transaction created successfully');
+        } catch (error: any) {
+            alert(`Failed to create transaction: ${error.message}`);
+        }
+    };
+
     return (
         <div class="card shadow-md">
-            <p>
-                {ecInput()}
-            </p>
             <div class="card-body">
                 <div class="grid grid-cols-[auto,auto]">
                     <span>User ID</span>
@@ -71,7 +81,7 @@ function UserCard({ user }: { user: RedactedUser }) {
                             </label>
                             <input class="input input-bordered" type="text" id={reasonInputId} value={reasonInput()} onInput={(e) => setReasonInput(e.currentTarget.value)} />
                         </div>
-                        <button class="btn">Create system transaction</button>
+                        <button class="btn" onClick={handleCreateTransaction}>Create system transaction</button>
                     </div>
                 </div>
 

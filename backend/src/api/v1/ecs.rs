@@ -56,6 +56,8 @@ pub async fn handle_create_system_transaction(
 ) -> impl IntoResponse {
     let db_pool = *DB_POOL.get().unwrap();
 
+    log::info!("Creating system transaction: {:?}", req);
+
     let transaction = SystemTransaction {
         affected_user: req.user_id,
         transaction_date: chrono::Utc::now().naive_utc(),
