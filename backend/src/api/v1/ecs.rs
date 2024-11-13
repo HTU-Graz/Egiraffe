@@ -33,7 +33,10 @@ pub async fn handle_get_user_balance(Json(user_id): Json<Uuid>) -> impl IntoResp
 
     let balance = db::ecs::calculate_available_funds(&db_pool, user_id).await;
     match balance {
-        Ok(balance) => (StatusCode::OK, Json(json!({ "balance": balance }))),
+        Ok(balance) => (
+            StatusCode::OK,
+            Json(json!({ "success": true, "balance": balance })),
+        ),
         Err(e) => (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(json!({ "error": e.to_string() })),
@@ -62,7 +65,7 @@ pub async fn handle_create_system_transaction(
 
     let result = create_system_transaction(&db_pool, transaction).await;
     match result {
-        Ok(_) => (StatusCode::OK, Json(json!({}))),
+        Ok(_) => (StatusCode::OK, Json(json!({ "success": true }))),
         Err(e) => (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(json!({ "error": e.to_string() })),
