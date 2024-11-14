@@ -1,7 +1,8 @@
-import { useRouteData } from "@solidjs/router";
+import { Link, useRouteData } from "@solidjs/router";
 import { For, Show, Suspense, createSignal } from "solid-js";
 import UploadCard from "../components/UploadCard";
 import { UploadsDataType } from "./uploads.data";
+import UploadIcon from "../icons/UploadIcon";
 
 export default function Course() {
   const uploads = useRouteData<UploadsDataType>();
@@ -13,6 +14,10 @@ export default function Course() {
 
   return (
     <>
+      <Link href="/upload" class="btn btn-outline mb-2 md:hidden">
+        <UploadIcon />
+        Hochladen
+      </Link>
       <div class="grid grid-cols-2 gap-2 md:grid-cols-4 max-w-max">
         <button
           class="btn"
