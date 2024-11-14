@@ -98,7 +98,12 @@ export default function Course() {
                 <div class="card-body">
                   <div class="text-center">
                     {/* HACK this looks appalling, improve font/layout */}
-                    <h2 class="text-3xl font-bold">Keine Uploads gefunden</h2>
+                    <h2 class="text-xl font-bold">Keine Uploads gefunden</h2>
+                    <p class="text-lg">Sei die erste Person, die hier etwas hochlädt!</p>
+                    <Link href="/upload" class="btn btn-sm btn-primary btn-outline mt-2">
+                      {/* <UploadIcon /> */}
+                      Jetzt Hochladen
+                    </Link>
                   </div>
                 </div>
               </div>
