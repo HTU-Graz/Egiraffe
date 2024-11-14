@@ -2,7 +2,7 @@ import { useRouteData } from "@solidjs/router";
 import { createResource, createSignal, For, Match, Show, Switch } from "solid-js";
 import { AscendingIcon, DescendingIcon } from "../../icons/Sorting";
 import { createSystemTransaction, getAllUsers } from "../../api/admin";
-import { RedactedUser } from "../../api/users";
+import { authLevelToString, RedactedUser } from "../../api/users";
 
 /**
  * @file This page displays and manages all users in the system. It is only accessible to administrators.
@@ -65,7 +65,7 @@ function UserCard({ user }: { user: RedactedUser }) {
                     <span>2FA Enabled</span>
                     <span>{user.totp_enabled ? "Yes" : "No"}</span>
                     <span>User Role</span>
-                    <span>{user.user_role}</span>
+                    <span>{authLevelToString(user.user_role)} (auth level {user.user_role})</span>
 
                     <span>Add/remove ECs</span>
                     <div class="flex flex-row gap-2 items-baseline">

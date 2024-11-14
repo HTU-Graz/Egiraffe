@@ -20,6 +20,19 @@ export enum AuthLevel {
   ADMIN = 3,
 }
 
+export function authLevelToString(level: AuthLevel): string {
+  switch (level) {
+    case AuthLevel.ANYONE:
+      return "Guest";
+    case AuthLevel.REGULAR_USER:
+      return "User";
+    case AuthLevel.MODERATOR:
+      return "Moderator";
+    case AuthLevel.ADMIN:
+      return "Admin";
+  }
+}
+
 /**
  * Contains most of the information the server knows about a user.
  * 
