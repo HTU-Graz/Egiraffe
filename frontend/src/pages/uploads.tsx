@@ -13,7 +13,7 @@ export default function Course() {
 
   return (
     <>
-      <div class="flex gap-2 flex-wrap">
+      <div class="grid grid-cols-2 gap-2 md:grid-cols-4 max-w-max">
         <button
           class="btn"
           classList={{ "btn-accent": activeSort() === "date" }}
