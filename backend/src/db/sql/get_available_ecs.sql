@@ -18,6 +18,16 @@ ecs_spent_tbl AS (
     WHERE
         pu.user_id = $1
 ),
+-- ECS refunded from ratings
+ecs_refunded_tbl AS (
+    SELECT
+        COALESCE(SUM(pu.ecs_spent * 0.2), 0) AS ecs_refunded
+    FROM
+        purchase AS pu
+    WHERE
+        pu.user_id = $1
+        AND pu.rating IS NOT NULL
+),
 -- ECS given/taken by the system
 ecs_system_tbl AS (
     SELECT
@@ -28,8 +38,9 @@ ecs_system_tbl AS (
         systrans.affected_user = $1
 )
 SELECT
-    ecs_earned + ecs_system - ecs_spent AS ecs_available
+    ecs_earned + ecs_system - ecs_spent + ecs_refunded AS ecs_available
 FROM
     ecs_earned_tbl
     CROSS JOIN ecs_spent_tbl
+    CROSS JOIN ecs_refunded_tbl
     CROSS JOIN ecs_system_tbl;
