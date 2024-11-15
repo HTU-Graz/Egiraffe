@@ -1,13 +1,14 @@
 import { Link } from "@solidjs/router";
-import { Show } from "solid-js";
+import { Show, createResource, Switch, Match } from "solid-js";
 import { useAuthContext } from "../context/AuthContext";
 import UploadIcon from "../icons/UploadIcon";
 import SearchBar from "./SearchBar";
 import Sidebar from "./Sidebar";
-import { AuthLevel } from "../api/users";
+import { AuthLevel, getMyEcsBalance } from "../api/users";
 
 export default function Navbar() {
   const { user, logout, setLoginModal } = useAuthContext();
+  const [myEcsBalance] = createResource(getMyEcsBalance);
 
   return (
     <div class="drawer">
@@ -89,6 +90,20 @@ export default function Navbar() {
                     <li>
                       <span class="font-semibold">
                         {user()!.first_names} {user()!.last_name}
+                      </span>
+                      <br />
+                      <span class="text-xs text-base-content">
+                        <Switch>
+                          <Match when={myEcsBalance.loading}>
+                            ...
+                          </Match>
+                          <Match when={myEcsBalance.error}>
+                            Error getting ECs balance
+                          </Match>
+                          <Match when={typeof myEcsBalance() === "number"}>
+                            {myEcsBalance()} ECs
+                          </Match>
+                        </Switch>
                       </span>
                     </li>
                     <div class="divider my-0" />
