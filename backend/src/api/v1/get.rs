@@ -1,5 +1,6 @@
 use std::{path::PathBuf, vec};
 
+use anyhow::Context;
 use axum::{
     body::Body,
     extract::State,
@@ -32,6 +33,52 @@ pub fn routes() -> Router {
         .route("/file", put(handle_get_file))
         .route("/files", put(handle_get_files))
         .route("/prof", put(handle_get_prof))
+        .route("/my-ecs-balance", put(handle_get_my_ecs))
+}
+
+/// Handles requests to get the user's own current ECs balance
+async fn handle_get_my_ecs(
+    Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
+) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
+    // Most `/get` endpoints do not require authentication; this one does
+    if current_user_id.is_nil() {
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(json!({ "success": false, "message": "Unauthorized" })),
+        );
+    }
+
+    // let maybe_ecs = sqlx::query_file_as!(i32, "src/db/sql/get_available_ecs.sql", current_user_id)
+    //     .fetch_one(&*db_pool)
+    //     .await;
+    let maybe_ecs: anyhow::Result<(f64,)> =
+        sqlx::query_as(include_str!("../../db/sql/get_available_ecs.sql"))
+            .bind(&current_user_id)
+            .fetch_one(&*db_pool)
+            .await
+            .context("Failed to get ECs");
+
+    let Ok((ecs,)) = maybe_ecs else {
+        log::error!("Failed to get ECs: {:#?}", maybe_ecs.unwrap_err());
+
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({
+                "success": false,
+                "message": "Failed to get ECs",
+            })),
+        );
+    };
+
+    (
+        StatusCode::OK,
+        Json(json!({
+            "success": true,
+            "ecs_balance": ecs,
+        })),
+    )
 }
 
 #[derive(Debug, Deserialize)]

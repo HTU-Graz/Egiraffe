@@ -20,6 +20,19 @@ export enum AuthLevel {
   ADMIN = 3,
 }
 
+export function authLevelToString(level: AuthLevel): string {
+  switch (level) {
+    case AuthLevel.ANYONE:
+      return "Guest";
+    case AuthLevel.REGULAR_USER:
+      return "User";
+    case AuthLevel.MODERATOR:
+      return "Moderator";
+    case AuthLevel.ADMIN:
+      return "Admin";
+  }
+}
+
 /**
  * Contains most of the information the server knows about a user.
  * 
@@ -48,6 +61,10 @@ export interface UpdateMeRequest {
   password?: string;
 }
 
+export type MyEcsBalanceResponse =
+  | ErrorResponse
+  | { success: true; ecs_balance: number };
+
 export type UpdateMeResponse =
   | ErrorResponse
   | { success: true; message: string; user: RedactedUser };
@@ -62,4 +79,11 @@ export async function updateMe(options: UpdateMeRequest): Promise<RedactedUser> 
   const response = await put<UpdateMeResponse>("/api/v1/do/me", options);
   if (!response.success) throw new Error(response.message);
   return response.user;
+}
+
+
+export async function getMyEcsBalance(): Promise<number> {
+  const response = await put<MyEcsBalanceResponse>("/api/v1/get/my-ecs-balance");
+  if (!response.success) throw new Error(response.message);
+  return response.ecs_balance;
 }

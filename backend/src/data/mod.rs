@@ -2,6 +2,7 @@ use std::{ops::Deref, sync::Arc};
 
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
+use sqlx::prelude::FromRow;
 use uuid::Uuid;
 
 // #[derive(Debug, Serialize, Deserialize)]
@@ -34,8 +35,7 @@ pub struct User {
     /// at least not in a meaningful/simple way.
     pub user_role: i16,
 }
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct RedactedUser {
     pub id: Uuid,
     pub first_names: Option<String>,
@@ -174,16 +174,6 @@ pub struct Purchase {
     pub ecs_spent: i16,
     pub purchase_date: NaiveDateTime,
     pub rating: Option<i16>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct SystemTransaction {
-    pub affected_user: Uuid,
-    pub transaction_date: NaiveDateTime,
-
-    /// The amount of ECS the user gained or lost
-    pub delta_ec: i64,
-    pub reason: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
