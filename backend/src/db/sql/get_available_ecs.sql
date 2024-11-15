@@ -1,4 +1,4 @@
-WITH -- ECS earned from uploads
+WITH -- ECs earned from uploads
 ecs_earned_tbl AS (
     SELECT
         COALESCE(SUM(pu.ecs_spent * 0.8), 0) AS ecs_earned
@@ -9,7 +9,7 @@ ecs_earned_tbl AS (
         up.uploader = $1
         AND pu.user_id <> up.uploader -- exclude self-purchases
 ),
--- ECS spent on purchases
+-- ECs spent on purchases
 ecs_spent_tbl AS (
     SELECT
         COALESCE(SUM(pu.ecs_spent), 0) AS ecs_spent
@@ -18,7 +18,7 @@ ecs_spent_tbl AS (
     WHERE
         pu.user_id = $1
 ),
--- ECS refunded from ratings
+-- ECs refunded from ratings
 ecs_refunded_tbl AS (
     SELECT
         COALESCE(SUM(pu.ecs_spent * 0.2), 0) AS ecs_refunded
@@ -28,7 +28,7 @@ ecs_refunded_tbl AS (
         pu.user_id = $1
         AND pu.rating IS NOT NULL
 ),
--- ECS given/taken by the system
+-- ECs given/taken by the system
 ecs_system_tbl AS (
     SELECT
         COALESCE(SUM(systrans.delta_ec), 0) AS ecs_system
