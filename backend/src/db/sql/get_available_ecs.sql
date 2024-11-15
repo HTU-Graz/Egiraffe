@@ -1,46 +1,37 @@
-WITH -- ECs earned from uploads
-ecs_earned_tbl AS (
-    SELECT
-        COALESCE(SUM(pu.ecs_spent * 0.8), 0) AS ecs_earned
-    FROM
-        upload AS up
-        INNER JOIN purchase AS pu ON pu.upload_id = up.id
-    WHERE
-        up.uploader = $1
-        AND pu.user_id <> up.uploader -- exclude self-purchases
-),
--- ECs spent on purchases
-ecs_spent_tbl AS (
-    SELECT
-        COALESCE(SUM(pu.ecs_spent), 0) AS ecs_spent
-    FROM
-        purchase AS pu
-    WHERE
-        pu.user_id = $1
-),
--- ECs refunded from ratings
-ecs_refunded_tbl AS (
-    SELECT
-        COALESCE(SUM(pu.ecs_spent * 0.2), 0) AS ecs_refunded
-    FROM
-        purchase AS pu
-    WHERE
-        pu.user_id = $1
-        AND pu.rating IS NOT NULL
-),
--- ECs given/taken by the system
-ecs_system_tbl AS (
-    SELECT
-        COALESCE(SUM(systrans.delta_ec), 0) AS ecs_system
-    FROM
-        system_ec_transaction AS systrans
-    WHERE
-        systrans.affected_user = $1
-)
 SELECT
-    ecs_earned + ecs_system - ecs_spent + ecs_refunded AS ecs_available
-FROM
-    ecs_earned_tbl
-    CROSS JOIN ecs_spent_tbl
-    CROSS JOIN ecs_refunded_tbl
-    CROSS JOIN ecs_system_tbl;
+    (
+        -- ECs earned from uploads
+        SELECT
+            COALESCE(SUM(pu.ecs_spent * 0.8), 0)
+        FROM
+            upload AS up
+            JOIN purchase AS pu ON pu.upload_id = up.id
+        WHERE
+            up.uploader = $ 1
+            AND pu.user_id <> up.uploader
+    ) + (
+        -- ECs given/taken by the system
+        SELECT
+            COALESCE(SUM(systrans.delta_ec), 0)
+        FROM
+            system_ec_transaction AS systrans
+        WHERE
+            systrans.affected_user = $ 1
+    ) - (
+        -- ECs spent on purchases
+        SELECT
+            COALESCE(SUM(pu.ecs_spent), 0)
+        FROM
+            purchase AS pu
+        WHERE
+            pu.user_id = $ 1
+    ) + (
+        -- ECs refunded from ratings
+        SELECT
+            COALESCE(SUM(pu.ecs_spent * 0.2), 0)
+        FROM
+            purchase AS pu
+        WHERE
+            pu.user_id = $ 1
+            AND pu.rating IS NOT NULL
+    ) AS ecs_available;
