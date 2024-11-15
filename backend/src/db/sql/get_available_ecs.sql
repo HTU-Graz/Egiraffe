@@ -7,7 +7,7 @@ SELECT
             upload AS up
             JOIN purchase AS pu ON pu.upload_id = up.id
         WHERE
-            up.uploader = $ 1
+            up.uploader = $1
             AND pu.user_id <> up.uploader
     ) + (
         -- ECs given/taken by the system
@@ -16,7 +16,7 @@ SELECT
         FROM
             system_ec_transaction AS systrans
         WHERE
-            systrans.affected_user = $ 1
+            systrans.affected_user = $1
     ) - (
         -- ECs spent on purchases
         SELECT
@@ -24,7 +24,7 @@ SELECT
         FROM
             purchase AS pu
         WHERE
-            pu.user_id = $ 1
+            pu.user_id = $1
     ) + (
         -- ECs refunded from ratings
         SELECT
@@ -32,6 +32,6 @@ SELECT
         FROM
             purchase AS pu
         WHERE
-            pu.user_id = $ 1
+            pu.user_id = $1
             AND pu.rating IS NOT NULL
-    ) AS ecs_available;
+    ) :: float8 AS ecs_available;
