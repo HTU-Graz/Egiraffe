@@ -21,8 +21,8 @@ export function bytesToSize(bytes: number): string {
 
 export default function UploadCard(props: Upload) {
   const [files] = createResource(() => props.id, getFiles);
-  const fileName = () => files()?.[0].name;
-  const size = () => bytesToSize(files()?.[0].size ?? 0);
+  const fileName = () => files()?.[0]?.name ?? "[No public files available]";
+  const size = () => bytesToSize(files()?.[0]?.size ?? 0);
 
   return (
     <A href={`/uploads/${props.id}`}>
