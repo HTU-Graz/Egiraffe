@@ -1,97 +1,108 @@
-import { useRouteData } from "@solidjs/router";
-import { For, Show, Suspense, createSignal } from "solid-js";
+import { useParams, useRouteData } from "@solidjs/router";
+import { For, Match, Show, Suspense, Switch, createResource, createSignal } from "solid-js";
 import UploadCard from "../components/UploadCard";
-import { UploadsDataType } from "./uploads.data";
+import { getFiles } from "../api/files";
 
 export default function Upload() {
-  // const uploads = useRouteData<UploadsDataType>();
-  // const [activeSort, setActiveSort] = createSignal("date");
-  // const [sortDateDirection, setSortDateDirection] = createSignal(false);
-  // const [sortSizeDirection, setSortSizeDirection] = createSignal(false);
-  // const [sortDownloadsDirection, setSortDownloadsDirection] = createSignal(false);
-  // const [sortRatingDirection, setSortRatingDirection] = createSignal(false);
+  const { id } = useParams();
+  const [upload_and_files] = createResource(() => id, getFiles);
+
+  const upload = () => upload_and_files()?.upload;
+  const files = () => upload_and_files()?.files;
+  const total_files_count = () => upload_and_files()?.total_files_count;
+
+  const most_recent_available_file = () => {
+    const _files = files();
+
+    if (_files == null || _files[0] == null) return null;
+
+    let best_so_far = null;
+
+    for (const file of _files) {
+      // Only look at approved files
+      if (file.approval_mod && file.approval_uploader) {
+        if (best_so_far == null || file.revision_at > best_so_far.revision_at) {
+          best_so_far = file;
+        }
+      }
+    }
+
+    return best_so_far;
+  }
 
   return (
     <>
-      <div class="flex gap-2 flex-wrap">
-        Upload info go brrr
-      </div>
+      <Suspense fallback={
+        <div class="flex w-52 flex-col gap-4">
+          <div class="skeleton h-32 w-full"></div>
+          <div class="skeleton h-4 w-28"></div>
+          <div class="skeleton h-4 w-full"></div>
+          <div class="skeleton h-4 w-full"></div>
+        </div>
+      }>
+        <h1 class="text-2xl font-bold">
+          Upload-type: {upload()?.name}
+        </h1>
 
-      {/* <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-        <Suspense
-          fallback={
-            <For each={Array(9)}>
-              {() => (
-                <div class="card card-compact card-side bg-base-200 shadow-md h-40">
-                  <div class="skeleton h-full w-28"></div>
-                  <div class="card-body">
-                    <div class="skeleton h-6 w-48"></div>
-                    <div class="skeleton h-4 w-full"></div>
-                    <div class="skeleton h-4 w-full"></div>
-                    <div class="skeleton h-4 w-64"></div>
-                  </div>
-                </div>
-              )}
-            </For>
-          }
-        >
-          <Show
-            when={(uploads()?.length ?? 0) > 0}
-            fallback={
-              <div class="card card-compact card-side bg-base-200 shadow-md">
-                <div class="card-body">
-                  <div class="text-center"> */}
-      {/* HACK this looks appalling, improve font/layout */}
-      {/* <h2 class="text-3xl font-bold">Keine Uploads gefunden</h2>
-                  </div>
-                </div>
-              </div>
-            }>
-            <For each={uploads()}>{(upload) => <UploadCard {...upload} />}</For>
+        <div class="grid grid-cols-2 gap-4 mt-4">
+          <span>Preis</span>
+          <span>{upload()?.price}</span>
+
+          <span>Hochladende Person</span>
+          <span>{upload()?.uploader}</span>
+
+          <span>Upload-Datum</span>
+          <span>{upload()?.upload_date}</span>
+
+          <span>Letzte Änderung</span>
+          <span>{upload()?.last_modified_date}</span>
+
+          <Show when={upload()?.held_by != null}>
+            <span>Von Prof</span>
+            <span>{upload()?.held_by}</span>
           </Show>
-        </Suspense>
-      </div> */}
+        </div>
+
+        <span>Beschreibung</span>
+        <p>{upload()?.description}</p>
+
+        <h2 class="text-xl font-bold mt-8">Dateien</h2>
+        <p>Gesamt {total_files_count()} Dateien</p>
+
+        <Show when={most_recent_available_file() != null} fallback={
+          <p>
+            Es ist aktuell keine Revision verfügbar. <br />
+            Das kann daran liegen, dass die Person, die das hochgeladen hat, die Datei zurückgezogen hat, oder,
+            weil das Moderations-Team die Datei noch nicht freigegeben hat, oder diese sperren musste.
+          </p>
+        }>
+          <div class="grid grid-cols-2 gap-4 mt-4">
+            <span>Dateiname</span>
+            <span>{most_recent_available_file()?.name}</span>
+
+            <span>Datentyp (MIME type)</span>
+            <span>{most_recent_available_file()?.mime_type}</span>
+
+            <span>Dateigröße</span>
+            <span>{most_recent_available_file()?.size}</span>
+
+            <span>Letzte Änderung</span>
+            <span>{most_recent_available_file()?.revision_at}</span>
+          </div>
+
+          <button class="btn btn-primary">
+            <Switch>
+              <Match when={upload()?.price === 0}>
+                Jetzt herunterladen (gratis)
+              </Match>
+              <Match when={upload()?.price !== 0}>
+                Für {upload()?.price} ECs kaufen
+              </Match>
+            </Switch>
+          </button>
+
+        </Show>
+      </Suspense >
     </>
   );
 }
-
-const AscendingIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="28"
-    height="28"
-    viewBox="0 0 24 24"
-    stroke-width="1.5"
-    stroke="currentColor"
-    fill="none"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  >
-    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-    <path d="M4 6l7 0" />
-    <path d="M4 12l7 0" />
-    <path d="M4 18l9 0" />
-    <path d="M15 9l3 -3l3 3" />
-    <path d="M18 6l0 12" />
-  </svg>
-);
-
-const DescendingIcon = () => (
-  <svg
-    width="28"
-    height="28"
-    viewBox="0 0 24 24"
-    stroke-width="1.5"
-    stroke="currentColor"
-    fill="none"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  >
-    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-    <path d="M4 6l9 0" />
-    <path d="M4 12l7 0" />
-    <path d="M4 18l7 0" />
-    <path d="M15 15l3 3l3 -3" />
-    <path d="M18 6l0 12" />
-  </svg>
-);

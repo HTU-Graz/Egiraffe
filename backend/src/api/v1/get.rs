@@ -31,7 +31,7 @@ pub fn routes() -> Router {
         .route("/universities", put(handle_get_universities))
         .route("/me", put(handle_get_me))
         .route("/file", put(handle_get_file))
-        .route("/files", put(handle_get_files))
+        .route("/files-of-upload", put(handle_get_files_of_upload))
         .route("/prof", put(handle_get_prof))
         .route("/my-ecs-balance", put(handle_get_my_ecs))
 }
@@ -362,7 +362,7 @@ pub struct GetUploadReq {
     pub upload_id: Uuid,
 }
 
-async fn handle_get_files(
+async fn handle_get_files_of_upload(
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     Json(upload): Json<GetUploadReq>,
 ) -> impl IntoResponse {
@@ -380,7 +380,7 @@ async fn handle_get_files(
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(json!({
                 "success": false,
-                "message": "Failed to get files",
+                "message": "Failed to get files & upload info",
             })),
         );
     };
@@ -402,12 +402,28 @@ async fn handle_get_files(
         .map(|(file, _)| file)
         .collect::<Vec<_>>();
 
+    // Get the upload info
+    let maybe_upload = get_upload(&db_pool, upload.upload_id).await;
+
+    let Ok(upload) = maybe_upload else {
+        log::error!("Failed to get upload: {}", maybe_upload.unwrap_err());
+
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({
+                "success": false,
+                "message": "Failed to get upload",
+            })),
+        );
+    };
+
     (
         StatusCode::OK,
         Json(json!({
             "success": true,
             "files": files,
             "total_files_count": original_files_count,
+            "upload": upload,
         })),
     )
 }
@@ -472,4 +488,32 @@ async fn handle_get_prof(
             "prof": prof,
         })),
     )
+}
+
+async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<Upload> {
+    let upload = sqlx::query_as!(
+        Upload,
+        "
+        SELECT
+            upload.id,
+            upload_name AS name,
+            description,
+            price,
+            uploader,
+            upload_date,
+            last_modified_date,
+            belongs_to,
+            held_by
+        FROM
+            upload
+        WHERE
+            upload.id = $1
+        ",
+        upload_id,
+    )
+    .fetch_one(db_pool)
+    .await
+    .context("Failed to get upload")?;
+
+    Ok(upload)
 }

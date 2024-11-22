@@ -35,6 +35,14 @@ export async function getUploads(courseId: string): Promise<Upload[]> {
   return response.uploads;
 }
 
+export async function getUpload(uploadId: string): Promise<Upload> {
+  const response = await put<GetUploadsResponse>("/api/v1/get/upload", {
+    course_id: uploadId,
+  });
+  if (!response.success) throw new Error(response.message);
+  return response.uploads;
+}
+
 export async function upload(options: UploadRequest): Promise<Upload> {
   const response = await put<UploadResponse>("/api/v1/do/upload", options);
   if (!response.success) throw new Error(response.message);
