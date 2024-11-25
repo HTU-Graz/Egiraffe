@@ -73,3 +73,9 @@ export async function purchaseUpload(options: PurchaseRequest): Promise<FileUplo
   if (!response.success) throw new Error(response.message);
   return response;
 }
+
+export async function getPurchasedUploads(): Promise<Upload[]> {
+  const response = await put<GetUploadsResponse>("/api/v1/get/purchased-uploads");
+  if (!response.success) throw new Error(response.message);
+  return response.uploads;
+}

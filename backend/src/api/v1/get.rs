@@ -34,6 +34,7 @@ pub fn routes() -> Router {
         .route("/files-of-upload", put(handle_get_files_of_upload))
         .route("/prof", put(handle_get_prof))
         .route("/my-ecs-balance", put(handle_get_my_ecs))
+        .route("/purchased-uploads", put(handle_get_purchased_uploads))
 }
 
 /// Handles requests to get the user's own current ECs balance
@@ -516,4 +517,50 @@ async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<U
     .context("Failed to get upload")?;
 
     Ok(upload)
+}
+
+async fn handle_get_purchased_uploads(
+    Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
+) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
+    log::info!("Get purchased uploads for user {}", current_user_id);
+
+    if current_user_id.is_nil() {
+        log::info!("User is not logged in; resolving purchased uploads requires authentication");
+
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(json!({
+                "success": false,
+                "message": "Resolving purchased uploads requires authentication",
+            })),
+        );
+    }
+
+    let maybe_purchases = todo!();
+    let Ok(purchases) = maybe_purchases else {
+        log::error!("Failed to get purchases: {}", maybe_purchases.unwrap_err());
+
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({
+                "success": false,
+                "message": "Failed to get purchases",
+            })),
+        );
+    };
+
+    let uploads = purchases
+        .into_iter()
+        .map(|purchase| purchase.upload_id)
+        .collect::<Vec<_>>();
+
+    (
+        StatusCode::OK,
+        Json(json!({
+            "success": true,
+            "uploads": uploads,
+        })),
+    )
 }

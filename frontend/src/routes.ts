@@ -38,6 +38,10 @@ export const routes: RouteDefinition[] = [
     component: lazy(() => import("./pages/create-upload")),
   },
   {
+    path: "/library",
+    component: lazy(() => import("./pages/library")),
+  },
+  {
     path: "/about",
     component: lazy(() => import("./pages/about")),
     data: AboutData,
