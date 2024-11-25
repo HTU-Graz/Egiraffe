@@ -1,5 +1,6 @@
 //! Content moderation API endpoints
 
+use anyhow::Context;
 use axum::{
     extract::State,
     http::StatusCode,
@@ -14,6 +15,7 @@ use uuid::Uuid;
 
 use crate::{
     api::api_greeting,
+    data::File,
     db::{self, DB_POOL},
 };
 
@@ -67,10 +69,65 @@ pub struct ModifyFileRequest {
 pub async fn handle_modify_file(Json(request): Json<ModifyFileRequest>) -> impl IntoResponse {
     let db_pool = *DB_POOL.get().unwrap();
 
-    (
-        StatusCode::INTERNAL_SERVER_ERROR,
-        Json(json!({ "error": "not implemented" })), // TODO
+    let mut tx = db_pool.begin().await.unwrap();
+
+    let file = sqlx::query_as!(
+        File,
+        "
+        SELECT
+            id,
+            name,
+            mime_type,
+            size,
+            revision_at,
+            upload_id,
+            approval_uploader,
+            approval_mod
+        FROM
+            FILE
+        WHERE
+            id = $1
+        ",
+        request.id
     )
+    .fetch_one(&mut *tx)
+    .await
+    .context("Failed to get file")
+    .unwrap();
+
+    if request.name.is_some()
+        || request.mime_type.is_some()
+        || request.revision_at.is_some()
+        || request.upload_id.is_some()
+    {
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({ "error": "not implemented" })), // TODO
+        );
+    }
+
+    if let Some(approval_mod) = request.approval_mod {
+        sqlx::query!(
+            "
+            UPDATE
+                file
+            SET
+                approval_mod = $1
+            WHERE
+                id = $2
+            ",
+            approval_mod,
+            request.id
+        )
+        .execute(&mut *tx)
+        .await
+        .context("Failed to update file")
+        .unwrap();
+    }
+
+    tx.commit().await.unwrap();
+
+    (StatusCode::OK, Json(json!({ "success": true })))
 }
 
 pub async fn handle_get_all_uploads() -> impl IntoResponse {
