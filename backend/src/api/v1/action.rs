@@ -517,22 +517,22 @@ async fn handle_do_purchase(
         );
     };
 
-    // 2. Get the current user from the database
-    let maybe_user = db::user::get_user_by_id(&db_pool, current_user_id).await;
-    let Ok(Some(user)) = maybe_user else {
-        log::error!(
-            "Failed to get user from database: {}",
-            maybe_user.unwrap_err()
-        );
-
-        return (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({
-                "success": false,
-                "message": "Failed to get user from database",
-            })),
-        );
-    };
+    // // 2. Get the current user from the database
+    // let maybe_user = db::user::get_user_by_id(&db_pool, current_user_id).await;
+    // let Ok(Some(user)) = maybe_user else {
+    //     log::error!(
+    //         "Failed to get user from database: {}",
+    //         maybe_user.unwrap_err()
+    //     );
+    //
+    //     return (
+    //         StatusCode::INTERNAL_SERVER_ERROR,
+    //         Json(json!({
+    //             "success": false,
+    //             "message": "Failed to get user from database",
+    //         })),
+    //     );
+    // };
 
     // 3. Check if the user has already purchased this upload
     let maybe_purchase = db::purchase::get_purchase(&db_pool, current_user_id, req.upload_id).await;

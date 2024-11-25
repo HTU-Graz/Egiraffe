@@ -2,6 +2,7 @@ import { useParams, useRouteData } from "@solidjs/router";
 import { For, Match, Show, Suspense, Switch, createResource, createSignal } from "solid-js";
 import UploadCard from "../components/UploadCard";
 import { getFiles } from "../api/files";
+import { purchaseUpload } from "../api/uploads";
 
 export default function Upload() {
   const { id } = useParams();
@@ -90,7 +91,7 @@ export default function Upload() {
             <span>{most_recent_available_file()?.revision_at}</span>
           </div>
 
-          <button class="btn btn-primary">
+          <button class="btn btn-primary" onClick={_ => purchaseUpload({ upload_id: id })}>
             <Switch>
               <Match when={upload()?.price === 0}>
                 Jetzt herunterladen (gratis)

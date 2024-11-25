@@ -63,3 +63,13 @@ export async function uploadFile(uploadId: string, file: Blob): Promise<FileUplo
   if (!response.success) throw new Error(response.message);
   return response;
 }
+
+export interface PurchaseRequest {
+  upload_id: string;
+}
+
+export async function purchaseUpload(options: PurchaseRequest): Promise<FileUploadResponse> {
+  const response = await put<FileUploadResponse>("/api/v1/do/purchase", options);
+  if (!response.success) throw new Error(response.message);
+  return response;
+}
