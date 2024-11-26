@@ -144,7 +144,7 @@ pub struct Course {
     pub held_at: Uuid,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct Upload {
     pub id: Uuid,
     pub name: String,
@@ -167,7 +167,7 @@ pub struct Prof {
     pub name: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct Purchase {
     pub user_id: Uuid,
     pub upload_id: Uuid,
@@ -176,7 +176,7 @@ pub struct Purchase {
     pub rating: Option<i16>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct File {
     pub id: Uuid,
     pub name: String,

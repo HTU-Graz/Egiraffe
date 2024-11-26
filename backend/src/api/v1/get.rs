@@ -10,14 +10,15 @@ use axum::{
     Extension, Json, Router,
 };
 use axum_extra::extract::{cookie::Cookie, CookieJar};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
+use sqlx::prelude::FromRow;
 use tokio_util::io::ReaderStream;
 use uuid::Uuid;
 
 use crate::{
     api::{api_greeting, v1::auth::make_dead_cookie},
-    data::{File, RedactedUser, Upload},
+    data::{File, Purchase, RedactedUser, Upload},
     db::{self, DB_POOL},
 };
 
@@ -519,6 +520,17 @@ async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<U
     Ok(upload)
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+struct PurchaseInfoItem {
+    #[sqlx(flatten)]
+    purchase: Purchase,
+    #[sqlx(flatten)]
+    upload: Upload,
+    // #[sqlx(default)]
+    #[sqlx(flatten)]
+    most_recent_available_file: File,
+}
+
 async fn handle_get_purchased_uploads(
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
 ) -> impl IntoResponse {
@@ -538,7 +550,67 @@ async fn handle_get_purchased_uploads(
         );
     }
 
-    let maybe_purchases = todo!();
+    let maybe_purchases: anyhow::Result<Vec<PurchaseInfoItem>> = sqlx::query_as(
+        r#"
+        SELECT
+            p.user_id,
+            p.upload_id,
+            p.ecs_spent,
+            p.purchase_date,
+            p.rating,
+            u.id,
+            u.upload_name,
+            u.description,
+            u.price,
+            u.uploader,
+            u.upload_date,
+            u.last_modified_date,
+            u.belongs_to,
+            u.held_by,
+            f.id,
+            f.name,
+            f.mime_type,
+            f.size,
+            f.revision_at,
+            f.upload_id,
+            f.approval_uploader,
+            f.approval_mod
+        FROM
+            purchase p
+            INNER JOIN upload u ON p.upload_id = u.id
+            LEFT JOIN LATERAL (
+                SELECT
+                    f.id,
+                    f.name,
+                    f.mime_type,
+                    f.size,
+                    f.revision_at,
+                    f.upload_id,
+                    f.approval_uploader,
+                    f.approval_mod
+                FROM
+                    "file" f
+                WHERE
+                    f.upload_id = u.id
+                ORDER BY
+                    f.revision_at DESC
+                LIMIT
+                    1
+            ) f ON TRUE
+        WHERE
+            p.user_id = $1
+        ORDER BY
+            p.purchase_date DESC,
+            u.upload_date DESC,
+            u.belongs_to DESC,
+            u.held_by DESC;
+        "#,
+    )
+    .bind(&current_user_id)
+    .fetch_all(db_pool)
+    .await
+    .context("Failed to get purchases");
+
     let Ok(purchases) = maybe_purchases else {
         log::error!("Failed to get purchases: {}", maybe_purchases.unwrap_err());
 
@@ -551,16 +623,11 @@ async fn handle_get_purchased_uploads(
         );
     };
 
-    let uploads = purchases
-        .into_iter()
-        .map(|purchase| purchase.upload_id)
-        .collect::<Vec<_>>();
-
     (
         StatusCode::OK,
         Json(json!({
             "success": true,
-            "uploads": uploads,
+            "purchase_info_items": purchases,
         })),
     )
 }
