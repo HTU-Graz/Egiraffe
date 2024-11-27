@@ -27,6 +27,8 @@ export type UploadResponse = ErrorResponse | { success: true; message: string; u
 
 export type FileUploadResponse = ErrorResponse | { success: true; message: string };
 
+type PurchaseInfoResponse = ErrorResponse | { success: true; purchase_info_items: PurchaseInfoItem[] };
+
 export async function getUploads(courseId: string): Promise<Upload[]> {
   const response = await put<GetUploadsResponse>("/api/v1/get/uploads", {
     course_id: courseId,
@@ -74,8 +76,22 @@ export async function purchaseUpload(options: PurchaseRequest): Promise<FileUplo
   return response;
 }
 
-export async function getPurchasedUploads(): Promise<Upload[]> {
-  const response = await put<GetUploadsResponse>("/api/v1/get/purchased-uploads");
+export interface Purchase {
+  user_id: string;
+  upload_id: string;
+  ecs_spent: number;
+  purchase_date: string;
+  rating: number | null;
+}
+
+export interface PurchaseInfoItem {
+  purchase: Purchase;
+  upload: Upload;
+  most_recent_available_file: File;
+}
+
+export async function getPurchasedUploads(): Promise<PurchaseInfoItem[]> {
+  const response = await put<PurchaseInfoResponse>("/api/v1/get/purchased-uploads");
   if (!response.success) throw new Error(response.message);
-  return response.uploads;
+  return response.purchase_info_items;
 }

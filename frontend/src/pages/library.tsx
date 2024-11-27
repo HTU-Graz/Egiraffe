@@ -4,10 +4,10 @@ import UploadCard from "../components/UploadCard";
 import { UploadsDataType } from "./uploads.data";
 import UploadIcon from "../icons/UploadIcon";
 import { AscendingIcon, DescendingIcon } from "../icons/Sorting";
-import { getPurchasedUploads } from "../api/uploads";
+import { getPurchasedUploads, PurchaseInfoItem } from "../api/uploads";
 
 export default function Library() {
-  const myPurchasedUploads = createResource(getPurchasedUploads);
+  const [myPurchasedUploads] = createResource(getPurchasedUploads);
   const [activeSort, setActiveSort] = createSignal("date");
   const [sortDateDirection, setSortDateDirection] = createSignal(false);
   const [sortSizeDirection, setSortSizeDirection] = createSignal(false);
@@ -16,10 +16,11 @@ export default function Library() {
 
   return (
     <>
-      <Link href="/upload" class="btn btn-outline mb-2 md:hidden">
-        <UploadIcon />
-        Hochladen
-      </Link>
+      <h1 class="text-3xl font-bold">Meine Bibliothek</h1>
+      <p class="text-base my-2">
+        Hier findest du alle deine Inhalte, die du schon einmal heruntergeladen oder gekauft hast auf einen Blick.
+      </p>
+
       <div class="grid grid-cols-2 gap-2 md:grid-cols-4 max-w-max">
         <button
           class="btn"
@@ -93,28 +94,26 @@ export default function Library() {
             </For>
           }
         >
-          <Show
-            when={(myPurchasedUploads()?.length ?? 0) > 0}
-            fallback={
-              <div class="card card-compact card-side bg-base-200 shadow-md">
-                <div class="card-body">
-                  <div class="text-center">
-                    {/* HACK this looks appalling, improve font/layout */}
-                    <h2 class="text-xl font-bold">Keine Uploads gefunden</h2>
-                    <p class="text-lg">Sei die erste Person, die hier etwas hochlädt!</p>
-                    <Link href="/upload" class="btn btn-sm btn-primary btn-outline mt-2">
-                      {/* <UploadIcon /> */}
-                      Jetzt Hochladen
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            }>
-            <For each={myPurchasedUploads()}>{(upload) => <UploadCard {...upload} />}</For>
-          </Show>
+          <For each={myPurchasedUploads()} fallback={<div>Keine Inhalte gefunden.</div>}>
+            {(pi) => <PurchaseInfoCard {...pi} />}
+          </For>
         </Suspense>
       </div>
     </>
   );
 }
 
+function PurchaseInfoCard(pi: PurchaseInfoItem) {
+  return (
+    <div class="card card-compact card-side bg-base-200 shadow-md">
+      <div class="card-body">
+        <h2 class="card-title">{pi.upload.name}</h2>
+        <p class="text-sm text-base-content mt-1">{pi.upload.description}</p>
+        <div class="flex items-center mt-2">
+          <span class="badge badge-outline mr-2">Course: {pi.upload.belongs_to}</span>
+          <span class="badge badge-outline">{pi.upload.upload_date}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
