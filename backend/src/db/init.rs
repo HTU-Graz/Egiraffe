@@ -41,7 +41,7 @@ pub async fn debug_create_universities(db_con: &mut PgConnection) -> anyhow::Res
         sqlx::query!(
             "
             INSERT INTO
-                university (
+                universities (
                     id,
                     name_full,
                     name_mid,

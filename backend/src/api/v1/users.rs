@@ -40,7 +40,7 @@ pub async fn handle_get_users() -> impl IntoResponse {
                 true AS totp_enabled,
                 user_role
             FROM
-                "user"
+                users
             "#,
     )
     .fetch_all(&*db_pool)

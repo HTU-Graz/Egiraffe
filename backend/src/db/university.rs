@@ -13,7 +13,7 @@ pub async fn get_universities(db_pool: &PgPool) -> anyhow::Result<Vec<OwnedUnive
             name_short,
             domain_names
         FROM
-            university
+            universities
         ",
     )
     .fetch_all(db_pool)

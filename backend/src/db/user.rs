@@ -63,7 +63,7 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
                     SELECT
                         1
                     FROM
-                        email
+                        emails
                     WHERE
                         address = $1
                 )
@@ -91,13 +91,13 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
             SELECT
                 id
             FROM
-                university
+                universities
             WHERE
                 $1 = ANY (domain_names)
         ),
         new_email AS (
             INSERT INTO
-                email (
+                emails (
                     id,
                     address,
                     belongs_to_user,
@@ -119,7 +119,7 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
                 )
         )
         INSERT INTO
-            "user" (
+            users (
                 id,
                 first_names,
                 last_name,
@@ -166,10 +166,10 @@ pub async fn get_user_by_email(db_pool: &Pool<Postgres>, email: &str) -> Option<
             totp_secret,
             user_role
         FROM
-            "user" AS u
-            INNER JOIN email ON primary_email = email.id
+            users AS u
+            INNER JOIN emails ON primary_email = emails.id
         WHERE
-            email.address = $1
+            emails.address = $1
         "#,
         email
     )
@@ -214,7 +214,7 @@ pub async fn get_user_by_session(
             totp_secret,
             user_role
         FROM
-            "user" AS u
+            users AS u
             INNER JOIN SESSION ON u.id = SESSION.of_user
         WHERE
             SESSION.token = $1
@@ -261,10 +261,10 @@ pub async fn get_user_by_id(
             password_hash,
             totp_secret,
             user_role,
-            email.address AS "emails: Vec<String>"
+            emails.address AS "emails: Vec<String>"
         FROM
-            "user" AS u
-            INNER JOIN email ON primary_email = email.id
+            users AS u
+            INNER JOIN emails ON primary_email = emails.id
         WHERE
             u.id = $1
         "#,
@@ -307,7 +307,7 @@ pub async fn update_user(db_pool: &Pool<Postgres>, user: UserWithEmails) -> anyh
     sqlx::query!(
         r#"
         UPDATE
-            "user"
+            users
         SET
             first_names = $1,
             last_name = $2,

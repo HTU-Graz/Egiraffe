@@ -47,7 +47,7 @@ SELECT
     u.id AS user_id,
     COALESCE(e.ecs_earned, 0) + COALESCE(s.ecs_system, 0) - COALESCE(sp.ecs_spent, 0) + COALESCE(r.ecs_refunded, 0) AS ecs_available
 FROM
-    "user" u
+    users u
     LEFT JOIN ecs_earned_tbl e ON u.id = e.user_id
     LEFT JOIN ecs_system_tbl s ON u.id = s.user_id
     LEFT JOIN ecs_spent_tbl sp ON u.id = sp.user_id

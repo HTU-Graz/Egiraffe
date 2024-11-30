@@ -37,4 +37,4 @@ SELECT
             AND pu.rating IS NOT NULL
     ) AS ecs_available
 FROM
-    "user" AS u;
+    users AS u;

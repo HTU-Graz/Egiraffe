@@ -22,7 +22,7 @@ pub async fn validate_session(db_pool: &Pool<Postgres>, token: &String) -> Valid
             u.user_role AS "auth_level"
         FROM
             SESSION AS s
-            INNER JOIN "user" AS u ON s.of_user = u.id
+            INNER JOIN users AS u ON s.of_user = u.id
         WHERE
             token = $1
         "#,

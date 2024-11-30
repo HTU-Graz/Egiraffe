@@ -9,12 +9,12 @@ pub async fn get_prof(db_pool: &PgPool, prof_id: Uuid) -> anyhow::Result<Option<
         Prof,
         "
         SELECT
-            prof.id,
+            profs.id,
             prof_name AS name
         FROM
-            prof
+            profs
         WHERE
-            prof.id = $1
+            profs.id = $1
         ",
         prof_id,
     )
@@ -28,10 +28,10 @@ pub async fn get_profs(db_pool: &PgPool) -> anyhow::Result<Vec<Prof>> {
         Prof,
         "
         SELECT
-            prof.id,
+            profs.id,
             prof_name AS name
         FROM
-            prof
+            profs
         "
     )
     .fetch_all(db_pool)
@@ -45,7 +45,7 @@ pub async fn create_prof(db_pool: &PgPool, prof: &Prof) -> anyhow::Result<()> {
     sqlx::query!(
         "
         INSERT INTO
-            prof (id, prof_name)
+            profs (id, prof_name)
         VALUES
             ($1, $2)
         ",
@@ -63,7 +63,7 @@ pub async fn update_prof(db_pool: &PgPool, prof: &Prof) -> anyhow::Result<()> {
     sqlx::query!(
         "
         UPDATE
-            prof
+            profs
         SET
             prof_name = $1
         WHERE

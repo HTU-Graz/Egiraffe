@@ -7,7 +7,7 @@ pub async fn create_course(db_pool: &PgPool, course: &Course) -> anyhow::Result<
     sqlx::query!(
         "
         INSERT INTO
-            course (id, held_at, course_name)
+            courses (id, held_at, course_name)
         VALUES
             ($1, $2, $3)
         ",
@@ -28,7 +28,7 @@ pub async fn replace_course(db_pool: &PgPool, course: Course) -> anyhow::Result<
     sqlx::query!(
         "
         UPDATE
-            course
+            courses
         SET
             held_at = $2,
             course_name = $3
@@ -55,7 +55,7 @@ pub async fn get_courses(db_pool: &PgPool) -> anyhow::Result<Vec<Course>> {
             held_at,
             course_name AS name
         FROM
-            course
+            courses
         ",
     )
     .fetch_all(db_pool)

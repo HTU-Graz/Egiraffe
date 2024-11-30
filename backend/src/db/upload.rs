@@ -53,9 +53,9 @@ pub async fn get_uploads_of_course(
             held_by
         FROM
             upload
-            INNER JOIN course ON upload.belongs_to = course.id
+            INNER JOIN courses ON upload.belongs_to = courses.id
         WHERE
-            course.id = $1
+            courses.id = $1
         ",
         course_id,
     )
@@ -86,7 +86,7 @@ pub async fn get_all_uploads(
             held_by
         FROM
             upload
-            INNER JOIN course ON upload.belongs_to = course.id
+            INNER JOIN courses ON upload.belongs_to = courses.id
         ",
     )
     .fetch_all(db_pool)
@@ -139,7 +139,7 @@ pub async fn get_upload_by_id_and_join_course(
             course_name AS course_name
         FROM
             upload
-            INNER JOIN course ON upload.belongs_to = course.id
+            INNER JOIN courses ON upload.belongs_to = courses.id
         WHERE
             upload.id = $1
         ",
