@@ -278,7 +278,8 @@ pub async fn get_user_by_id(
         last_name: user.last_name.expect("User has no last name").into(),
         password_hash: user.password_hash.into(),
         totp_secret: user.totp_secret.map(|s| s.into()),
-        emails: user.emails.expect("User has no emails").into(),
+        // emails: user.emails.expect("User has no emails"),
+        emails: Arc::new(vec![user.emails.expect("User has no emails")]), // TODO check if this is correct
         user_role: user.user_role,
     });
 
