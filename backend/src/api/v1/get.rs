@@ -497,7 +497,7 @@ async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<U
         Upload,
         "
         SELECT
-            upload.id,
+            uploads.id,
             upload_name AS name,
             description,
             price,
@@ -507,9 +507,9 @@ async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<U
             belongs_to,
             held_by
         FROM
-            upload
+            uploads
         WHERE
-            upload.id = $1
+            uploads.id = $1
         ",
         upload_id,
     )
@@ -576,8 +576,8 @@ async fn handle_get_purchased_uploads(
             f.approval_uploader,
             f.approval_mod
         FROM
-            purchase p
-            INNER JOIN upload u ON p.upload_id = u.id
+            purchases p
+            INNER JOIN uploads u ON p.upload_id = u.id
             LEFT JOIN LATERAL (
                 SELECT
                     f.id,
@@ -589,7 +589,7 @@ async fn handle_get_purchased_uploads(
                     f.approval_uploader,
                     f.approval_mod
                 FROM
-                    "file" f
+                    files f
                 WHERE
                     f.upload_id = u.id
                 ORDER BY

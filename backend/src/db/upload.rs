@@ -42,7 +42,7 @@ pub async fn get_uploads_of_course(
         Upload,
         "
         SELECT
-            upload.id,
+            uploads.id,
             upload_name AS name,
             description,
             price,
@@ -52,8 +52,8 @@ pub async fn get_uploads_of_course(
             belongs_to,
             held_by
         FROM
-            upload
-            INNER JOIN courses ON upload.belongs_to = courses.id
+            uploads
+            INNER JOIN courses ON uploads.belongs_to = courses.id
         WHERE
             courses.id = $1
         ",
@@ -75,7 +75,7 @@ pub async fn get_all_uploads(
         Upload,
         "
         SELECT
-            upload.id,
+            uploads.id,
             upload_name AS name,
             description,
             price,
@@ -85,8 +85,8 @@ pub async fn get_all_uploads(
             belongs_to,
             held_by
         FROM
-            upload
-            INNER JOIN courses ON upload.belongs_to = courses.id
+            uploads
+            INNER JOIN courses ON uploads.belongs_to = courses.id
         ",
     )
     .fetch_all(db_pool)
@@ -99,7 +99,7 @@ pub async fn get_upload_by_id(db_pool: &PgPool, upload_id: Uuid) -> anyhow::Resu
         Upload,
         "
         SELECT
-            upload.id,
+            uploads.id,
             upload_name AS name,
             description,
             price,
@@ -109,9 +109,9 @@ pub async fn get_upload_by_id(db_pool: &PgPool, upload_id: Uuid) -> anyhow::Resu
             belongs_to,
             held_by
         FROM
-            upload
+            uploads
         WHERE
-            upload.id = $1
+            uploads.id = $1
         ",
         upload_id,
     )
@@ -127,7 +127,7 @@ pub async fn get_upload_by_id_and_join_course(
     let row = sqlx::query!(
         "
         SELECT
-            upload.id,
+            uploads.id,
             upload_name AS name,
             description,
             price,
@@ -138,10 +138,10 @@ pub async fn get_upload_by_id_and_join_course(
             held_by,
             course_name AS course_name
         FROM
-            upload
-            INNER JOIN courses ON upload.belongs_to = courses.id
+            uploads
+            INNER JOIN courses ON uploads.belongs_to = courses.id
         WHERE
-            upload.id = $1
+            uploads.id = $1
         ",
         upload_id,
     )
@@ -176,7 +176,7 @@ pub async fn update_upload(
     sqlx::query!(
         "
         UPDATE
-            upload
+            uploads
         SET
             upload_name = $1,
             description = $2,
@@ -205,7 +205,7 @@ pub async fn create_upload(
     sqlx::query!(
         "
         INSERT INTO
-            upload (
+            uploads (
                 id,
                 upload_name,
                 description,

@@ -6,7 +6,7 @@ pub async fn create_file(db_pool: &sqlx::Pool<sqlx::Postgres>, file: &File) -> a
     sqlx::query!(
         "
         INSERT INTO
-            file (
+            files (
                 id,
                 name,
                 mime_type,
@@ -51,7 +51,7 @@ pub async fn get_file(db_pool: &sqlx::Pool<sqlx::Postgres>, id: Uuid) -> anyhow:
             approval_uploader,
             approval_mod
         FROM
-            file
+            files
         WHERE
             id = $1
         ",
@@ -83,7 +83,7 @@ pub async fn get_files_of_upload(
             approval_uploader,
             approval_mod
         FROM
-            file
+            files
         WHERE
             upload_id = $1
         ",
@@ -105,25 +105,25 @@ pub async fn get_files_and_join_upload(
     let file_upload_joins = sqlx::query!(
         "
         SELECT
-            file.id AS file_id,
-            file.name,
-            file.mime_type,
-            file.size,
-            file.revision_at,
-            file.approval_uploader,
-            file.approval_mod,
-            upload.id AS upload_id,
-            upload.upload_name,
-            upload.description,
-            upload.price,
-            upload.uploader,
-            upload.upload_date,
-            upload.last_modified_date,
-            upload.belongs_to,
-            upload.held_by
+            files.id AS file_id,
+            files.name,
+            files.mime_type,
+            files.size,
+            files.revision_at,
+            files.approval_uploader,
+            files.approval_mod,
+            uploads.id AS upload_id,
+            uploads.upload_name,
+            uploads.description,
+            uploads.price,
+            uploads.uploader,
+            uploads.upload_date,
+            uploads.last_modified_date,
+            uploads.belongs_to,
+            uploads.held_by
         FROM
-            file
-            INNER JOIN upload ON file.upload_id = upload.id
+            files
+            INNER JOIN uploads ON files.upload_id = uploads.id
         WHERE
             upload_id = $1
         ",
@@ -168,25 +168,25 @@ pub async fn get_all_files_and_join_upload(
     let file_upload_joins = sqlx::query!(
         "
         SELECT
-            file.id AS file_id,
-            file.name,
-            file.mime_type,
-            file.size,
-            file.revision_at,
-            file.approval_uploader,
-            file.approval_mod,
-            upload.id AS upload_id,
-            upload.upload_name,
-            upload.description,
-            upload.price,
-            upload.uploader,
-            upload.upload_date,
-            upload.last_modified_date,
-            upload.belongs_to,
-            upload.held_by
+            files.id AS file_id,
+            files.name,
+            files.mime_type,
+            files.size,
+            files.revision_at,
+            files.approval_uploader,
+            files.approval_mod,
+            uploads.id AS upload_id,
+            uploads.upload_name,
+            uploads.description,
+            uploads.price,
+            uploads.uploader,
+            uploads.upload_date,
+            uploads.last_modified_date,
+            uploads.belongs_to,
+            uploads.held_by
         FROM
-            file
-            INNER JOIN upload ON file.upload_id = upload.id
+            files
+            INNER JOIN uploads ON files.upload_id = uploads.id
         ",
     )
     .fetch_all(db_pool)
@@ -240,13 +240,13 @@ pub async fn get_upload_of_file(
             belongs_to,
             held_by
         FROM
-            upload
+            uploads
         WHERE
             id = (
                 SELECT
                     upload_id
                 FROM
-                    file
+                    files
                 WHERE
                     id = $1
             )

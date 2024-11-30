@@ -21,7 +21,7 @@ pub async fn validate_session(db_pool: &Pool<Postgres>, token: &String) -> Valid
             s.of_user,
             u.user_role AS "auth_level"
         FROM
-            SESSION AS s
+            sessions AS s
             INNER JOIN users AS u ON s.of_user = u.id
         WHERE
             token = $1
@@ -55,7 +55,7 @@ pub async fn create_session(db_pool: &Pool<Postgres>, user_id: Uuid) -> String {
     sqlx::query!(
         "
         INSERT INTO
-            SESSION (id, token, of_user)
+            sessions (id, token, of_user)
         VALUES
             ($1, $2, $3)
         ",
@@ -76,7 +76,7 @@ pub async fn delete_session(db_pool: &Pool<Postgres>, value: &str) -> anyhow::Re
     sqlx::query!(
         "
         DELETE FROM
-            SESSION
+            sessions
         WHERE
             token = $1
         ",

@@ -215,9 +215,9 @@ pub async fn get_user_by_session(
             user_role
         FROM
             users AS u
-            INNER JOIN SESSION ON u.id = SESSION.of_user
+            INNER JOIN sessions ON u.id = sessions.of_user
         WHERE
-            SESSION.token = $1
+            sessions.token = $1
         "#,
         session_cookie
     )

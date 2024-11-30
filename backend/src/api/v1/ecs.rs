@@ -90,10 +90,17 @@ pub async fn create_system_transaction(
     transaction: SystemTransaction,
 ) -> anyhow::Result<()> {
     sqlx::query!(
-        r#"
-            INSERT INTO system_ec_transaction (affected_user, transaction_date, delta_ec, reason)
-            VALUES ($1, $2, $3, $4)
-        "#,
+        "
+        INSERT INTO
+            system_ec_transactions (
+                affected_user,
+                transaction_date,
+                delta_ec,
+                reason
+            )
+        VALUES
+            ($1, $2, $3, $4)
+        ",
         transaction.affected_user,
         transaction.transaction_date,
         transaction.delta_ec,

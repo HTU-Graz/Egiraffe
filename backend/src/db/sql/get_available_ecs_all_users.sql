@@ -4,8 +4,8 @@ WITH ecs_earned_tbl AS (
         up.uploader AS user_id,
         COALESCE(SUM(pu.ecs_spent * 0.8), 0) AS ecs_earned
     FROM
-        upload AS up
-        INNER JOIN purchase AS pu ON pu.upload_id = up.id
+        uploads AS up
+        INNER JOIN purchases AS pu ON pu.upload_id = up.id
     WHERE
         pu.user_id <> up.uploader
     GROUP BY
@@ -17,7 +17,7 @@ ecs_spent_tbl AS (
         pu.user_id,
         COALESCE(SUM(pu.ecs_spent), 0) AS ecs_spent
     FROM
-        purchase AS pu
+        purchases AS pu
     GROUP BY
         pu.user_id
 ),
@@ -27,7 +27,7 @@ ecs_refunded_tbl AS (
         pu.user_id,
         COALESCE(SUM(pu.ecs_spent * 0.2), 0) AS ecs_refunded
     FROM
-        purchase AS pu
+        purchases AS pu
     WHERE
         pu.rating IS NOT NULL
     GROUP BY
@@ -39,7 +39,7 @@ ecs_system_tbl AS (
         systrans.affected_user AS user_id,
         COALESCE(SUM(systrans.delta_ec), 0) AS ecs_system
     FROM
-        system_ec_transaction AS systrans
+        system_ec_transactions AS systrans
     GROUP BY
         systrans.affected_user
 )

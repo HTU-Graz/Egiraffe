@@ -18,7 +18,7 @@ pub async fn get_purchase(
             purchase_date,
             rating
         FROM
-            purchase
+            purchases
         WHERE
             user_id = $1
             AND upload_id = $2
@@ -38,7 +38,7 @@ pub async fn create_purchase(
     sqlx::query!(
         "
         INSERT INTO
-            purchase (
+            purchases (
                 user_id,
                 upload_id,
                 ecs_spent,

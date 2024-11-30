@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS profs (
     prof_name character varying(500) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS upload (
+CREATE TABLE IF NOT EXISTS uploads (
     id uuid PRIMARY KEY,
     upload_name character varying(200) NOT NULL,
     description text NOT NULL,
@@ -59,17 +59,17 @@ CREATE TABLE IF NOT EXISTS upload (
     held_by uuid REFERENCES profs (id)
 );
 
-CREATE TABLE IF NOT EXISTS purchase (
+CREATE TABLE IF NOT EXISTS purchases (
     -- This table uses a composite primary key
     user_id uuid REFERENCES users (id),
-    upload_id uuid REFERENCES upload (id),
+    upload_id uuid REFERENCES uploads (id),
     ecs_spent smallint NOT NULL,
     purchase_date timestamp without time zone NOT NULL,
     rating smallint,
     PRIMARY KEY (user_id, upload_id)
 );
 
-CREATE TABLE IF NOT EXISTS system_ec_transaction (
+CREATE TABLE IF NOT EXISTS system_ec_transactions (
     -- This table uses a composite primary key
     affected_user uuid REFERENCES users (id),
     transaction_date timestamp without time zone NOT NULL,
@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS system_ec_transaction (
     PRIMARY KEY (affected_user, transaction_date)
 );
 
-CREATE TABLE IF NOT EXISTS "session" (
+CREATE TABLE IF NOT EXISTS sessions (
     id uuid PRIMARY KEY,
     of_user uuid REFERENCES users (id),
     token character(43) NOT NULL,
@@ -88,23 +88,23 @@ CREATE TABLE IF NOT EXISTS "session" (
     latest_ip inet
 );
 
-CREATE TABLE IF NOT EXISTS "file" (
+CREATE TABLE IF NOT EXISTS files (
     id uuid PRIMARY KEY,
     name character varying(255) NOT NULL,
     mime_type character varying(200) NOT NULL,
     size bigint NOT NULL,
     revision_at timestamp without time zone NOT NULL,
-    upload_id uuid NOT NULL REFERENCES upload (id),
+    upload_id uuid NOT NULL REFERENCES uploads (id),
     approval_uploader boolean NOT NULL,
     approval_mod boolean NOT NULL
 );
 
-CREATE INDEX idx_upload_uploader ON upload(uploader);
+CREATE INDEX idx_upload_uploader ON uploads(uploader);
 
-CREATE INDEX idx_purchase_user_id ON purchase(user_id);
+CREATE INDEX idx_purchase_user_id ON purchases(user_id);
 
-CREATE INDEX idx_purchase_user_id_rating ON purchase(user_id, rating);
+CREATE INDEX idx_purchase_user_id_rating ON purchases(user_id, rating);
 
-CREATE INDEX idx_purchase_upload_id ON purchase(upload_id);
+CREATE INDEX idx_purchase_upload_id ON purchases(upload_id);
 
-CREATE INDEX idx_system_ec_transaction_affected_user ON system_ec_transaction(affected_user);
+CREATE INDEX idx_system_ec_transaction_affected_user ON system_ec_transactions(affected_user);

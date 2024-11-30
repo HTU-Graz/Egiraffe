@@ -84,7 +84,7 @@ pub async fn handle_modify_file(Json(request): Json<ModifyFileRequest>) -> impl 
             approval_uploader,
             approval_mod
         FROM
-            FILE
+            files
         WHERE
             id = $1
         ",
@@ -110,7 +110,7 @@ pub async fn handle_modify_file(Json(request): Json<ModifyFileRequest>) -> impl 
         sqlx::query!(
             "
             UPDATE
-                file
+                files
             SET
                 approval_mod = $1
             WHERE
