@@ -16,16 +16,16 @@ pub async fn validate_session(db_pool: &Pool<Postgres>, token: &String) -> Valid
     log::info!("Validating session with a token");
 
     let session = sqlx::query!(
-        r#"
+        "
         SELECT
             s.of_user,
-            u.user_role AS "auth_level"
+            u.user_role AS auth_level
         FROM
             sessions AS s
             INNER JOIN users AS u ON s.of_user = u.id
         WHERE
             token = $1
-        "#,
+        ",
         token
     )
     .fetch_optional(db_pool)

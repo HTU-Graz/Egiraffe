@@ -551,7 +551,7 @@ async fn handle_get_purchased_uploads(
     }
 
     let maybe_purchases: anyhow::Result<Vec<PurchaseInfoItem>> = sqlx::query_as(
-        r#"
+        "
         SELECT
             p.user_id,
             p.upload_id,
@@ -604,7 +604,7 @@ async fn handle_get_purchased_uploads(
             u.upload_date DESC,
             u.belongs_to DESC,
             u.held_by DESC;
-        "#,
+        ",
     )
     .bind(&current_user_id)
     .fetch_all(db_pool)
