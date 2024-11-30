@@ -5,10 +5,12 @@ use crate::data::Course;
 
 pub async fn create_course(db_pool: &PgPool, course: &Course) -> anyhow::Result<()> {
     sqlx::query!(
-        r#"
-            INSERT INTO course (id, held_at, course_name)
-            VALUES ($1, $2, $3)
-        "#,
+        "
+        INSERT INTO
+            course (id, held_at, course_name)
+        VALUES
+            ($1, $2, $3)
+        ",
         course.id,
         course.held_at,
         course.name,
@@ -24,11 +26,15 @@ pub async fn create_course(db_pool: &PgPool, course: &Course) -> anyhow::Result<
 /// keeping the ID.
 pub async fn replace_course(db_pool: &PgPool, course: Course) -> anyhow::Result<()> {
     sqlx::query!(
-        r#"
-            UPDATE course
-            SET held_at = $2, course_name = $3
-            WHERE id = $1
-        "#,
+        "
+        UPDATE
+            course
+        SET
+            held_at = $2,
+            course_name = $3
+        WHERE
+            id = $1
+        ",
         course.id,
         course.held_at,
         course.name,
@@ -43,10 +49,14 @@ pub async fn replace_course(db_pool: &PgPool, course: Course) -> anyhow::Result<
 pub async fn get_courses(db_pool: &PgPool) -> anyhow::Result<Vec<Course>> {
     sqlx::query_as!(
         Course,
-        r#"
-            SELECT id, held_at, course_name AS name
-            FROM course
-        "#,
+        "
+        SELECT
+            id,
+            held_at,
+            course_name AS name
+        FROM
+            course
+        ",
     )
     .fetch_all(db_pool)
     .await

@@ -5,14 +5,16 @@ use crate::data::OwnedUniversity;
 
 pub async fn get_universities(db_pool: &PgPool) -> anyhow::Result<Vec<OwnedUniversity>> {
     sqlx::query!(
-        r#"
-            SELECT id,
-                name_full,
-                name_mid,
-                name_short,
-                domain_names
-            FROM university
-        "#,
+        "
+        SELECT
+            id,
+            name_full,
+            name_mid,
+            name_short,
+            domain_names
+        FROM
+            university
+        ",
     )
     .fetch_all(db_pool)
     .await

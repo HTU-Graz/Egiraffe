@@ -40,20 +40,23 @@ pub async fn get_uploads_of_course(
 
     sqlx::query_as!(
         Upload,
-        r#"
-            SELECT upload.id,
-                upload_name AS name,
-                description,
-                price,
-                uploader,
-                upload_date,
-                last_modified_date,
-                belongs_to,
-                held_by
-            FROM upload
-                INNER JOIN course ON upload.belongs_to = course.id
-            WHERE course.id = $1
-        "#,
+        "
+        SELECT
+            upload.id,
+            upload_name AS name,
+            description,
+            price,
+            uploader,
+            upload_date,
+            last_modified_date,
+            belongs_to,
+            held_by
+        FROM
+            upload
+            INNER JOIN course ON upload.belongs_to = course.id
+        WHERE
+            course.id = $1
+        ",
         course_id,
     )
     .fetch_all(db_pool)
@@ -70,19 +73,21 @@ pub async fn get_all_uploads(
 
     sqlx::query_as!(
         Upload,
-        r#"
-            SELECT upload.id,
-                upload_name AS name,
-                description,
-                price,
-                uploader,
-                upload_date,
-                last_modified_date,
-                belongs_to,
-                held_by
-            FROM upload
-                INNER JOIN course ON upload.belongs_to = course.id
-        "#,
+        "
+        SELECT
+            upload.id,
+            upload_name AS name,
+            description,
+            price,
+            uploader,
+            upload_date,
+            last_modified_date,
+            belongs_to,
+            held_by
+        FROM
+            upload
+            INNER JOIN course ON upload.belongs_to = course.id
+        ",
     )
     .fetch_all(db_pool)
     .await
@@ -92,19 +97,22 @@ pub async fn get_all_uploads(
 pub async fn get_upload_by_id(db_pool: &PgPool, upload_id: Uuid) -> anyhow::Result<Option<Upload>> {
     sqlx::query_as!(
         Upload,
-        r#"
-            SELECT upload.id,
-                upload_name AS name,
-                description,
-                price,
-                uploader,
-                upload_date,
-                last_modified_date,
-                belongs_to,
-                held_by
-            FROM upload
-            WHERE upload.id = $1
-        "#,
+        "
+        SELECT
+            upload.id,
+            upload_name AS name,
+            description,
+            price,
+            uploader,
+            upload_date,
+            last_modified_date,
+            belongs_to,
+            held_by
+        FROM
+            upload
+        WHERE
+            upload.id = $1
+        ",
         upload_id,
     )
     .fetch_optional(db_pool)
@@ -117,21 +125,24 @@ pub async fn get_upload_by_id_and_join_course(
     upload_id: Uuid,
 ) -> anyhow::Result<Option<(Upload, String)>> {
     let row = sqlx::query!(
-        r#"
-            SELECT upload.id,
-                upload_name AS name,
-                description,
-                price,
-                uploader,
-                upload_date,
-                last_modified_date,
-                belongs_to,
-                held_by,
-                course_name AS course_name
-            FROM upload
-                INNER JOIN course ON upload.belongs_to = course.id
-            WHERE upload.id = $1
-        "#,
+        "
+        SELECT
+            upload.id,
+            upload_name AS name,
+            description,
+            price,
+            uploader,
+            upload_date,
+            last_modified_date,
+            belongs_to,
+            held_by,
+            course_name AS course_name
+        FROM
+            upload
+            INNER JOIN course ON upload.belongs_to = course.id
+        WHERE
+            upload.id = $1
+        ",
         upload_id,
     )
     .fetch_optional(db_pool)
@@ -163,14 +174,17 @@ pub async fn update_upload(
     upload: &Upload,
 ) -> anyhow::Result<()> {
     sqlx::query!(
-        r#"
-            UPDATE upload
-            SET upload_name = $1,
-                description = $2,
-                price = $3,
-                last_modified_date = $4
-            WHERE id = $5
-        "#,
+        "
+        UPDATE
+            upload
+        SET
+            upload_name = $1,
+            description = $2,
+            price = $3,
+            last_modified_date = $4
+        WHERE
+            id = $5
+        ",
         upload.name,
         upload.description,
         upload.price,
@@ -189,20 +203,22 @@ pub async fn create_upload(
     upload: &Upload,
 ) -> anyhow::Result<()> {
     sqlx::query!(
-        r#"
-            INSERT INTO upload (
-                    id,
-                    upload_name,
-                    description,
-                    price,
-                    uploader,
-                    upload_date,
-                    last_modified_date,
-                    belongs_to,
-                    held_by
-                )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        "#,
+        "
+        INSERT INTO
+            upload (
+                id,
+                upload_name,
+                description,
+                price,
+                uploader,
+                upload_date,
+                last_modified_date,
+                belongs_to,
+                held_by
+            )
+        VALUES
+            ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        ",
         upload.id,
         upload.name,
         upload.description,

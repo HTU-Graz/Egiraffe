@@ -39,10 +39,18 @@ pub async fn debug_create_universities(db_con: &mut PgConnection) -> anyhow::Res
         } = uni;
 
         sqlx::query!(
-            r#"
-                INSERT INTO university (id, name_full, name_mid, name_short, domain_names)
-                VALUES ($1, $2, $3, $4, $5)
-            "#,
+            "
+            INSERT INTO
+                university (
+                    id,
+                    name_full,
+                    name_mid,
+                    name_short,
+                    domain_names
+                )
+            VALUES
+                ($1, $2, $3, $4, $5)
+            ",
             id,
             full_name,
             mid_name,
@@ -58,15 +66,18 @@ pub async fn debug_create_universities(db_con: &mut PgConnection) -> anyhow::Res
 
 pub async fn debug_create_email_states(db_con: &mut PgConnection) -> anyhow::Result<()> {
     log::info!("Creating email states");
+    // TODO should this really be a function? Why not replace this with an enum in the schema?
 
     let email_states = ["unverified", "verified"];
 
     for state in email_states {
         sqlx::query!(
-            r#"
-                    INSERT INTO email_status (status)
-                    VALUES ($1)
-                "#,
+            "
+            INSERT INTO
+                email_status (STATUS)
+            VALUES
+                ($1)
+            ",
             state
         )
         .execute(&mut *db_con)

@@ -10,16 +10,19 @@ pub async fn get_purchase(
 ) -> anyhow::Result<Option<Purchase>> {
     sqlx::query_as!(
         Purchase,
-        r#"
-            SELECT user_id,
-                upload_id,
-                ecs_spent,
-                purchase_date,
-                rating
-            FROM purchase
-            WHERE user_id = $1
-                AND upload_id = $2
-        "#,
+        "
+        SELECT
+            user_id,
+            upload_id,
+            ecs_spent,
+            purchase_date,
+            rating
+        FROM
+            purchase
+        WHERE
+            user_id = $1
+            AND upload_id = $2
+        ",
         user_id,
         upload_id,
     )
@@ -33,10 +36,18 @@ pub async fn create_purchase(
     purchase: &Purchase,
 ) -> anyhow::Result<()> {
     sqlx::query!(
-        r#"
-            INSERT INTO purchase (user_id, upload_id, ecs_spent, purchase_date, rating)
-            VALUES ($1, $2, $3, $4, $5)
-        "#,
+        "
+        INSERT INTO
+            purchase (
+                user_id,
+                upload_id,
+                ecs_spent,
+                purchase_date,
+                rating
+            )
+        VALUES
+            ($1, $2, $3, $4, $5)
+        ",
         purchase.user_id,
         purchase.upload_id,
         purchase.ecs_spent,

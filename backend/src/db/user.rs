@@ -57,13 +57,17 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
 
         let email_taken = sqlx::query_as!(
             SelectExistsTmp,
-            r#"
-                SELECT EXISTS (
-                    SELECT 1
-                    FROM email
-                    WHERE address = $1
+            "
+            SELECT
+                EXISTS (
+                    SELECT
+                        1
+                    FROM
+                        email
+                    WHERE
+                        address = $1
                 )
-            "#,
+            ",
             email
         )
         .fetch_one(db_con)
@@ -83,17 +87,49 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
 
     sqlx::query!(
         r#"
-            WITH matching_university AS (
-                SELECT id
-                FROM university
-                WHERE $1 = ANY (domain_names)
-            ),
-            new_email AS (
-                INSERT INTO email (id, address, belongs_to_user, of_university, status)
-                VALUES ($2, $3, $4, (SELECT id FROM matching_university), 'unverified')
+        WITH matching_university AS (
+            SELECT
+                id
+            FROM
+                university
+            WHERE
+                $1 = ANY (domain_names)
+        ),
+        new_email AS (
+            INSERT INTO
+                email (
+                    id,
+                    address,
+                    belongs_to_user,
+                    of_university,
+                    STATUS
+                )
+            VALUES
+                (
+                    $2,
+                    $3,
+                    $4,
+                    (
+                        SELECT
+                            id
+                        FROM
+                            matching_university
+                    ),
+                    'unverified'
+                )
+        )
+        INSERT INTO
+            "user" (
+                id,
+                first_names,
+                last_name,
+                primary_email,
+                password_hash,
+                totp_secret,
+                user_role
             )
-            INSERT INTO "user" (id, first_names, last_name, primary_email, password_hash, totp_secret, user_role)
-            VALUES ($5, $6, $7, $8, $9, $10, $11)
+        VALUES
+            ($5, $6, $7, $8, $9, $10, $11)
         "#,
         // University
         email_address.domain(),
@@ -122,10 +158,18 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
 pub async fn get_user_by_email(db_pool: &Pool<Postgres>, email: &str) -> Option<User> {
     sqlx::query!(
         r#"
-            SELECT u.id, first_names, last_name, password_hash, totp_secret, user_role
-            FROM "user" AS u
+        SELECT
+            u.id,
+            first_names,
+            last_name,
+            password_hash,
+            totp_secret,
+            user_role
+        FROM
+            "user" AS u
             INNER JOIN email ON primary_email = email.id
-            WHERE email.address = $1
+        WHERE
+            email.address = $1
         "#,
         email
     )
@@ -162,10 +206,18 @@ pub async fn get_user_by_session(
 ) -> anyhow::Result<User> {
     let user = sqlx::query!(
         r#"
-            SELECT u.id, first_names, last_name, password_hash, totp_secret, user_role
-            FROM "user" AS u
-            INNER JOIN session ON u.id = session.of_user
-            WHERE session.token = $1
+        SELECT
+            u.id,
+            first_names,
+            last_name,
+            password_hash,
+            totp_secret,
+            user_role
+        FROM
+            "user" AS u
+            INNER JOIN SESSION ON u.id = SESSION.of_user
+        WHERE
+            SESSION.token = $1
         "#,
         session_cookie
     )
@@ -202,10 +254,19 @@ pub async fn get_user_by_id(
 ) -> anyhow::Result<Option<UserWithEmails>> {
     let user = sqlx::query!(
         r#"
-            SELECT u.id, first_names, last_name, password_hash, totp_secret, user_role, email.address AS "emails: Vec<String>"
-            FROM "user" AS u
+        SELECT
+            u.id,
+            first_names,
+            last_name,
+            password_hash,
+            totp_secret,
+            user_role,
+            email.address AS "emails: Vec<String>"
+        FROM
+            "user" AS u
             INNER JOIN email ON primary_email = email.id
-            WHERE u.id = $1
+        WHERE
+            u.id = $1
         "#,
         current_user_id
     )
@@ -245,9 +306,16 @@ pub async fn update_user(db_pool: &Pool<Postgres>, user: UserWithEmails) -> anyh
 
     sqlx::query!(
         r#"
-            UPDATE "user"
-            SET first_names = $1, last_name = $2, password_hash = $3, totp_secret = $4, user_role = $5
-            WHERE id = $6
+        UPDATE
+            "user"
+        SET
+            first_names = $1,
+            last_name = $2,
+            password_hash = $3,
+            totp_secret = $4,
+            user_role = $5
+        WHERE
+            id = $6
         "#,
         &*first_names,
         &*last_name,

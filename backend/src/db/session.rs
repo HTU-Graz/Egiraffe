@@ -17,11 +17,14 @@ pub async fn validate_session(db_pool: &Pool<Postgres>, token: &String) -> Valid
 
     let session = sqlx::query!(
         r#"
-            SELECT s.of_user, u.user_role AS "auth_level"
-            FROM session AS s
-            INNER JOIN "user" AS u
-                ON s.of_user = u.id
-            WHERE token = $1
+        SELECT
+            s.of_user,
+            u.user_role AS "auth_level"
+        FROM
+            SESSION AS s
+            INNER JOIN "user" AS u ON s.of_user = u.id
+        WHERE
+            token = $1
         "#,
         token
     )
@@ -50,10 +53,12 @@ pub async fn create_session(db_pool: &Pool<Postgres>, user_id: Uuid) -> String {
     let token: String = general_purpose::URL_SAFE_NO_PAD.encode(token);
 
     sqlx::query!(
-        r#"
-            INSERT INTO session (id, token, of_user)
-            VALUES ($1, $2, $3)
-        "#,
+        "
+        INSERT INTO
+            SESSION (id, token, of_user)
+        VALUES
+            ($1, $2, $3)
+        ",
         Uuid::new_v4(),
         token,
         user_id
@@ -69,10 +74,12 @@ pub async fn delete_session(db_pool: &Pool<Postgres>, value: &str) -> anyhow::Re
     log::info!("Deleting a session");
 
     sqlx::query!(
-        r#"
-            DELETE FROM session
-            WHERE token = $1
-        "#,
+        "
+        DELETE FROM
+            SESSION
+        WHERE
+            token = $1
+        ",
         value
     )
     .execute(db_pool)
