@@ -106,3 +106,13 @@ CREATE TABLE IF NOT EXISTS "file" (
     approval_uploader boolean NOT NULL,
     approval_mod boolean NOT NULL
 );
+
+CREATE INDEX idx_upload_uploader ON upload(uploader);
+
+CREATE INDEX idx_purchase_user_id ON purchase(user_id);
+
+CREATE INDEX idx_purchase_user_id_rating ON purchase(user_id, rating);
+
+CREATE INDEX idx_purchase_upload_id ON purchase(upload_id);
+
+CREATE INDEX idx_system_ec_transaction_affected_user ON system_ec_transaction(affected_user);

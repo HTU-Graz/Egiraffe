@@ -6,6 +6,7 @@ mod ecs;
 mod get;
 mod profs;
 mod university;
+mod users;
 // mod university;
 
 use axum::{
@@ -61,6 +62,7 @@ pub fn routes() -> Router {
             Router::new()
                 .route("/demo-admin-route", get(handle_demo_protected_route))
                 .nest("/ecs", ecs::routes())
+                .nest("/users", users::routes())
                 // .nest("/university", university::routes())
                 .layer(middleware::from_fn(auth::<Admin>)),
         )

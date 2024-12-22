@@ -19,8 +19,12 @@ pnpm build
 
 cd ../backend
 sudo docker compose up -d
+export DATABASE_URL='postgresql://egiraffe:hunter2@localhost:5432/egiraffe?sslmode=disable'
+cargo sqlx migrate run
 cargo run
 ```
+
+You might need to get the correct IP address by running `sudo docker inspect egiraffe-ng-db-1 | grep '"IPAddress":'`
 
 ---
 
