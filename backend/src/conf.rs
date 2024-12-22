@@ -82,7 +82,7 @@ pub fn load() -> Self {
                     port: 42002,
                 },
 
-                baseurl: "https://egiraffe.at",
+                baseurl: "https://egiraffe.at".into(),
                 acitvationlinkvalidityperiod: 3
             };
         }
@@ -114,7 +114,7 @@ pub fn load() -> Self {
                     ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 42)),
                     port: 42002,
                 },
-                baseurl: "http://localhost:42002",
+                baseurl: "http://localhost:42002".into(),
                 acitvationlinkvalidityperiod: 3
             };
         }
