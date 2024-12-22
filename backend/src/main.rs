@@ -10,6 +10,7 @@ mod data;
 mod db;
 mod util;
 mod conf;
+mod mail;
 
 use std::{
     env,
@@ -43,6 +44,9 @@ async fn main() -> anyhow::Result<()> {
     DB_POOL.set(Box::leak(Box::new(db_pool))).unwrap();
     let db_pool = *DB_POOL.get().unwrap();
     log::info!("Connected to database");
+
+    // Prepare Mail system
+    mail::init();
 
     sqlx::migrate!().run(db_pool).await.unwrap();
     log::info!("Database migrations completed");

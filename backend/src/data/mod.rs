@@ -74,12 +74,13 @@ impl From<UserWithEmails> for RedactedUser {
             id: value.id,
             first_names: Some(value.first_names.deref().into()),
             last_name: Some(value.last_name.deref().into()),
-            totp_enabled: value.totp_secret.is_some(),
+            totp_enabled: value.totp_secret.is_some(), //TODO: Do we want that to be publically exposed? Or just for a user himself?? Shall we create Implementations here?
             user_role: value.user_role,
         }
     }
 }
 
+//TODO: Also implement E-Mail-Address statuses as struct and use it here.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UserWithEmails {
     pub id: Uuid,

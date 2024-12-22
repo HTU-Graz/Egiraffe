@@ -8,7 +8,10 @@ use std::net::{Ipv4Addr, IpAddr};
 pub struct Config {
     pub database: DatabaseConfig,
     pub mail: MailConfig,
-    pub webserver: WebServerConfig
+    pub webserver: WebServerConfig,
+
+    pub baseurl: String,
+    pub acitvationlinkvalidityperiod: i8 //in days
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -27,6 +30,7 @@ pub struct MailConfig {
     pub encryption: EncryptionType,
     pub senderemail: String,
     pub sendername: String,
+    pub templatepath: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
@@ -50,30 +54,38 @@ pub static CONF: Lazy<Config> = Lazy::new(|| {Config::load()});
 impl Config {
 pub fn load() -> Self {
 
+        let defaults: Config;
         //Production defaults
-        let mut defaults = Config {
-            database: DatabaseConfig {
-                url: "".into(),
-                debugdefaultentries: false,
-            },
-            mail: MailConfig {
-                activated: true,
-                hostname: "".into(),
-                username: "".into(),
-                password: "".into(),
-                port: 587,
-                encryption: EncryptionType::StartTLS,
-                senderemail: "".into(),
-                sendername: "".into(),
-            },
-            webserver: WebServerConfig {
-                // Make sure to build the frontend first!
-                staticdir: "../frontend/dist".into(),
-                indexfile: "../frontend/dist/index.html".into(),
-                ip: std::net::IpAddr::V4(Ipv4Addr::new(127, 0, 0, 42)), //TODO: Should that be changed for prod?
-                port: 42002,
-            }
-        };
+        #[cfg(feature = "prod")]
+        {
+            defaults = Config {
+                database: DatabaseConfig {
+                    url: "".into(),
+                    debugdefaultentries: false,
+                },
+                mail: MailConfig {
+                    activated: true,
+                    hostname: "".into(),
+                    username: "".into(),
+                    password: "".into(),
+                    port: 587,
+                    encryption: EncryptionType::StartTLS,
+                    senderemail: "".into(),
+                    sendername: "".into(),
+                    templatepath: "./frontend/mailtemplates/".into(),
+                },
+                webserver: WebServerConfig {
+                    // Make sure to build the frontend first!
+                    staticdir: "../frontend/dist".into(),
+                    indexfile: "../frontend/dist/index.html".into(),
+                    ip: std::net::IpAddr::V4(Ipv4Addr::new(127, 0, 0, 42)), //TODO: Should that be changed for prod?
+                    port: 42002,
+                },
+
+                baseurl: "https://egiraffe.at",
+                acitvationlinkvalidityperiod: 3
+            };
+        }
 
         //overwrite them with debug defaults if needed
         #[cfg(not(feature = "prod"))]
@@ -93,6 +105,7 @@ pub fn load() -> Self {
                     encryption: EncryptionType::None,
                     senderemail: "debugdummy@localhost".into(),
                     sendername: "Egiraffe Debug Sendername".into(),
+                    templatepath: "./frontend/mailtemplates/".into(),
                 },
                 webserver: WebServerConfig {
                     // Make sure to build the frontend first!
@@ -100,7 +113,9 @@ pub fn load() -> Self {
                     indexfile: "../frontend/dist/index.html".into(),
                     ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 42)),
                     port: 42002,
-                }
+                },
+                baseurl: "http://localhost:42002",
+                acitvationlinkvalidityperiod: 3
             };
         }
 
@@ -118,6 +133,8 @@ pub fn load() -> Self {
     }
 
     pub fn validate(s: &Config) {
+        //TODO: Validate  exists!
+
         #[cfg(not(feature = "prod"))]
         {
             //No Validations (yet)
