@@ -167,7 +167,7 @@ pub async fn handle_register(Json(register_data): Json<RegisterReq>) -> impl Int
 
     let mail_result = send_activation_mail(&user.first_names, &user.last_name, &user.emails[0], "TODO: Real token").await;
 
-    return (StatusCode::OK, Json(RegisterRes { success: true }));
+    (StatusCode::OK, Json(RegisterRes { success: true }))
 
 }
 pub async fn handle_activate(Json(activation_data): Json<ActivationReq>) -> impl IntoResponse {
