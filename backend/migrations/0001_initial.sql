@@ -20,14 +20,15 @@ CREATE TABLE IF NOT EXISTS "user" (
     user_role smallint NOT NULL DEFAULT 1
 );
 
-CREATE TYPE IF NOT EXISTS email_status AS ENUM ("unverified", "verified", "disabled");
+-- Does NOT work: IF NOT EXISTS
+CREATE TYPE email_status AS ENUM ('unverified', 'verified', 'disabled');
 
 CREATE TABLE IF NOT EXISTS email (
     id uuid PRIMARY KEY,
     address character varying(500),
     belongs_to_user uuid NOT NULL REFERENCES "user" (id),
     of_university uuid REFERENCES university (id),
-    "status" email_status NOT NULL,
+    "status" email_status NOT NULL
     -- TODO: Add Columns with added and modified timestamp? 
 );
 
@@ -40,7 +41,7 @@ CREATE TABLE IF NOT EXISTS email_verification (
     id uuid PRIMARY KEY,
     token character(43) NOT NULL,
     belongs_to_email uuid NOT NULL REFERENCES "email" (id),
-    expires_at timestamp without time zone NOT NULL,
+    expires_at timestamp without time zone NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS course (
