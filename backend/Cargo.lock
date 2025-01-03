@@ -589,6 +589,7 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
+ "sha-crypt",
  "sqlx",
  "thiserror",
  "time",
@@ -1826,6 +1827,18 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "sha-crypt"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "88e79009728d8311d42d754f2f319a975f9e38f156fd5e422d2451486c78b286"
+dependencies = [
+ "base64ct",
+ "rand",
+ "sha2",
+ "subtle",
 ]
 
 [[package]]
