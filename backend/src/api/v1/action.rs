@@ -46,6 +46,7 @@ pub struct DoUploadReq {
 
     /// The ID of the prof that held the course this upload belongs to
     pub held_by: Option<Uuid>,
+    // TODO impl category
 }
 
 async fn handle_do_upload(
@@ -55,6 +56,8 @@ async fn handle_do_upload(
     let db_pool = *DB_POOL.get().unwrap();
 
     // log::info!("Create/alter upload for course {}", req.belongs_to.unwrap_or("default"));
+
+    dbg!(&req);
 
     // TODO handle updating the description
     // 0. Check if a new upload is being created or an existing one is being modified
