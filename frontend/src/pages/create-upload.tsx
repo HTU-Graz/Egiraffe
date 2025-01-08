@@ -74,17 +74,6 @@ export default function Upload() {
       </label> */}
 
       <div class="form-control w-full max-w-md">
-        <label class="label" for="upload-file">
-          <span class="label-text">Datei</span>
-        </label>
-        <input
-          id="upload-file"
-          type="file"
-          required
-          onInput={(event) => setFile(event.currentTarget.files?.[0])}
-          class="file-input file-input-bordered w-full"
-        />
-
         <label class="label" for="upload-course">
           <span class="label-text">Kurs</span>
         </label>
@@ -99,6 +88,28 @@ export default function Upload() {
           </option>
           <For each={courses()}>{(course) => <option value={course.id}>{course.name}</option>}</For>
         </select>
+
+        <label class="label" for="upload-file">
+          <span class="label-text">Datei</span>
+        </label>
+        <input
+          id="upload-file"
+          type="file"
+          required
+          onInput={(event) => setFile(event.currentTarget.files?.[0])}
+          class="file-input file-input-bordered w-full"
+        />
+
+        <label class="label" for="upload-name">
+          <span class="label-text">Name</span>
+        </label>
+        <input
+          id="upload-name"
+          type="text"
+          required
+          onInput={(e) => setForm("name", e.currentTarget.value)}
+          class="input input-bordered w-full"
+        />
 
         <label class="label" for="upload-description">
           <span class="label-text">Beschreibung</span>
