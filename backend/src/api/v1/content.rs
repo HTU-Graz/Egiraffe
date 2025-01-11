@@ -1,16 +1,20 @@
 //! Content moderation API endpoints
 
+use std::path::PathBuf;
+
 use anyhow::Context;
 use axum::{
+    body::Body,
     extract::State,
-    http::StatusCode,
+    http::{header, StatusCode},
     response::IntoResponse,
     routing::{get, put},
-    Json, Router,
+    Extension, Json, Router,
 };
 use chrono::NaiveDateTime;
 use serde::Deserialize;
 use serde_json::json;
+use tokio_util::io::ReaderStream;
 use uuid::Uuid;
 
 use crate::{
@@ -26,6 +30,7 @@ pub fn routes() -> Router {
         .route("/modify-file", put(handle_modify_file))
         .route("/get-all-uploads", put(handle_get_all_uploads))
         .route("/get-all-files", put(handle_get_all_files))
+        .route("/download-file-as-mod", put(download_file_as_mod))
 }
 
 #[derive(Debug, Deserialize)]
@@ -158,4 +163,77 @@ pub async fn handle_get_all_files() -> impl IntoResponse {
             "files": files,
         })),
     )
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GetFileAsModReq {
+    pub file_id: Uuid,
+}
+
+/// Handles the actual download of a file to a client
+async fn download_file_as_mod(
+    Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
+    Json(req): Json<GetFileAsModReq>,
+) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
+    let maybe_file = db::file::get_file(&db_pool, req.file_id).await;
+
+    let Ok(file) = maybe_file else {
+        log::error!("Failed to get file: {}", maybe_file.unwrap_err());
+
+        return Err((
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({
+                "success": false,
+                "message": "Failed to get file",
+            })),
+        ));
+    };
+
+    // Deny access to mods if the uploader does not consent to the file being downloaded
+    if !file.approval_uploader {
+        log::info!(
+            "Moderator {current_user_id} is unauthorized (uploader approval) to access file {}",
+            file.id
+        );
+
+        return Err((
+            StatusCode::UNAUTHORIZED,
+            Json(json!({
+                "success": false,
+                "message": "Unauthorized",
+            })),
+        ));
+    }
+
+    // Prepare the download logic
+    let do_download_to_user = async {
+        let fs_file =
+            tokio::fs::File::open(PathBuf::from("uploads").join(file.id.to_string())).await;
+
+        let fs_file = fs_file.unwrap(); // TODO handle error
+
+        let stream = ReaderStream::new(fs_file);
+        let body = Body::from_stream(stream);
+
+        return Ok((
+            StatusCode::OK,
+            [
+                (header::CONTENT_TYPE, file.mime_type),
+                (
+                    header::CONTENT_DISPOSITION,
+                    format!("attachment; filename={}", file.name),
+                ),
+            ],
+            body,
+        ));
+    };
+
+    log::info!(
+        "Moderator {current_user_id} is authorized (mod) to access file {}",
+        file.id
+    );
+
+    do_download_to_user.await
 }
