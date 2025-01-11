@@ -30,3 +30,9 @@ export async function mod_getAllFiles(): Promise<File[][]> {
     if (!response.success) throw new Error(response);
     return response.files;
 }
+
+export async function mod_downloadFileAsMod(id: string): Promise<File> {
+    const response = await put<File>("/api/v1/mod/content/download-file-as-mod", { id });
+    if (!response.success) throw new Error(response.message);
+    return response.file;
+}

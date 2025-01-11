@@ -20,7 +20,27 @@ export function bytesToSize(bytes: number): string {
   }).format(bytes / 1024 ** unitIndex);
 }
 
+
+
 export default function Mod_FileCard(props: File) {
+  const handle_download = async (e: Event) => {
+    e.preventDefault();
+
+    const res = await fetch('/api/v1/mod/content/download-file-as-mod', {
+      method: "PUT",
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        file_id: props.id,
+      }),
+    });
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    // Open in new tab
+    window.open(url);
+  }
+
   return (
     <div class="card card-compact card-side bg-base-200 shadow-md">
       <figure>
@@ -35,6 +55,15 @@ export default function Mod_FileCard(props: File) {
           </Show>
           <Show when={!props.approval_mod}>
             <button class="btn btn-xs btn-primary" onClick={_ => mod_modifyFile({ id: props.id, approval_mod: true })}>Approve</button>
+          </Show>
+        </p>
+        <p>
+          Preview file (if approved by uploader)
+          <Show
+            when={props.approval_uploader}
+            fallback={<button class="btn btn-xs btn-neutral" disabled>Preview denied</button>}
+          >
+            <button class="btn btn-xs btn-primary" onClick={handle_download}>Preview (download)</button>
           </Show>
         </p>
         <p>Uploader approval: {props.approval_uploader ? "is approved" : "not approved"}</p>
