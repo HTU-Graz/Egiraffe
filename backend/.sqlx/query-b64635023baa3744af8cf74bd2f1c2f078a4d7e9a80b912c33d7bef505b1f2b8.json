@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE\n                files\n            SET\n                approval_mod = $1\n            WHERE\n                id = $2\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b64635023baa3744af8cf74bd2f1c2f078a4d7e9a80b912c33d7bef505b1f2b8"
+}

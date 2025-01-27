@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE\n            profs\n        SET\n            prof_name = $1\n        WHERE\n            id = $2\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "cf5ab765ff0aec6764d899b67b11643ed5639dfb65648e9482033b4a861b26b1"
+}

@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE\n            courses\n        SET\n            held_at = $2,\n            course_name = $3\n        WHERE\n            id = $1\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b1ee2d4fab0ac6a7834b1dff52ddd209a42589f74a794898c9671e41f449964e"
+}

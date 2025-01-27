@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO\n                email_status (STATUS)\n            VALUES\n                ($1)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Bpchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "43040d2387fe9876b6355ba5843d76028e7597622f9aa8d5e5e8ac3787dc5964"
+}

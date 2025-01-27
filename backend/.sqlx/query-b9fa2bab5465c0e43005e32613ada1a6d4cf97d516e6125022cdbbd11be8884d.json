@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO\n            profs (id, prof_name)\n        VALUES\n            ($1, $2)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b9fa2bab5465c0e43005e32613ada1a6d4cf97d516e6125022cdbbd11be8884d"
+}

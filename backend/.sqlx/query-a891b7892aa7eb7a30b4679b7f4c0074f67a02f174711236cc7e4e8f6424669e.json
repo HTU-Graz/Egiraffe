@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO\n            courses (id, held_at, course_name)\n        VALUES\n            ($1, $2, $3)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a891b7892aa7eb7a30b4679b7f4c0074f67a02f174711236cc7e4e8f6424669e"
+}

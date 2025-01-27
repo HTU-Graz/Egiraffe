@@ -1,0 +1,58 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            u.id,\n            first_names,\n            last_name,\n            password_hash,\n            totp_secret,\n            user_role,\n            emails.address AS emails\n        FROM\n            users AS u\n            INNER JOIN emails ON primary_email = emails.id\n        WHERE\n            u.id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "first_names",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "last_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "password_hash",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "totp_secret",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "user_role",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 6,
+        "name": "emails",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      false,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "edfa5c2f5f543e30e479ba5c56e9aa58d99f14a800933459eade8446a110c518"
+}

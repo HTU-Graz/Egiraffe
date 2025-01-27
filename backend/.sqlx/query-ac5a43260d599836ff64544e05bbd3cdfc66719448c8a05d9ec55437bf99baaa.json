@@ -1,0 +1,47 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            user_id,\n            upload_id,\n            ecs_spent,\n            purchase_date,\n            rating\n        FROM\n            purchases\n        WHERE\n            user_id = $1\n            AND upload_id = $2\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "upload_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "ecs_spent",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 3,
+        "name": "purchase_date",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 4,
+        "name": "rating",
+        "type_info": "Int2"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "ac5a43260d599836ff64544e05bbd3cdfc66719448c8a05d9ec55437bf99baaa"
+}

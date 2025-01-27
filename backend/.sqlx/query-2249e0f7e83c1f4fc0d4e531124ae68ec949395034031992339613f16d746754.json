@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO\n            purchases (\n                user_id,\n                upload_id,\n                ecs_spent,\n                purchase_date,\n                rating\n            )\n        VALUES\n            ($1, $2, $3, $4, $5)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Int2",
+        "Timestamp",
+        "Int2"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "2249e0f7e83c1f4fc0d4e531124ae68ec949395034031992339613f16d746754"
+}
