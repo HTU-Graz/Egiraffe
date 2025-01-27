@@ -150,15 +150,15 @@ pub struct Upload {
     pub name: String,
     pub description: String,
     pub price: i16,
-    pub uploader: Uuid,
+    pub uploader: Uuid, // TODO consider adding resolved values for faster API times
     pub upload_date: NaiveDateTime,
     pub last_modified_date: NaiveDateTime,
 
     /// The ID of the course this upload belongs to
-    pub belongs_to: Uuid,
+    pub belongs_to: Uuid, // TODO consider adding resolved values for faster API times
 
     /// The ID of the prof that held the course this upload belongs to
-    pub held_by: Option<Uuid>,
+    pub held_by: Option<Uuid>, // TODO consider adding resolved values for faster API times
 }
 
 #[derive(Debug, Serialize, Deserialize)]
