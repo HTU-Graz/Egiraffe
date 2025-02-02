@@ -87,6 +87,7 @@ export default function Upload() {
             <span>{most_recent_available_file()?.mime_type}</span>
 
             <span>Dateigröße</span>
+            {/* TODO format this in human-readable units */}
             <span>{most_recent_available_file()?.size + " byte"}</span>
 
             <span>Letzte Änderung</span>
