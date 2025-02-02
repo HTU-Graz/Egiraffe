@@ -11,6 +11,7 @@ export default function Upload() {
 
   const upload = () => upload_and_files()?.upload;
   const files = () => upload_and_files()?.files;
+  const uploader_name = () => upload_and_files()?.uploader_name;
   const total_files_count = () => upload_and_files()?.total_files_count;
 
   const most_recent_available_file = () => {
@@ -51,7 +52,7 @@ export default function Upload() {
           <span>{upload()?.price}</span>
 
           <span>Hochladende Person</span>
-          <span>{upload()?.uploader}</span>
+          <span>{`${uploader_name() ?? ""} (${upload()?.uploader})`}</span>
 
           <span>Upload-Datum</span>
           <span>{format_date(upload()?.upload_date)}</span>

@@ -16,6 +16,7 @@ export interface UploadAndFiles {
   upload: Upload;
   files: File[];
   total_files_count: number;
+  uploader_name?: string;
 }
 
 export type FilesResponse =
