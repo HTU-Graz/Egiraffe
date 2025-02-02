@@ -92,7 +92,7 @@ export default function Upload() {
             <span>{most_recent_available_file()?.size + " byte"}</span>
 
             <span>Letzte Änderung</span>
-            <span>{most_recent_available_file()?.revision_at}</span>
+            <span>{"Am " + format_date(most_recent_available_file()?.revision_at) + " Uhr"}</span>
           </div>
 
           <button class="btn btn-primary" onClick={_ => purchaseUpload({ upload_id: id })}>
