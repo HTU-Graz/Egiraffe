@@ -6,7 +6,7 @@ export interface File {
   name: string;
   mime_type: string;
   size: number;
-  revision_at: string;
+  revision_at: Date;
   upload_id: string;
   approval_uploader: boolean;
   approval_mod: boolean;
@@ -30,6 +30,13 @@ export type FilesResponse =
 export async function getFiles(uploadId: string): Promise<UploadAndFiles> {
   const response = await put<FilesResponse>("/api/v1/get/files-of-upload", { upload_id: uploadId });
   if (!response.success) throw new Error(response.message);
+
+  response.upload.upload_date = new Date(response.upload.upload_date);
+  response.upload.last_modified_date = new Date(response.upload.last_modified_date);
+  for (const file of response.files) {
+    file.revision_at = new Date(file.revision_at);
+  }
+
   return {
     upload: response.upload,
     files: response.files,

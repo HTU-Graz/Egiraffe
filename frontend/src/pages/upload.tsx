@@ -3,6 +3,7 @@ import { For, Match, Show, Suspense, Switch, createResource, createSignal } from
 import UploadCard from "../components/UploadCard";
 import { getFiles } from "../api/files";
 import { purchaseUpload } from "../api/uploads";
+import { format_date } from "../utils/format";
 
 export default function Upload() {
   const { id } = useParams();
@@ -53,10 +54,10 @@ export default function Upload() {
           <span>{upload()?.uploader}</span>
 
           <span>Upload-Datum</span>
-          <span>{upload()?.upload_date}</span>
+          <span>{format_date(upload()?.upload_date)}</span>
 
           <span>Letzte Änderung</span>
-          <span>{upload()?.last_modified_date}</span>
+          <span>{format_date(upload()?.last_modified_date)}</span>
 
           <Show when={upload()?.held_by != null}>
             <span>Von Prof</span>

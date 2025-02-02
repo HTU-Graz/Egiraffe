@@ -1,4 +1,8 @@
 export function format_date(date: Date) {
+    if (date == null) return "N/A";
+
+    console.debug(typeof date);
+
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
     const day = String(date.getDate()).padStart(2, '0');

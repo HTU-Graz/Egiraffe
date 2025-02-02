@@ -6,12 +6,13 @@ export interface Upload {
   description: string;
   price: number;
   uploader: string;
-  upload_date: string;
-  last_modified_date: string;
+  upload_date: Date;
+  last_modified_date: Date;
   belongs_to: string;
   held_by?: string;
 }
 
+export type GetUploadResponse = ErrorResponse | { success: true; upload: Upload };
 export type GetUploadsResponse = ErrorResponse | { success: true; uploads: Upload[] };
 
 export interface UploadRequest {
@@ -34,15 +35,21 @@ export async function getUploads(courseId: string): Promise<Upload[]> {
     course_id: courseId,
   });
   if (!response.success) throw new Error(response.message);
+  for (const ul of response.uploads) {
+    ul.upload_date = new Date(ul.upload_date);
+    ul.last_modified_date = new Date(ul.last_modified_date);
+  }
   return response.uploads;
 }
 
 export async function getUpload(uploadId: string): Promise<Upload> {
-  const response = await put<GetUploadsResponse>("/api/v1/get/upload", {
+  const response = await put<GetUploadResponse>("/api/v1/get/upload", {
     course_id: uploadId,
   });
   if (!response.success) throw new Error(response.message);
-  return response.uploads;
+  response.upload.upload_date = new Date(response.upload.upload_date);
+  response.upload.last_modified_date = new Date(response.upload.last_modified_date);
+  return response.upload;
 }
 
 export async function upload(options: UploadRequest): Promise<Upload> {
@@ -80,7 +87,7 @@ export interface Purchase {
   user_id: string;
   upload_id: string;
   ecs_spent: number;
-  purchase_date: string;
+  purchase_date: Date;
   rating: number | null;
 }
 
