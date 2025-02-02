@@ -56,10 +56,10 @@ export default function Upload() {
           <span>{`${uploader_name() ?? ""} (${upload()?.uploader})`}</span>
 
           <span>Upload-Datum</span>
-          <span>{format_date(upload()?.upload_date)}</span>
+          <span>{"Am " + format_date(upload()?.upload_date) + " Uhr"}</span>
 
           <span>Letzte Änderung</span>
-          <span>{format_date(upload()?.last_modified_date)}</span>
+          <span>{"Am " + format_date(upload()?.last_modified_date) + " Uhr"}</span>
 
           <Show when={upload()?.held_by != null}>
             <span>Von Prof</span>
