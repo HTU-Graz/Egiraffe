@@ -49,7 +49,8 @@ export default function Upload() {
 
         <div class="grid grid-cols-2 gap-4 mt-4">
           <span>Preis</span>
-          <span>{upload()?.price}</span>
+          {/* FIXME this should be EC in singular form */}
+          <span>{upload()?.price + " ECs"}</span>
 
           <span>Hochladende Person</span>
           <span>{`${uploader_name() ?? ""} (${upload()?.uploader})`}</span>
