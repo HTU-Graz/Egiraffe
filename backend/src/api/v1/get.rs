@@ -10,6 +10,7 @@ use axum::{
     Extension, Json, Router,
 };
 use axum_extra::extract::{cookie::Cookie, CookieJar};
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::prelude::FromRow;
@@ -405,10 +406,13 @@ async fn handle_get_files_of_upload(
         .collect::<Vec<_>>();
 
     // Get the upload info
-    let maybe_upload = get_upload(&db_pool, upload.upload_id).await;
+    let maybe_upload_and_uploader_name = get_upload(&db_pool, upload.upload_id).await;
 
-    let Ok(upload) = maybe_upload else {
-        log::error!("Failed to get upload: {}", maybe_upload.unwrap_err());
+    let Ok((upload, uploader_name)) = maybe_upload_and_uploader_name else {
+        log::error!(
+            "Failed to get upload: {}",
+            maybe_upload_and_uploader_name.unwrap_err()
+        );
 
         return (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -426,6 +430,7 @@ async fn handle_get_files_of_upload(
             "files": files,
             "total_files_count": original_files_count,
             "upload": upload,
+            "uploader_name": uploader_name,
         })),
     )
 }
@@ -492,9 +497,24 @@ async fn handle_get_prof(
     )
 }
 
-async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<Upload> {
-    let upload = sqlx::query_as!(
-        Upload,
+async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<(Upload, String)> {
+    // HACK we're re-defining the struct here because we need an extra field
+    #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+    struct UploadAndUploaderName {
+        id: Uuid,
+        name: String,
+        description: String,
+        price: i16,
+        uploader: Uuid,
+        upload_date: NaiveDateTime,
+        last_modified_date: NaiveDateTime,
+        belongs_to: Uuid,
+        held_by: Option<Uuid>,
+        uploader_name: Option<String>, // This is the only extra field
+    }
+
+    let upload_ext = sqlx::query_as!(
+        UploadAndUploaderName,
         "
         SELECT
             uploads.id,
@@ -502,12 +522,14 @@ async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<U
             description,
             price,
             uploader,
+            users.nick AS uploader_name,
             upload_date,
             last_modified_date,
             belongs_to,
             held_by
         FROM
             uploads
+            INNER JOIN users ON uploads.uploader = users.id
         WHERE
             uploads.id = $1
         ",
@@ -517,7 +539,20 @@ async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<U
     .await
     .context("Failed to get upload")?;
 
-    Ok(upload)
+    let uploader_name = upload_ext.uploader_name;
+    let upload = Upload {
+        id: upload_ext.id,
+        name: upload_ext.name,
+        description: upload_ext.description,
+        price: upload_ext.price,
+        uploader: upload_ext.uploader,
+        upload_date: upload_ext.upload_date,
+        last_modified_date: upload_ext.last_modified_date,
+        belongs_to: upload_ext.belongs_to,
+        held_by: upload_ext.held_by,
+    };
+
+    Ok((upload, uploader_name.unwrap_or_default()))
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
