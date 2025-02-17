@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT\n            files.id AS file_id,\n            files.name,\n            files.mime_type,\n            files.size,\n            files.revision_at,\n            files.approval_uploader,\n            files.approval_mod,\n            uploads.id AS upload_id,\n            uploads.upload_name,\n            uploads.description,\n            uploads.price,\n            uploads.uploader,\n            uploads.upload_date,\n            uploads.last_modified_date,\n            uploads.associated_date,\n            uploads.upload_type,\n            uploads.belongs_to,\n            uploads.held_by\n        FROM\n            files\n            INNER JOIN uploads ON files.upload_id = uploads.id\n        ",
+  "query": "\n        SELECT\n            files.id AS file_id,\n            files.name AS file_name,\n            files.mime_type,\n            files.size,\n            files.revision_at,\n            files.approval_uploader,\n            files.approval_mod,\n            uploads.id AS upload_id,\n            uploads.upload_name,\n            uploads.description,\n            uploads.price,\n            uploads.uploader,\n            uploads.upload_date,\n            uploads.last_modified_date,\n            uploads.associated_date,\n            uploads.upload_type AS \"upload_type: _\",\n            uploads.belongs_to,\n            uploads.held_by\n        FROM\n            files\n            INNER JOIN uploads ON files.upload_id = uploads.id\n        ",
   "describe": {
     "columns": [
       {
@@ -10,7 +10,7 @@
       },
       {
         "ordinal": 1,
-        "name": "name",
+        "name": "file_name",
         "type_info": "Varchar"
       },
       {
@@ -80,10 +80,10 @@
       },
       {
         "ordinal": 15,
-        "name": "upload_type",
+        "name": "upload_type: _",
         "type_info": {
           "Custom": {
-            "name": "upload_type",
+            "name": "upload_type_enum",
             "kind": {
               "Enum": [
                 "exam",
@@ -137,5 +137,5 @@
       true
     ]
   },
-  "hash": "0c480f9fcce02a65cc5823663c44bda9a48b8cfeba4e3084fece2ff4fb015569"
+  "hash": "9f2834d4a62e44cb22456df7a7f6c9bbfe02b3f3168606bf9ea11606299020f5"
 }

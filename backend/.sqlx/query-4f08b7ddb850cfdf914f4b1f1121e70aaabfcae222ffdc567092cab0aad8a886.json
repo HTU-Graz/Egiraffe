@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT\n            uploads.id,\n            upload_name AS name,\n            description,\n            price,\n            uploader,\n            upload_date,\n            last_modified_date,\n            associated_date,\n            upload_type,\n            belongs_to,\n            held_by\n        FROM\n            uploads\n            INNER JOIN courses ON uploads.belongs_to = courses.id\n        WHERE\n            courses.id = $1\n        ",
+  "query": "\n        SELECT\n            uploads.id,\n            upload_name AS name,\n            description,\n            price,\n            uploader,\n            upload_date,\n            last_modified_date,\n            associated_date,\n            upload_type AS \"upload_type: _\",\n            belongs_to,\n            held_by\n        FROM\n            uploads\n            INNER JOIN courses ON uploads.belongs_to = courses.id\n        ",
   "describe": {
     "columns": [
       {
@@ -45,10 +45,10 @@
       },
       {
         "ordinal": 8,
-        "name": "upload_type",
+        "name": "upload_type: _",
         "type_info": {
           "Custom": {
-            "name": "upload_type",
+            "name": "upload_type_enum",
             "kind": {
               "Enum": [
                 "exam",
@@ -79,9 +79,7 @@
       }
     ],
     "parameters": {
-      "Left": [
-        "Uuid"
-      ]
+      "Left": []
     },
     "nullable": [
       false,
@@ -97,5 +95,5 @@
       true
     ]
   },
-  "hash": "71ed8e5d246251cd8dc69a3203b3f5fee2860ea59b70460beb437748c4628c10"
+  "hash": "4f08b7ddb850cfdf914f4b1f1121e70aaabfcae222ffdc567092cab0aad8a886"
 }

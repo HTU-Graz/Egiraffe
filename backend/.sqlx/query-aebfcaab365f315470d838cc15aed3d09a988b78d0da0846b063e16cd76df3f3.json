@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT\n            files.id AS file_id,\n            files.name,\n            files.mime_type,\n            files.size,\n            files.revision_at,\n            files.approval_uploader,\n            files.approval_mod,\n            uploads.id AS upload_id,\n            uploads.upload_name,\n            uploads.description,\n            uploads.price,\n            uploads.uploader,\n            uploads.upload_date,\n            uploads.last_modified_date,\n            uploads.associated_date,\n            uploads.upload_type,\n            uploads.belongs_to,\n            uploads.held_by\n        FROM\n            files\n            INNER JOIN uploads ON files.upload_id = uploads.id\n        WHERE\n            upload_id = $1\n        ",
+  "query": "\n        SELECT\n            files.id AS file_id,\n            files.name AS file_name,\n            files.mime_type,\n            files.size,\n            files.revision_at,\n            files.approval_uploader,\n            files.approval_mod,\n            uploads.id AS upload_id,\n            uploads.upload_name,\n            uploads.description,\n            uploads.price,\n            uploads.uploader,\n            uploads.upload_date,\n            uploads.last_modified_date,\n            uploads.associated_date,\n            uploads.upload_type AS \"upload_type: _\",\n            uploads.belongs_to,\n            uploads.held_by\n        FROM\n            files\n            INNER JOIN uploads ON files.upload_id = uploads.id\n        WHERE\n            upload_id = $1\n        ",
   "describe": {
     "columns": [
       {
@@ -10,7 +10,7 @@
       },
       {
         "ordinal": 1,
-        "name": "name",
+        "name": "file_name",
         "type_info": "Varchar"
       },
       {
@@ -80,10 +80,10 @@
       },
       {
         "ordinal": 15,
-        "name": "upload_type",
+        "name": "upload_type: _",
         "type_info": {
           "Custom": {
-            "name": "upload_type",
+            "name": "upload_type_enum",
             "kind": {
               "Enum": [
                 "exam",
@@ -139,5 +139,5 @@
       true
     ]
   },
-  "hash": "3b426e0ae4572b9fdedb94d34445745a975e05c1f0602d9855e1d447a4929eca"
+  "hash": "aebfcaab365f315470d838cc15aed3d09a988b78d0da0846b063e16cd76df3f3"
 }

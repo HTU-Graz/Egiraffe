@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT\n            uploads.id,\n            upload_name AS name,\n            description,\n            price,\n            uploader,\n            upload_date,\n            last_modified_date,\n            associated_date,\n            upload_type,\n            belongs_to,\n            held_by\n        FROM\n            uploads\n        WHERE\n            uploads.id = $1\n        ",
+  "query": "\n        SELECT\n            id,\n            upload_name AS name,\n            description,\n            price,\n            uploader,\n            upload_date,\n            last_modified_date,\n            associated_date,\n            upload_type AS \"upload_type: _\",\n            belongs_to,\n            held_by\n        FROM\n            uploads\n        WHERE\n            id = (\n                SELECT\n                    upload_id\n                FROM\n                    files\n                WHERE\n                    id = $1\n            )\n        ",
   "describe": {
     "columns": [
       {
@@ -45,10 +45,10 @@
       },
       {
         "ordinal": 8,
-        "name": "upload_type",
+        "name": "upload_type: _",
         "type_info": {
           "Custom": {
-            "name": "upload_type",
+            "name": "upload_type_enum",
             "kind": {
               "Enum": [
                 "exam",
@@ -97,5 +97,5 @@
       true
     ]
   },
-  "hash": "d6c2532e7a8b2e70b3f3b052f7590f4845a99eb31fd51d8cd192c3415dcb5e45"
+  "hash": "3e146d6a79ac73c79b639a9ad0bfa1fda6a6a84b56c9c1e824379083689978a0"
 }
