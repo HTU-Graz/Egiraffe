@@ -11,7 +11,7 @@ prod = []
 
 [dependencies]
 anyhow = "1.0.75"
-argon2 = { version = "0.5.2", features = ["std", "simple"] }
+argon2 = { version = "0.5.3", features = ["std", "simple"] }
 axum = { version = "0.8.1", features = [
     "http2",
     "macros",
