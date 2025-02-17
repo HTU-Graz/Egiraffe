@@ -49,6 +49,7 @@ pub async fn get_uploads_of_course(
             uploader,
             upload_date,
             last_modified_date,
+            associated_date,
             belongs_to,
             held_by
         FROM
@@ -82,6 +83,7 @@ pub async fn get_all_uploads(
             uploader,
             upload_date,
             last_modified_date,
+            associated_date,
             belongs_to,
             held_by
         FROM
@@ -106,6 +108,7 @@ pub async fn get_upload_by_id(db_pool: &PgPool, upload_id: Uuid) -> anyhow::Resu
             uploader,
             upload_date,
             last_modified_date,
+            associated_date,
             belongs_to,
             held_by
         FROM
@@ -134,6 +137,7 @@ pub async fn get_upload_by_id_and_join_course(
             uploader,
             upload_date,
             last_modified_date,
+            associated_date,
             belongs_to,
             held_by,
             course_name AS course_name
@@ -159,6 +163,7 @@ pub async fn get_upload_by_id_and_join_course(
                 uploader: row.uploader,
                 upload_date: row.upload_date,
                 last_modified_date: row.last_modified_date,
+                associated_date: row.associated_date,
                 belongs_to: row.belongs_to,
                 held_by: row.held_by,
             },
@@ -213,11 +218,12 @@ pub async fn create_upload(
                 uploader,
                 upload_date,
                 last_modified_date,
+                associated_date,
                 belongs_to,
                 held_by
             )
         VALUES
-            ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         ",
         upload.id,
         upload.name,
@@ -226,6 +232,7 @@ pub async fn create_upload(
         upload.uploader,
         upload.upload_date,
         upload.last_modified_date,
+        upload.associated_date,
         upload.belongs_to,
         upload.held_by,
     )

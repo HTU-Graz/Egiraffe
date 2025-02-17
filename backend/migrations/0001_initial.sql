@@ -53,8 +53,11 @@ CREATE TABLE IF NOT EXISTS uploads (
     description text NOT NULL,
     price smallint NOT NULL,
     uploader uuid NOT NULL REFERENCES users (id),
+    -- The date when the upload was uploaded,
     upload_date timestamp without time zone NOT NULL,
     last_modified_date timestamp without time zone NOT NULL,
+    -- The date associated with the upload, e.g. the date of the exam (nullable)
+    associated_date timestamp without time zone,
     belongs_to uuid NOT NULL REFERENCES courses (id),
     held_by uuid REFERENCES profs (id)
 );

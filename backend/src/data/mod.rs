@@ -155,6 +155,9 @@ pub struct Upload {
     pub upload_date: NaiveDateTime,
     pub last_modified_date: NaiveDateTime,
 
+    /// The date associated with the upload, e.g. the date of the exam (nullable)
+    pub associated_date: Option<NaiveDateTime>,
+
     /// The ID of the course this upload belongs to
     pub belongs_to: Uuid, // TODO consider adding resolved values for faster API times
 

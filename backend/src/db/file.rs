@@ -119,6 +119,7 @@ pub async fn get_files_and_join_upload(
             uploads.uploader,
             uploads.upload_date,
             uploads.last_modified_date,
+            uploads.associated_date,
             uploads.belongs_to,
             uploads.held_by
         FROM
@@ -152,6 +153,7 @@ pub async fn get_files_and_join_upload(
                 uploader: row.uploader,
                 upload_date: row.upload_date,
                 last_modified_date: row.last_modified_date,
+                associated_date: row.associated_date,
                 belongs_to: row.belongs_to,
                 held_by: row.held_by,
             },
@@ -182,6 +184,7 @@ pub async fn get_all_files_and_join_upload(
             uploads.uploader,
             uploads.upload_date,
             uploads.last_modified_date,
+            uploads.associated_date,
             uploads.belongs_to,
             uploads.held_by
         FROM
@@ -212,6 +215,7 @@ pub async fn get_all_files_and_join_upload(
                 uploader: row.uploader,
                 upload_date: row.upload_date,
                 last_modified_date: row.last_modified_date,
+                associated_date: row.associated_date,
                 belongs_to: row.belongs_to,
                 held_by: row.held_by,
             },
@@ -237,6 +241,7 @@ pub async fn get_upload_of_file(
             uploader,
             upload_date,
             last_modified_date,
+            associated_date,
             belongs_to,
             held_by
         FROM

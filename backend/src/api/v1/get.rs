@@ -508,6 +508,7 @@ async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<(
         uploader: Uuid,
         upload_date: NaiveDateTime,
         last_modified_date: NaiveDateTime,
+        associated_date: Option<NaiveDateTime>,
         belongs_to: Uuid,
         held_by: Option<Uuid>,
         uploader_name: Option<String>, // This is the only extra field
@@ -525,6 +526,7 @@ async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<(
             users.nick AS uploader_name,
             upload_date,
             last_modified_date,
+            associated_date,
             belongs_to,
             held_by
         FROM
@@ -548,6 +550,7 @@ async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<(
         uploader: upload_ext.uploader,
         upload_date: upload_ext.upload_date,
         last_modified_date: upload_ext.last_modified_date,
+        associated_date: upload_ext.associated_date,
         belongs_to: upload_ext.belongs_to,
         held_by: upload_ext.held_by,
     };

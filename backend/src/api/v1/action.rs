@@ -46,6 +46,9 @@ pub struct DoUploadReq {
 
     /// The ID of the prof that held the course this upload belongs to
     pub held_by: Option<Uuid>,
+
+    // TODO document this
+    pub associated_date: Option<chrono::NaiveDateTime>,
     // TODO impl category
 }
 
@@ -166,7 +169,8 @@ async fn handle_do_upload(
                 description,
                 price,
                 belongs_to,
-                held_by, // This actually is optional
+                held_by,         // This actually is optional
+                associated_date, // This is optional too
                 ..
             } = req;
 
@@ -190,6 +194,7 @@ async fn handle_do_upload(
                 uploader: current_user_id,
                 upload_date: now.clone(),
                 last_modified_date: now,
+                associated_date,
                 belongs_to,
                 held_by,
             }
