@@ -11,7 +11,7 @@ use axum::{
     routing::{get, put},
     Extension, Json, Router,
 };
-use chrono::NaiveDateTime;
+use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use serde_json::json;
 use tokio_util::io::ReaderStream;
@@ -40,8 +40,8 @@ pub struct ModifyUploadRequest {
     pub description: Option<String>,
     pub price: Option<i16>,
     pub uploader: Option<Uuid>,
-    pub upload_date: Option<NaiveDateTime>,
-    pub last_modified_date: Option<NaiveDateTime>,
+    pub upload_date: Option<DateTime<Utc>>,
+    pub last_modified_date: Option<DateTime<Utc>>,
 
     /// The ID of the course this upload belongs to
     pub belongs_to: Option<Uuid>,
@@ -65,7 +65,7 @@ pub struct ModifyFileRequest {
     pub name: Option<String>,
     pub mime_type: Option<String>,
     // The latest one should match the file's last modified date
-    pub revision_at: Option<NaiveDateTime>,
+    pub revision_at: Option<DateTime<Utc>>,
     /// The ID of the upload this file belongs to
     pub upload_id: Option<Uuid>,
     pub approval_mod: Option<bool>,

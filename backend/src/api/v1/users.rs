@@ -6,7 +6,6 @@ use axum::{
     routing::{get, put},
     Json, Router,
 };
-use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::PgPool;

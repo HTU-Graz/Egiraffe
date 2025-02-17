@@ -10,7 +10,7 @@ use axum::{
     Extension, Json, Router,
 };
 use axum_extra::extract::{cookie::Cookie, CookieJar};
-use chrono::NaiveDateTime;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::prelude::FromRow;
@@ -506,9 +506,9 @@ async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<(
         description: String,
         price: i16,
         uploader: Uuid,
-        upload_date: NaiveDateTime,
-        last_modified_date: NaiveDateTime,
-        associated_date: Option<NaiveDateTime>,
+        upload_date: DateTime<Utc>,
+        last_modified_date: DateTime<Utc>,
+        associated_date: Option<DateTime<Utc>>,
         belongs_to: Uuid,
         held_by: Option<Uuid>,
         uploader_name: Option<String>, // This is the only extra field

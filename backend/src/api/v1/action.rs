@@ -7,6 +7,7 @@ use axum::{
     routing::{get, put},
     Extension, Json, Router,
 };
+use chrono::{DateTime, Utc};
 use futures::{io, TryStreamExt};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -48,7 +49,7 @@ pub struct DoUploadReq {
     pub held_by: Option<Uuid>,
 
     // TODO document this
-    pub associated_date: Option<chrono::NaiveDateTime>,
+    pub associated_date: Option<DateTime<Utc>>,
     // TODO impl category
 }
 

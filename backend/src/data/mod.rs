@@ -1,6 +1,6 @@
 use std::{ops::Deref, sync::Arc};
 
-use chrono::NaiveDateTime;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 use uuid::Uuid;
@@ -152,11 +152,11 @@ pub struct Upload {
     pub description: String,
     pub price: i16,
     pub uploader: Uuid, // TODO consider adding resolved values for faster API times
-    pub upload_date: NaiveDateTime,
-    pub last_modified_date: NaiveDateTime,
+    pub upload_date: DateTime<Utc>,
+    pub last_modified_date: DateTime<Utc>,
 
     /// The date associated with the upload, e.g. the date of the exam (nullable)
-    pub associated_date: Option<NaiveDateTime>,
+    pub associated_date: Option<DateTime<Utc>>,
 
     /// The ID of the course this upload belongs to
     pub belongs_to: Uuid, // TODO consider adding resolved values for faster API times
@@ -176,7 +176,7 @@ pub struct Purchase {
     pub user_id: Uuid,
     pub upload_id: Uuid,
     pub ecs_spent: i16,
-    pub purchase_date: NaiveDateTime,
+    pub purchase_date: DateTime<Utc>,
     pub rating: Option<i16>,
 }
 
@@ -187,7 +187,7 @@ pub struct File {
     pub mime_type: String,
     pub size: i64,
     // The latest one should match the file's last modified date
-    pub revision_at: NaiveDateTime,
+    pub revision_at: DateTime<Utc>,
     /// The ID of the upload this file belongs to
     pub upload_id: Uuid,
     pub approval_uploader: bool,

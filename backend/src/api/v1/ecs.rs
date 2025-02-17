@@ -6,7 +6,7 @@ use axum::{
     routing::{get, put},
     Json, Router,
 };
-use chrono::NaiveDateTime;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::PgPool;
@@ -78,7 +78,7 @@ pub async fn handle_create_system_transaction(
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SystemTransaction {
     pub affected_user: Uuid,
-    pub transaction_date: NaiveDateTime,
+    pub transaction_date: DateTime<Utc>,
 
     /// The amount of ECS the user gained or lost
     pub delta_ec: i64,

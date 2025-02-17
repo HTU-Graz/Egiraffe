@@ -47,9 +47,9 @@ pub async fn get_uploads_of_course(
             description,
             price,
             uploader,
-            upload_date,
-            last_modified_date,
-            associated_date,
+            upload_date AT TIME ZONE 'UTC' AS upload_date,
+            last_modified_date AT TIME ZONE 'UTC' AS last_modified_date,
+            associated_date AT TIME ZONE 'UTC' AS associated_date,
             belongs_to,
             held_by
         FROM
