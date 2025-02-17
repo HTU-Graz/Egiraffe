@@ -35,6 +35,7 @@ pub struct User {
     /// at least not in a meaningful/simple way.
     pub user_role: i16,
 }
+
 #[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct RedactedUser {
     pub id: Uuid,
