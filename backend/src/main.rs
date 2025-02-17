@@ -63,7 +63,7 @@ async fn main() -> anyhow::Result<()> {
 
     let app = Router::new()
         .nest("/api", api::routes())
-        .nest_service("/", static_files);
+        .fallback_service(static_files);
 
     let addr = SocketAddr::from((CONF.webserver.ip, CONF.webserver.port));
 

@@ -209,6 +209,7 @@ pub async fn update_upload(
     db_pool: &sqlx::Pool<sqlx::Postgres>,
     upload: &Upload,
 ) -> anyhow::Result<()> {
+    // FIXME impl upload_type
     sqlx::query!(
         "
         UPDATE
