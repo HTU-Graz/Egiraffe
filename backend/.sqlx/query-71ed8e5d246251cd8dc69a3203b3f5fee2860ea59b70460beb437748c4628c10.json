@@ -1,0 +1,101 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            uploads.id,\n            upload_name AS name,\n            description,\n            price,\n            uploader,\n            upload_date,\n            last_modified_date,\n            associated_date,\n            upload_type,\n            belongs_to,\n            held_by\n        FROM\n            uploads\n            INNER JOIN courses ON uploads.belongs_to = courses.id\n        WHERE\n            courses.id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "price",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 4,
+        "name": "uploader",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 5,
+        "name": "upload_date",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 6,
+        "name": "last_modified_date",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 7,
+        "name": "associated_date",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 8,
+        "name": "upload_type",
+        "type_info": {
+          "Custom": {
+            "name": "upload_type",
+            "kind": {
+              "Enum": [
+                "exam",
+                "exam_prep",
+                "course_summary",
+                "homework",
+                "lecture_notes",
+                "question_collection",
+                "protocol",
+                "other",
+                "script",
+                "presentation",
+                "unknown"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "belongs_to",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 10,
+        "name": "held_by",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "71ed8e5d246251cd8dc69a3203b3f5fee2860ea59b70460beb437748c4628c10"
+}
