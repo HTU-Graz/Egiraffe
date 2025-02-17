@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
 use argon2::{password_hash::SaltString, Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
-use sha_crypt::sha512_check; //For legacy logins
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use axum_extra::extract::{cookie::Cookie, CookieJar};
 use rand::rngs::OsRng;
 use serde::{Deserialize, Serialize};
+use sha_crypt::sha512_check; //For legacy logins
 use time::Duration;
 use uuid::Uuid;
 
@@ -67,13 +67,16 @@ pub async fn handle_login(
 
     // FIXME timing side channel
 
-    let password_valid = if user.password_hash.starts_with("$6$") { //Hash from old Egiraffe
+    let password_valid = if user.password_hash.starts_with("$6$") {
+        //Hash from old Egiraffe
         sha512_check(&(login_data.password), &user.password_hash).is_ok()
         //TODO: Update Hash in DB
     } else {
         let argon2 = Argon2::default();
         let password_hash = PasswordHash::new(&user.password_hash).unwrap();
-        argon2.verify_password(login_data.password.as_bytes(), &password_hash).is_ok()
+        argon2
+            .verify_password(login_data.password.as_bytes(), &password_hash)
+            .is_ok()
     };
 
     if !password_valid {

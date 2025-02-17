@@ -6,27 +6,23 @@
 )]
 
 mod api;
+mod conf;
+mod constantes;
 mod data;
 mod db;
-mod util;
-mod constantes;
 mod legacy;
-mod conf;
+mod util;
 
-use std::{
-    env,
-    fs::canonicalize,
-    net::SocketAddr,
-};
+use std::{env, fs::canonicalize, net::SocketAddr};
 
 use anyhow::Context;
 use axum::Router;
 use sqlx::{Pool, Postgres};
 use tower_http::services::{ServeDir, ServeFile};
 
-use crate::db::DB_POOL;
 use crate::conf::CONF;
 use crate::constantes::*;
+use crate::db::DB_POOL;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -36,7 +32,10 @@ async fn main() -> anyhow::Result<()> {
 
     #[cfg(not(feature = "prod"))]
     {
-        println!("{}DEBUG Mode!{} Never use this in Production!", CLI_COLOR_RED, CLI_COLOR_DEFAULT);
+        println!(
+            "{}DEBUG Mode!{} Never use this in Production!",
+            CLI_COLOR_RED, CLI_COLOR_DEFAULT
+        );
         log::warn!("DEBUG Mode! Never use this in Production!");
     }
 
@@ -54,7 +53,8 @@ async fn main() -> anyhow::Result<()> {
         db::debug_insert_default_entries(&db_pool).await?;
     }
 
-    let static_files = ServeDir::new(&CONF.webserver.staticdir).not_found_service(ServeFile::new(&CONF.webserver.indexfile));
+    let static_files = ServeDir::new(&CONF.webserver.staticdir)
+        .not_found_service(ServeFile::new(&CONF.webserver.indexfile));
     log::info!(
         "Serving static files from {}, canonicalized to {}",
         &CONF.webserver.staticdir,

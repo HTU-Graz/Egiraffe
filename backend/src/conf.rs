@@ -1,20 +1,23 @@
-use serde::{Deserialize, Serialize};
-use figment::{Figment, providers::{Format, Toml, Env, Serialized}};
+use figment::{
+    providers::{Env, Format, Serialized, Toml},
+    Figment,
+};
 use once_cell::sync::Lazy;
-use std::net::{Ipv4Addr, IpAddr};
+use serde::{Deserialize, Serialize};
+use std::net::{IpAddr, Ipv4Addr};
 
 //Sadly the variables with underscores can't be dynamically changed using environment variables - therefore I just concationate everything
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
     pub database: DatabaseConfig,
     pub mail: MailConfig,
-    pub webserver: WebServerConfig
+    pub webserver: WebServerConfig,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct DatabaseConfig {
     pub url: String,
-    pub debugdefaultentries: bool
+    pub debugdefaultentries: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -42,14 +45,13 @@ pub struct WebServerConfig {
     pub staticdir: String,
     pub indexfile: String,
     pub ip: IpAddr,
-    pub port: u16
+    pub port: u16,
 }
 
-pub static CONF: Lazy<Config> = Lazy::new(|| {Config::load()});
+pub static CONF: Lazy<Config> = Lazy::new(|| Config::load());
 
 impl Config {
-pub fn load() -> Self {
-
+    pub fn load() -> Self {
         //Production defaults
         let mut defaults = Config {
             database: DatabaseConfig {
@@ -72,7 +74,7 @@ pub fn load() -> Self {
                 indexfile: "../frontend/dist/index.html".into(),
                 ip: std::net::IpAddr::V4(Ipv4Addr::new(127, 0, 0, 42)), //TODO: Should that be changed for prod?
                 port: 42002,
-            }
+            },
         };
 
         //overwrite them with debug defaults if needed
@@ -80,7 +82,8 @@ pub fn load() -> Self {
         {
             defaults = Config {
                 database: DatabaseConfig {
-                    url: "postgresql://egiraffe:hunter2@localhost:5432/egiraffe?sslmode=disable".into(),
+                    url: "postgresql://egiraffe:hunter2@localhost:5432/egiraffe?sslmode=disable"
+                        .into(),
                     debugdefaultentries: true,
                 },
                 mail: MailConfig {
@@ -100,17 +103,18 @@ pub fn load() -> Self {
                     indexfile: "../frontend/dist/index.html".into(),
                     ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 42)),
                     port: 42002,
-                }
+                },
             };
         }
 
         let config: Config = Figment::from(Serialized::defaults(defaults))
             .merge(Toml::file("conf.toml"))
             .merge(Env::prefixed("EGIRAFFE_").split("_"))
-            .extract().unwrap();
+            .extract()
+            .unwrap();
 
         println!("config: {:#?}", config);
-        
+
         // Validate some default values
         Config::validate(&config);
 
@@ -122,7 +126,7 @@ pub fn load() -> Self {
         {
             //No Validations (yet)
         }
-        
+
         #[cfg(feature = "prod")]
         {
             assert!(s.database.debugdefaultentries == false);
