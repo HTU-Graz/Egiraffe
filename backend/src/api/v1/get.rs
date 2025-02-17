@@ -19,7 +19,7 @@ use uuid::Uuid;
 
 use crate::{
     api::{api_greeting, v1::auth::make_dead_cookie},
-    data::{File, Purchase, RedactedUser, Upload},
+    data::{File, Purchase, RedactedUser, Upload, UploadType},
     db::{self, DB_POOL},
 };
 
@@ -509,6 +509,7 @@ async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<(
         upload_date: NaiveDateTime,
         last_modified_date: NaiveDateTime,
         associated_date: Option<NaiveDateTime>,
+        upload_type: UploadType,
         belongs_to: Uuid,
         held_by: Option<Uuid>,
         uploader_name: Option<String>, // This is the only extra field
@@ -516,7 +517,7 @@ async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<(
 
     let upload_ext = sqlx::query_as!(
         UploadAndUploaderName,
-        "
+        r#"
         SELECT
             uploads.id,
             upload_name AS name,
@@ -527,6 +528,7 @@ async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<(
             upload_date,
             last_modified_date,
             associated_date,
+            upload_type AS "upload_type: _",
             belongs_to,
             held_by
         FROM
@@ -534,7 +536,7 @@ async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<(
             INNER JOIN users ON uploads.uploader = users.id
         WHERE
             uploads.id = $1
-        ",
+        "#,
         upload_id,
     )
     .fetch_one(db_pool)
@@ -551,6 +553,7 @@ async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<(
         upload_date: upload_ext.upload_date,
         last_modified_date: upload_ext.last_modified_date,
         associated_date: upload_ext.associated_date,
+        upload_type: upload_ext.upload_type,
         belongs_to: upload_ext.belongs_to,
         held_by: upload_ext.held_by,
     };

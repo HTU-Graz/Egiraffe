@@ -1,6 +1,9 @@
+use chrono::NaiveDateTime;
+use serde::{Deserialize, Serialize};
+use sqlx::FromRow;
 use uuid::Uuid;
 
-use crate::data::{File, Upload};
+use crate::data::{File, Upload, UploadType};
 
 pub async fn create_file(db_pool: &sqlx::Pool<sqlx::Postgres>, file: &File) -> anyhow::Result<()> {
     sqlx::query!(
@@ -102,11 +105,12 @@ pub async fn get_files_and_join_upload(
     db_pool: &sqlx::Pool<sqlx::Postgres>,
     upload_id: Uuid,
 ) -> anyhow::Result<Vec<(File, Upload)>> {
-    let file_upload_joins = sqlx::query!(
-        "
+    let file_upload_joins: Vec<FileUpload> = sqlx::query_as!(
+        FileUpload,
+        r#"
         SELECT
             files.id AS file_id,
-            files.name,
+            files.name AS file_name,
             files.mime_type,
             files.size,
             files.revision_at,
@@ -120,6 +124,7 @@ pub async fn get_files_and_join_upload(
             uploads.upload_date,
             uploads.last_modified_date,
             uploads.associated_date,
+            uploads.upload_type AS "upload_type: _",
             uploads.belongs_to,
             uploads.held_by
         FROM
@@ -127,39 +132,42 @@ pub async fn get_files_and_join_upload(
             INNER JOIN uploads ON files.upload_id = uploads.id
         WHERE
             upload_id = $1
-        ",
+        "#,
         upload_id
     )
     .fetch_all(db_pool)
-    .await?
-    .into_iter()
-    .map(|row| {
-        (
-            File {
-                id: row.file_id,
-                name: row.name,
-                mime_type: row.mime_type,
-                size: row.size,
-                revision_at: row.revision_at,
-                upload_id: row.upload_id,
-                approval_uploader: row.approval_uploader,
-                approval_mod: row.approval_mod,
-            },
-            Upload {
-                id: row.upload_id,
-                name: row.upload_name,
-                description: row.description,
-                price: row.price,
-                uploader: row.uploader,
-                upload_date: row.upload_date,
-                last_modified_date: row.last_modified_date,
-                associated_date: row.associated_date,
-                belongs_to: row.belongs_to,
-                held_by: row.held_by,
-            },
-        )
-    })
-    .collect();
+    .await?;
+
+    let file_upload_joins = file_upload_joins
+        .into_iter()
+        .map(|row| {
+            (
+                File {
+                    id: row.file_id,
+                    name: row.file_name,
+                    mime_type: row.mime_type,
+                    size: row.size,
+                    revision_at: row.revision_at,
+                    upload_id: row.upload_id,
+                    approval_uploader: row.approval_uploader,
+                    approval_mod: row.approval_mod,
+                },
+                Upload {
+                    id: row.upload_id,
+                    name: row.upload_name,
+                    description: row.description,
+                    price: row.price,
+                    uploader: row.uploader,
+                    upload_date: row.upload_date,
+                    last_modified_date: row.last_modified_date,
+                    associated_date: row.associated_date,
+                    upload_type: row.upload_type,
+                    belongs_to: row.belongs_to,
+                    held_by: row.held_by,
+                },
+            )
+        })
+        .collect();
 
     Ok(file_upload_joins)
 }
@@ -167,11 +175,12 @@ pub async fn get_files_and_join_upload(
 pub async fn get_all_files_and_join_upload(
     db_pool: &sqlx::Pool<sqlx::Postgres>,
 ) -> anyhow::Result<Vec<(File, Upload)>> {
-    let file_upload_joins = sqlx::query!(
-        "
+    let file_upload_joins = sqlx::query_as!(
+        FileUpload,
+        r#"
         SELECT
             files.id AS file_id,
-            files.name,
+            files.name AS file_name,
             files.mime_type,
             files.size,
             files.revision_at,
@@ -185,12 +194,13 @@ pub async fn get_all_files_and_join_upload(
             uploads.upload_date,
             uploads.last_modified_date,
             uploads.associated_date,
+            uploads.upload_type AS "upload_type: _",
             uploads.belongs_to,
             uploads.held_by
         FROM
             files
             INNER JOIN uploads ON files.upload_id = uploads.id
-        ",
+        "#,
     )
     .fetch_all(db_pool)
     .await?
@@ -199,7 +209,7 @@ pub async fn get_all_files_and_join_upload(
         (
             File {
                 id: row.file_id,
-                name: row.name,
+                name: row.file_name,
                 mime_type: row.mime_type,
                 size: row.size,
                 revision_at: row.revision_at,
@@ -216,6 +226,7 @@ pub async fn get_all_files_and_join_upload(
                 upload_date: row.upload_date,
                 last_modified_date: row.last_modified_date,
                 associated_date: row.associated_date,
+                upload_type: row.upload_type,
                 belongs_to: row.belongs_to,
                 held_by: row.held_by,
             },
@@ -232,7 +243,7 @@ pub async fn get_upload_of_file(
 ) -> anyhow::Result<Upload> {
     let upload = sqlx::query_as!(
         Upload,
-        "
+        r#"
         SELECT
             id,
             upload_name AS name,
@@ -242,6 +253,7 @@ pub async fn get_upload_of_file(
             upload_date,
             last_modified_date,
             associated_date,
+            upload_type AS "upload_type: _",
             belongs_to,
             held_by
         FROM
@@ -255,7 +267,7 @@ pub async fn get_upload_of_file(
                 WHERE
                     id = $1
             )
-        ",
+        "#,
         file_id
     )
     .fetch_one(db_pool)
@@ -265,4 +277,40 @@ pub async fn get_upload_of_file(
     ?;
 
     Ok(upload)
+}
+
+// Oida
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct FileUpload {
+    pub file_id: Uuid,
+    pub file_name: String,
+    pub mime_type: String,
+    pub size: i64,
+    // The latest one should match the file's last modified date
+    pub revision_at: NaiveDateTime,
+    /// The ID of the upload this file belongs to
+    pub upload_id: Uuid,
+    pub approval_uploader: bool,
+    pub approval_mod: bool,
+    //
+    //
+    //
+    // pub upload_id: Uuid,
+    pub upload_name: String,
+    pub description: String,
+    pub price: i16,
+    pub uploader: Uuid, // TODO consider adding resolved values for faster API times
+    pub upload_date: NaiveDateTime,
+    pub last_modified_date: NaiveDateTime,
+
+    /// The date associated with the upload, e.g. the date of the exam (nullable)
+    pub associated_date: Option<NaiveDateTime>,
+
+    pub upload_type: UploadType,
+
+    /// The ID of the course this upload belongs to
+    pub belongs_to: Uuid, // TODO consider adding resolved values for faster API times
+
+    /// The ID of the prof that held the course this upload belongs to
+    pub held_by: Option<Uuid>, // TODO consider adding resolved values for faster API times
 }

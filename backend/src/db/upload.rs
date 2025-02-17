@@ -1,9 +1,10 @@
 use anyhow::Context;
-use serde::Deserialize;
-use sqlx::PgPool;
+use chrono::NaiveDateTime;
+use serde::{Deserialize, Serialize};
+use sqlx::{FromRow, PgPool};
 use uuid::Uuid;
 
-use crate::data::Upload;
+use crate::data::{Upload, UploadType};
 
 use super::SortOrder;
 
@@ -40,7 +41,7 @@ pub async fn get_uploads_of_course(
 
     sqlx::query_as!(
         Upload,
-        "
+        r#"
         SELECT
             uploads.id,
             upload_name AS name,
@@ -50,6 +51,7 @@ pub async fn get_uploads_of_course(
             upload_date,
             last_modified_date,
             associated_date,
+            upload_type AS "upload_type: _",
             belongs_to,
             held_by
         FROM
@@ -57,7 +59,7 @@ pub async fn get_uploads_of_course(
             INNER JOIN courses ON uploads.belongs_to = courses.id
         WHERE
             courses.id = $1
-        ",
+        "#,
         course_id,
     )
     .fetch_all(db_pool)
@@ -74,7 +76,7 @@ pub async fn get_all_uploads(
 
     sqlx::query_as!(
         Upload,
-        "
+        r#"
         SELECT
             uploads.id,
             upload_name AS name,
@@ -84,12 +86,13 @@ pub async fn get_all_uploads(
             upload_date,
             last_modified_date,
             associated_date,
+            upload_type AS "upload_type: _",
             belongs_to,
             held_by
         FROM
             uploads
             INNER JOIN courses ON uploads.belongs_to = courses.id
-        ",
+        "#,
     )
     .fetch_all(db_pool)
     .await
@@ -99,7 +102,7 @@ pub async fn get_all_uploads(
 pub async fn get_upload_by_id(db_pool: &PgPool, upload_id: Uuid) -> anyhow::Result<Option<Upload>> {
     sqlx::query_as!(
         Upload,
-        "
+        r#"
         SELECT
             uploads.id,
             upload_name AS name,
@@ -109,13 +112,14 @@ pub async fn get_upload_by_id(db_pool: &PgPool, upload_id: Uuid) -> anyhow::Resu
             upload_date,
             last_modified_date,
             associated_date,
+            upload_type AS "upload_type: _",
             belongs_to,
             held_by
         FROM
             uploads
         WHERE
             uploads.id = $1
-        ",
+        "#,
         upload_id,
     )
     .fetch_optional(db_pool)
@@ -127,8 +131,33 @@ pub async fn get_upload_by_id_and_join_course(
     db_pool: &PgPool,
     upload_id: Uuid,
 ) -> anyhow::Result<Option<(Upload, String)>> {
-    let row = sqlx::query!(
-        "
+    #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+    pub struct CourseUpload {
+        pub id: Uuid,
+        pub name: String,
+        pub description: String,
+        pub price: i16,
+        pub uploader: Uuid, // TODO consider adding resolved values for faster API times
+        pub upload_date: NaiveDateTime,
+        pub last_modified_date: NaiveDateTime,
+
+        /// The date associated with the upload, e.g. the date of the exam (nullable)
+        pub associated_date: Option<NaiveDateTime>,
+
+        pub upload_type: UploadType,
+
+        /// The ID of the course this upload belongs to
+        pub belongs_to: Uuid, // TODO consider adding resolved values for faster API times
+
+        /// The ID of the prof that held the course this upload belongs to
+        pub held_by: Option<Uuid>, // TODO consider adding resolved values for faster API times
+
+        pub course_name: String,
+    }
+
+    let row = sqlx::query_as!(
+        CourseUpload,
+        r#"
         SELECT
             uploads.id,
             upload_name AS name,
@@ -138,6 +167,7 @@ pub async fn get_upload_by_id_and_join_course(
             upload_date,
             last_modified_date,
             associated_date,
+            upload_type AS "upload_type: _",
             belongs_to,
             held_by,
             course_name AS course_name
@@ -146,7 +176,7 @@ pub async fn get_upload_by_id_and_join_course(
             INNER JOIN courses ON uploads.belongs_to = courses.id
         WHERE
             uploads.id = $1
-        ",
+        "#,
         upload_id,
     )
     .fetch_optional(db_pool)
@@ -164,6 +194,7 @@ pub async fn get_upload_by_id_and_join_course(
                 upload_date: row.upload_date,
                 last_modified_date: row.last_modified_date,
                 associated_date: row.associated_date,
+                upload_type: row.upload_type,
                 belongs_to: row.belongs_to,
                 held_by: row.held_by,
             },

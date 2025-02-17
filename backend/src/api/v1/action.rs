@@ -16,7 +16,7 @@ use uuid::Uuid;
 
 use crate::{
     api::api_greeting,
-    data::{File, Purchase, RedactedUser, Upload},
+    data::{File, Purchase, RedactedUser, Upload, UploadType},
     db::{self, user::make_pwd_hash, DB_POOL},
     util::bad_request,
 };
@@ -49,7 +49,7 @@ pub struct DoUploadReq {
 
     // TODO document this
     pub associated_date: Option<chrono::NaiveDateTime>,
-    // TODO impl category
+    pub upload_type: UploadType,
 }
 
 async fn handle_do_upload(
@@ -171,6 +171,7 @@ async fn handle_do_upload(
                 belongs_to,
                 held_by,         // This actually is optional
                 associated_date, // This is optional too
+                upload_type,
                 ..
             } = req;
 
@@ -195,6 +196,7 @@ async fn handle_do_upload(
                 upload_date: now.clone(),
                 last_modified_date: now,
                 associated_date,
+                upload_type,
                 belongs_to,
                 held_by,
             }

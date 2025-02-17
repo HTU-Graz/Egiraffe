@@ -158,6 +158,8 @@ pub struct Upload {
     /// The date associated with the upload, e.g. the date of the exam (nullable)
     pub associated_date: Option<NaiveDateTime>,
 
+    pub upload_type: UploadType,
+
     /// The ID of the course this upload belongs to
     pub belongs_to: Uuid, // TODO consider adding resolved values for faster API times
 
@@ -192,4 +194,38 @@ pub struct File {
     pub upload_id: Uuid,
     pub approval_uploader: bool,
     pub approval_mod: bool,
+}
+
+#[derive(sqlx::Type, Debug, Serialize, Deserialize, Clone)]
+#[sqlx(type_name = "upload_type_enum", rename_all = "snake_case")]
+pub enum UploadType {
+    Exam,
+    ExamPrep,
+    CourseSummary,
+    Homework,
+    LectureNotes,
+    QuestionCollection,
+    Protocol,
+    Other,
+    Script,
+    Presentation,
+    Unknown,
+}
+
+impl UploadType {
+    pub fn to_de_string(&self) -> &'static str {
+        match self {
+            UploadType::Exam => "Klausurangabe",
+            UploadType::ExamPrep => "Prüfungsfragenausarbeitung",
+            UploadType::CourseSummary => "Stoffzusammenfassung",
+            UploadType::Homework => "Hausübung",
+            UploadType::LectureNotes => "Mitschrift",
+            UploadType::QuestionCollection => "Fragensammlung",
+            UploadType::Protocol => "Protokoll",
+            UploadType::Other => "Sonstiges",
+            UploadType::Script => "Skriptum",
+            UploadType::Presentation => "Präsentation",
+            UploadType::Unknown => "kein Typ",
+        }
+    }
 }

@@ -47,6 +47,20 @@ CREATE TABLE IF NOT EXISTS profs (
     prof_name character varying(500) NOT NULL
 );
 
+CREATE TYPE upload_type_enum AS enum (
+    'exam',
+    'exam_prep',
+    'course_summary',
+    'homework',
+    'lecture_notes',
+    'question_collection',
+    'protocol',
+    'other',
+    'script',
+    'presentation',
+    'unknown'
+);
+
 CREATE TABLE IF NOT EXISTS uploads (
     id uuid PRIMARY KEY,
     upload_name character varying(200) NOT NULL,
@@ -58,6 +72,7 @@ CREATE TABLE IF NOT EXISTS uploads (
     last_modified_date timestamp without time zone NOT NULL,
     -- The date associated with the upload, e.g. the date of the exam (nullable)
     associated_date timestamp without time zone,
+    upload_type upload_type_enum NOT NULL,
     belongs_to uuid NOT NULL REFERENCES courses (id),
     held_by uuid REFERENCES profs (id)
 );
