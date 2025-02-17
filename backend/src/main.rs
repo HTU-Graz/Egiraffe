@@ -10,6 +10,7 @@ mod data;
 mod db;
 mod util;
 mod constantes;
+mod legacy;
 mod conf;
 
 use std::{
