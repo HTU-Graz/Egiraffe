@@ -250,11 +250,12 @@ pub async fn create_upload(
                 upload_date,
                 last_modified_date,
                 associated_date,
+                upload_type,
                 belongs_to,
                 held_by
             )
         VALUES
-            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         ",
         upload.id,
         upload.name,
@@ -264,12 +265,13 @@ pub async fn create_upload(
         upload.upload_date,
         upload.last_modified_date,
         upload.associated_date,
+        upload.upload_type.clone() as UploadType,
         upload.belongs_to,
         upload.held_by,
     )
     .execute(db_pool)
     .await
-    .context("Failed to create upload")?;
+    .context("Failed to insert upload")?;
 
     Ok(())
 }

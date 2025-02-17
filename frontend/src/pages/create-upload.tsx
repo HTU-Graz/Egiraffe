@@ -13,6 +13,7 @@ export default function Upload() {
     description: "",
     price: 0,
     belongs_to: "",
+    upload_type: "",
   });
   const [error, setError] = createSignal<string>();
   const [loading, setLoading] = createSignal(false);
@@ -35,6 +36,12 @@ export default function Upload() {
 
   async function submit(event: SubmitEvent) {
     event.preventDefault();
+
+    if (form.upload_type == null || form.upload_type === "") {
+      setError("Bitte Kategorie auswählen");
+      return;
+    }
+
     setLoading(true);
     try {
       const result = await upload(form);
@@ -127,20 +134,23 @@ export default function Upload() {
         <select
           id="upload-category"
           required
-          // onInput={(e) => setForm("category", e.currentTarget.value)}
+          onInput={(e) => setForm("upload_type", e.currentTarget.value)}
           class="select select-bordered w-full"
         >
-          <option>Kein Typ</option>
-          <option>Klausurangabe</option>
-          <option>Prüfungsfragenausarbeitung</option>
-          <option>Stoffzusammenfassung</option>
-          <option>Hausübung</option>
-          <option>Mitschrift</option>
-          <option>Fragensammlung</option>
-          <option>Protokoll</option>
-          <option>Sonstiges</option>
-          <option>Skriptum</option>
-          <option>Präsentation</option>
+          <option value="" disabled selected hidden>
+            Kategorie auswählen
+          </option>
+          <option value="Exam">Klausurangabe</option>
+          <option value="ExamPrep">Prüfungsfragenausarbeitung</option>
+          <option value="CourseSummary">Stoffzusammenfassung</option>
+          <option value="Homework">Hausübung</option>
+          <option value="LectureNotes">Mitschrift</option>
+          <option value="QuestionCollection">Fragensammlung</option>
+          <option value="Protocol">Protokoll</option>
+          <option value="Other">Sonstiges</option>
+          <option value="Script">Skriptum</option>
+          <option value="Presentation">Präsentation</option>
+          <option value="Unknown">kein Typ</option>
         </select>
 
         <label class="label" for="upload-date">
