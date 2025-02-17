@@ -1,19 +1,57 @@
-# Our UUIDs
+# UUIDs in Egiraffe
 
-New UUIDs are UUIDv4 (random UUIDs).
-UUIDs from old Egiraffe are UUIDv8 (custom format).
+The old version of Egiraffe (1.x written in PHP, aka Egiraffe Legacy) used integer IDs instead of UUIDs to identify entities in its database.
 
-## UUIDv8 specification for convertd IDs
-Constant:
+Since we have imported data from EG Legacy, we use UUID v8 to create a bijective mapping between UUIDs and the old IDs.
+This is achieved with the following bit pattern:
+
+## Mapping
+
+All new data in Egiraffe is identified using UUID v4.
+The imported data has a bijective mapping from integers to UUID v8.
+
+UUIDs consist of 128 bits.
+We record the table of origin from the imported data.
+
+The UUID v8 are structured as follows:
+
 efefefef-000x-8ea2-0000-0000000xxxxx
 
-The first x is the type of UUID (see below). 0000000xxxxx is replaced by the 0 padded byte representation of the ID from the old Egiraffe database.
+We're using
 
-Specific templates:
-* University UUID: efefefef-0001-8ea2-0000-0000000xxxxx
-* Course UUID: efefefef-0001-8ea2-0000-0000000xxxxx
-* Prof UUID: (?): efefefef-0002-8ea2-0000-0000000xxxxx
-* Upload UUID: efefefef-0003-8ea2-0000-0000000xxxxx
-* File UUID: efefefef-0004-8ea2-0000-0000000xxxxx
-* User UUID: efefefef-0005-8ea2-0000-0000000xxxxx
-* EMail UUID: efefefef-0005-8ea2-0000-0000000xxxxx
+```
+xxxxxxxx-xxxx-8xxx-8xxx-xxxxxxxxxxxx
+```
+
+as our fixed value, where the x-es can be assigned to data.
+
+Technically speaking, we're wasing 2 bit, as the second 8 could also be a 9, A, or B.
+
+We now put the table number into the byte below marked as TT,
+and the up-to 32bit legacy ID into the last 4 bytes.
+
+```
+xxxxxxxx-xxTT-8xxx-8xxx-xxxxIIIIIIII
+```
+
+The rest is filled with zeros, resulting in
+
+```
+00000000-00TT-8000-8000-0000IIIIIIII
+```
+
+TL;DR: the table number is in octet 5, and the legacy ID is in octets 12-16 (inc, excl, big endian)
+
+## Legacy Table Numbers
+
+The tables of the Legacy DB are numbered as follows:
+
+| Table name | Mapping number |
+| ---------- | -------------- |
+| University | 0              |
+| Course     | 1              |
+| Prof       | 2              |
+| Upload     | 3              |
+| File       | 4              |
+| User       | 5              |
+| Email      | 6              |
