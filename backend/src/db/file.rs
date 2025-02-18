@@ -14,18 +14,20 @@ pub async fn create_file(db_pool: &sqlx::Pool<sqlx::Postgres>, file: &File) -> a
                 name,
                 mime_type,
                 size,
+                sha3_256,
                 upload_id,
                 revision_at,
                 approval_uploader,
                 approval_mod
             )
         VALUES
-            ($1, $2, $3, $4, $5, $6, $7, $8)
+            ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         ",
         file.id,
         file.name,
         file.mime_type,
         file.size,
+        file.sha3_256,
         file.upload_id,
         file.revision_at,
         file.approval_uploader,
@@ -49,6 +51,7 @@ pub async fn get_file(db_pool: &sqlx::Pool<sqlx::Postgres>, id: Uuid) -> anyhow:
             name,
             mime_type,
             size,
+            sha3_256,
             revision_at,
             upload_id,
             approval_uploader,
@@ -81,6 +84,7 @@ pub async fn get_files_of_upload(
             name,
             mime_type,
             size,
+            sha3_256,
             revision_at,
             upload_id,
             approval_uploader,
@@ -113,6 +117,7 @@ pub async fn get_files_and_join_upload(
             files.name AS file_name,
             files.mime_type,
             files.size,
+            files.sha3_256,
             files.revision_at,
             files.approval_uploader,
             files.approval_mod,
@@ -147,6 +152,7 @@ pub async fn get_files_and_join_upload(
                     name: row.file_name,
                     mime_type: row.mime_type,
                     size: row.size,
+                    sha3_256: row.sha3_256,
                     revision_at: row.revision_at,
                     upload_id: row.upload_id,
                     approval_uploader: row.approval_uploader,
@@ -183,6 +189,7 @@ pub async fn get_all_files_and_join_upload(
             files.name AS file_name,
             files.mime_type,
             files.size,
+            files.sha3_256,
             files.revision_at,
             files.approval_uploader,
             files.approval_mod,
@@ -212,6 +219,7 @@ pub async fn get_all_files_and_join_upload(
                 name: row.file_name,
                 mime_type: row.mime_type,
                 size: row.size,
+                sha3_256: row.sha3_256,
                 revision_at: row.revision_at,
                 upload_id: row.upload_id,
                 approval_uploader: row.approval_uploader,
@@ -286,6 +294,7 @@ pub struct FileUpload {
     pub file_name: String,
     pub mime_type: String,
     pub size: i64,
+    pub sha3_256: String,
     // The latest one should match the file's last modified date
     pub revision_at: NaiveDateTime,
     /// The ID of the upload this file belongs to

@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{io::Read, path::PathBuf};
 
 use axum::{
     extract::{Multipart, State},
@@ -10,6 +10,8 @@ use axum::{
 use futures::{io, TryStreamExt};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use sha3::{Digest, Sha3_256};
+use tempfile::{tempfile, NamedTempFile};
 use tokio::io::AsyncWriteExt;
 use tokio_util::io::StreamReader;
 use uuid::Uuid;
@@ -372,13 +374,13 @@ async fn handle_do_file(
 
     // 3. Write the file to disk & check for collisions
     std::fs::create_dir_all("uploads").unwrap();
-    let path = PathBuf::from("uploads").join(file_id.to_string());
+    // let path = PathBuf::from("uploads").join(file_id.to_string());
 
-    if path.exists() {
-        return bad_request("File already exists; please try again");
-    }
+    let named_temp_file = NamedTempFile::new().unwrap();
+    let tmp_path = named_temp_file.path();
+    let fs_file = named_temp_file.reopen().unwrap();
 
-    let mut fs_file = tokio::fs::File::create(&path).await.unwrap();
+    let mut fs_file = tokio::fs::File::from_std(fs_file);
     let body_with_io_error = field.map_err(|err| io::Error::new(io::ErrorKind::Other, err));
     let body_reader = StreamReader::new(body_with_io_error);
     futures::pin_mut!(body_reader);
@@ -396,7 +398,7 @@ async fn handle_do_file(
 
         // Stop writing the file to disk & delete it
         let _ = file_writing_future.await;
-        let _ = tokio::fs::remove_file(path).await;
+        let _ = tokio::fs::remove_file(tmp_path).await;
 
         return (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -415,7 +417,7 @@ async fn handle_do_file(
 
         // Stop writing the file to disk & delete it
         let _ = file_writing_future.await;
-        let _ = tokio::fs::remove_file(path).await;
+        let _ = tokio::fs::remove_file(tmp_path).await;
 
         return (
             StatusCode::NOT_FOUND,
@@ -435,7 +437,7 @@ async fn handle_do_file(
 
         // Stop writing the file to disk & delete it
         let _ = file_writing_future.await;
-        let _ = tokio::fs::remove_file(path).await;
+        let _ = tokio::fs::remove_file(tmp_path).await;
 
         return (
             StatusCode::FORBIDDEN,
@@ -448,6 +450,17 @@ async fn handle_do_file(
 
     // 3. Finish writing the file to disk
     let bytes_written = file_writing_future.await.unwrap();
+
+    // 4. Calculate the SHA3-256 hash of the file
+    // HACK we're reading the darn file back in again
+    let hsh_input = std::fs::File::open(tmp_path).unwrap();
+    // HACK this really should be mmap'd
+    let mut hasher = Sha3_256::new();
+    let data = &hsh_input.bytes().collect::<Result<Vec<u8>, _>>().unwrap();
+    hasher.update(data);
+    let sha3_256 = hex::encode(hasher.finalize());
+    dbg!(&sha3_256);
+
     let file = File {
         id: file_id,
         name: upload_req.name,
@@ -457,15 +470,16 @@ async fn handle_do_file(
         revision_at: chrono::Utc::now().naive_utc(), // FIXME update the upload's last modified date to this timestamp
         approval_uploader: true, // TODO consider making this user-configurable to allow for "draft uploads"
         approval_mod: false,
+        sha3_256,
     };
 
-    // 4. Persist the file in the database
+    // 5. Persist the file in the database
     let maybe_file = db::file::create_file(&db_pool, &file).await;
     if maybe_file.is_err() {
         log::error!("Failed to create file: {}", maybe_file.unwrap_err());
 
         // Delete the file
-        let _ = tokio::fs::remove_file(path).await;
+        let _ = tokio::fs::remove_file(tmp_path).await;
 
         return (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -476,6 +490,32 @@ async fn handle_do_file(
         );
     };
 
+    // 6. Move the file to the correct location (from the temporary location)
+    // let path = PathBuf::from("uploads").join(file_id.to_string());
+
+    // To reduce the number of inodes in one directory, we can create a subdirectory for each byte of the hash
+    let target_folder = PathBuf::from("uploads").join(&file.sha3_256[..2]);
+    std::fs::create_dir_all(&target_folder).unwrap();
+
+    let path = target_folder.join(&file.sha3_256);
+
+    if path.exists() {
+        // TODO we need to clean up the database entry; it's preferable to use a tx and commit at the end of this function
+        return bad_request("File already exists; please try again");
+    }
+
+    // HACK just write it again ffs (`data` into `path`)
+    let mut file_yet_again = tokio::fs::File::create(&path).await.unwrap();
+    file_yet_again.write_all(data).await.unwrap();
+
+    // dbg!("Moving file", &path, &tmp_path);
+    // std::fs::rename(tmp_path, &path).unwrap();
+    // dbg!("File moved");
+    // TODO consider doing a custom tmp location on the same block device/volume
+    // named_temp_file.persist(&path).unwrap(); // We can't do that as it's cross-device
+    // dbg!("File persisted");
+
+    // 7. Respond with the file metadata
     (
         StatusCode::OK,
         Json(json!({

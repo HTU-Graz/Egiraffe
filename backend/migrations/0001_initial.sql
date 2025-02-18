@@ -120,6 +120,7 @@ CREATE TABLE IF NOT EXISTS files (
     name character varying(255) NOT NULL,
     mime_type character varying(200) NOT NULL,
     size bigint NOT NULL,
+    sha3_256 character varying(64) NOT NULL,
     revision_at timestamp without time zone NOT NULL,
     upload_id uuid NOT NULL REFERENCES uploads (id),
     approval_uploader boolean NOT NULL,

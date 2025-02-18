@@ -730,6 +730,7 @@ dependencies = [
  "env_logger",
  "figment",
  "futures",
+ "hex",
  "justerror",
  "lettre",
  "log",
@@ -740,7 +741,9 @@ dependencies = [
  "serde",
  "serde_json",
  "sha-crypt",
+ "sha3",
  "sqlx",
+ "tempfile",
  "thiserror",
  "time",
  "tokio",
@@ -1560,6 +1563,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0de8b303297635ad57c9f5059fd9cee7a47f8e8daa09df0fcd07dd39fb22977f"
 dependencies = [
  "log",
+name = "keccak"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ecc2af9a1119c51f12a14607e783cb977bde58bc069ff0c3da1095e635d70654"
+dependencies = [
+ "cpufeatures",
 ]
 
 [[package]]
@@ -2325,6 +2334,16 @@ dependencies = [
  "cfg-if",
  "cpufeatures",
  "digest",
+]
+
+[[package]]
+name = "sha3"
+version = "0.10.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "75872d278a8f37ef87fa0ddbda7802605cb18344497949862c0d4dcb291eba60"
+dependencies = [
+ "digest",
+ "keccak",
 ]
 
 [[package]]
