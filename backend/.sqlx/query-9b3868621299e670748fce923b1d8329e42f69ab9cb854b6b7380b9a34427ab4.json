@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT u.id, first_names, last_name, password_hash, totp_secret, user_role\n            FROM \"user\" AS u\n            INNER JOIN email ON primary_email = email.id\n            WHERE email.address = $1\n        ",
+  "query": "\n            SELECT u.id, first_names, last_name, password_hash, totp_secret, user_role\n            FROM \"user\" AS u\n            INNER JOIN email ON primary_email = email.id\n            WHERE email.address = $1 AND email.status = 'verified'\n        ",
   "describe": {
     "columns": [
       {
@@ -48,5 +48,5 @@
       false
     ]
   },
-  "hash": "1d8664954282b85b75be6ffae18d95d1ac2aef9b46b3d3768f04185b1839d9d0"
+  "hash": "9b3868621299e670748fce923b1d8329e42f69ab9cb854b6b7380b9a34427ab4"
 }

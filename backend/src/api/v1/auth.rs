@@ -165,7 +165,8 @@ pub async fn handle_register(Json(register_data): Json<RegisterReq>) -> impl Int
         }
     }
 
-    let mail_result = send_activation_mail(&user.first_names, &user.last_name, &user.emails[0], "TODO: Real token").await;
+//TODO
+//    let mail_result = send_activation_mail(&user.first_names, &user.last_name, &user.emails[0], "TODO: Real token").await;
 
     (StatusCode::OK, Json(RegisterRes { success: true }))
 
