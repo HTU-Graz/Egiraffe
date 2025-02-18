@@ -10,9 +10,9 @@ import { mod_getAllFiles, mod_getAllUploads } from "../api/moderate";
 import UploadCard from "../components/UploadCard";
 import Mod_FileCard from "../components/ModFileCard";
 
-export default function Courses() {
+export default function Moderation() {
   const { hasRole } = useAuthContext();
-  const [uploads] = createResource(mod_getAllUploads);
+  // const [uploads] = createResource(mod_getAllUploads);
   const [files] = createResource(mod_getAllFiles);
 
   return (
@@ -34,7 +34,7 @@ export default function Courses() {
               </div>
             </div>
           }>
-          <For each={files()[0]}>{(file) => <Mod_FileCard {...file} />}</For>
+          <For each={files()}>{(file) => <Mod_FileCard {...(file[0])} />}</For>
         </Show>
       </Show>
     </div>

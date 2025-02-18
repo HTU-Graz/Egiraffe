@@ -1,0 +1,44 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            id,\n            name_full,\n            name_mid,\n            name_short,\n            domain_names\n        FROM\n            universities\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "name_full",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "name_mid",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "name_short",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "domain_names",
+        "type_info": "VarcharArray"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "5c0a1935dea94591b4fa82f0e2fa6b4faa49fd4b516ca4116a8ef3a39db22b25"
+}

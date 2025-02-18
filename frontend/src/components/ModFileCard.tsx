@@ -1,9 +1,10 @@
-import { createResource } from "solid-js";
+import { createResource, Show } from "solid-js";
 import { getFiles } from "../api/files";
 import { Upload } from "../api/uploads";
 import { File } from "../api/files";
 import DocumentPreview from "../assets/document-preview.png";
 import Rating from "./Rating";
+import { mod_modifyFile } from "../api/moderate";
 
 export function bytesToSize(bytes: number): string {
   const units = ["byte", "kilobyte", "megabyte", "gigabyte", "terabyte"];
@@ -19,16 +20,53 @@ export function bytesToSize(bytes: number): string {
   }).format(bytes / 1024 ** unitIndex);
 }
 
+
+
 export default function Mod_FileCard(props: File) {
+  const handle_download = async (e: Event) => {
+    e.preventDefault();
+
+    const res = await fetch('/api/v1/mod/content/download-file-as-mod', {
+      method: "PUT",
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        file_id: props.id,
+      }),
+    });
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    // Open in new tab
+    window.open(url);
+  }
+
   return (
-    <div class="card card-compact card-side bg-base-200 shadow-md h-40">
+    <div class="card card-compact card-side bg-base-200 shadow-md">
       <figure>
         <img src={DocumentPreview} alt="Document Preview" title={props.name} class="h-full w-28" />
       </figure>
       <div class="card-body">
         <h2 class="card-title">{props.name}</h2>
-        <p>Mod {props.approval_mod}</p>
-        <p>Uploader {props.approval_uploader}</p>
+        <p>
+          Mod approval: {props.approval_mod ? "is approved" : "not approved"} &nbsp;
+          <Show when={props.approval_mod}>
+            <button class="btn btn-xs btn-neutral" onClick={_ => mod_modifyFile({ id: props.id, approval_mod: false })}>Revoke approval</button>
+          </Show>
+          <Show when={!props.approval_mod}>
+            <button class="btn btn-xs btn-primary" onClick={_ => mod_modifyFile({ id: props.id, approval_mod: true })}>Approve</button>
+          </Show>
+        </p>
+        <p>
+          Preview file (if approved by uploader)
+          <Show
+            when={props.approval_uploader}
+            fallback={<button class="btn btn-xs btn-neutral" disabled>Preview denied</button>}
+          >
+            <button class="btn btn-xs btn-primary" onClick={handle_download}>Preview (download)</button>
+          </Show>
+        </p>
+        <p>Uploader approval: {props.approval_uploader ? "is approved" : "not approved"}</p>
         <p>File ID {props.id}</p>
         <p>Upload ID {props.upload_id}</p>
         <p>Mime type {props.mime_type}</p>

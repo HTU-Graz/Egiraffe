@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE\n            uploads\n        SET\n            upload_name = $1,\n            description = $2,\n            price = $3,\n            last_modified_date = $4\n        WHERE\n            id = $5\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Text",
+        "Int2",
+        "Timestamp",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "963252778ba90d540c39135f4875af4a18aaa9415ba1b7b8c53d3205e260c9ec"
+}

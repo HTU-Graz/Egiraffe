@@ -4,8 +4,8 @@ SELECT
         SELECT
             COALESCE(SUM(pu.ecs_spent * 0.8), 0)
         FROM
-            upload AS up
-            JOIN purchase AS pu ON pu.upload_id = up.id
+            uploads AS up
+            JOIN purchases AS pu ON pu.upload_id = up.id
         WHERE
             up.uploader = $1
             AND pu.user_id <> up.uploader
@@ -14,7 +14,7 @@ SELECT
         SELECT
             COALESCE(SUM(systrans.delta_ec), 0)
         FROM
-            system_ec_transaction AS systrans
+            system_ec_transactions AS systrans
         WHERE
             systrans.affected_user = $1
     ) - (
@@ -22,7 +22,7 @@ SELECT
         SELECT
             COALESCE(SUM(pu.ecs_spent), 0)
         FROM
-            purchase AS pu
+            purchases AS pu
         WHERE
             pu.user_id = $1
     ) + (
@@ -30,7 +30,7 @@ SELECT
         SELECT
             COALESCE(SUM(pu.ecs_spent * 0.2), 0)
         FROM
-            purchase AS pu
+            purchases AS pu
         WHERE
             pu.user_id = $1
             AND pu.rating IS NOT NULL

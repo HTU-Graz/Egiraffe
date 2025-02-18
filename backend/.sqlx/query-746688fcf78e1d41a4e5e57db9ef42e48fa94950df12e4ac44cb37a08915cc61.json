@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            s.of_user,\n            u.user_role AS auth_level\n        FROM\n            sessions AS s\n            INNER JOIN users AS u ON s.of_user = u.id\n        WHERE\n            token = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "of_user",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "auth_level",
+        "type_info": "Int2"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bpchar"
+      ]
+    },
+    "nullable": [
+      true,
+      false
+    ]
+  },
+  "hash": "746688fcf78e1d41a4e5e57db9ef42e48fa94950df12e4ac44cb37a08915cc61"
+}

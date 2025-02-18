@@ -35,6 +35,7 @@ pub struct User {
     /// at least not in a meaningful/simple way.
     pub user_role: i16,
 }
+
 #[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct RedactedUser {
     pub id: Uuid,
@@ -145,21 +146,26 @@ pub struct Course {
     pub held_at: Uuid,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct Upload {
     pub id: Uuid,
     pub name: String,
     pub description: String,
     pub price: i16,
-    pub uploader: Uuid,
+    pub uploader: Uuid, // TODO consider adding resolved values for faster API times
     pub upload_date: NaiveDateTime,
     pub last_modified_date: NaiveDateTime,
 
+    /// The date associated with the upload, e.g. the date of the exam (nullable)
+    pub associated_date: Option<NaiveDateTime>,
+
+    pub upload_type: UploadType,
+
     /// The ID of the course this upload belongs to
-    pub belongs_to: Uuid,
+    pub belongs_to: Uuid, // TODO consider adding resolved values for faster API times
 
     /// The ID of the prof that held the course this upload belongs to
-    pub held_by: Option<Uuid>,
+    pub held_by: Option<Uuid>, // TODO consider adding resolved values for faster API times
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -168,7 +174,7 @@ pub struct Prof {
     pub name: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct Purchase {
     pub user_id: Uuid,
     pub upload_id: Uuid,
@@ -177,7 +183,7 @@ pub struct Purchase {
     pub rating: Option<i16>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct File {
     pub id: Uuid,
     pub name: String,
@@ -189,4 +195,38 @@ pub struct File {
     pub upload_id: Uuid,
     pub approval_uploader: bool,
     pub approval_mod: bool,
+}
+
+#[derive(sqlx::Type, Debug, Serialize, Deserialize, Clone)]
+#[sqlx(type_name = "upload_type_enum", rename_all = "snake_case")]
+pub enum UploadType {
+    Exam,
+    ExamPrep,
+    CourseSummary,
+    Homework,
+    LectureNotes,
+    QuestionCollection,
+    Protocol,
+    Other,
+    Script,
+    Presentation,
+    Unknown,
+}
+
+impl UploadType {
+    pub fn to_de_string(&self) -> &'static str {
+        match self {
+            UploadType::Exam => "Klausurangabe",
+            UploadType::ExamPrep => "Prüfungsfragenausarbeitung",
+            UploadType::CourseSummary => "Stoffzusammenfassung",
+            UploadType::Homework => "Hausübung",
+            UploadType::LectureNotes => "Mitschrift",
+            UploadType::QuestionCollection => "Fragensammlung",
+            UploadType::Protocol => "Protokoll",
+            UploadType::Other => "Sonstiges",
+            UploadType::Script => "Skriptum",
+            UploadType::Presentation => "Präsentation",
+            UploadType::Unknown => "kein Typ",
+        }
+    }
 }

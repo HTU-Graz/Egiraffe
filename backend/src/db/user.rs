@@ -57,13 +57,17 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
 
         let email_taken = sqlx::query_as!(
             SelectExistsTmp,
-            r#"
-                SELECT EXISTS (
-                    SELECT 1
-                    FROM email
-                    WHERE address = $1
+            "
+            SELECT
+                EXISTS (
+                    SELECT
+                        1
+                    FROM
+                        emails
+                    WHERE
+                        address = $1
                 )
-            "#,
+            ",
             email
         )
         .fetch_one(db_con)
@@ -82,19 +86,51 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
     let email_address = EmailAddress::from_str(&emails[0]).unwrap(); // We validated this earlier
 
     sqlx::query!(
-        r#"
-            WITH matching_university AS (
-                SELECT id
-                FROM university
-                WHERE $1 = ANY (domain_names)
-            ),
-            new_email AS (
-                INSERT INTO email (id, address, belongs_to_user, of_university, status)
-                VALUES ($2, $3, $4, (SELECT id FROM matching_university), 'unverified')
+        "
+        WITH matching_university AS (
+            SELECT
+                id
+            FROM
+                universities
+            WHERE
+                $1 = ANY (domain_names)
+        ),
+        new_email AS (
+            INSERT INTO
+                emails (
+                    id,
+                    address,
+                    belongs_to_user,
+                    of_university,
+                    STATUS
+                )
+            VALUES
+                (
+                    $2,
+                    $3,
+                    $4,
+                    (
+                        SELECT
+                            id
+                        FROM
+                            matching_university
+                    ),
+                    'unverified'
+                )
+        )
+        INSERT INTO
+            users (
+                id,
+                first_names,
+                last_name,
+                primary_email,
+                password_hash,
+                totp_secret,
+                user_role
             )
-            INSERT INTO "user" (id, first_names, last_name, primary_email, password_hash, totp_secret, user_role)
-            VALUES ($5, $6, $7, $8, $9, $10, $11)
-        "#,
+        VALUES
+            ($5, $6, $7, $8, $9, $10, $11)
+        ",
         // University
         email_address.domain(),
         // Email
@@ -125,10 +161,18 @@ pub async fn get_active_user_by_email(db_pool: &Pool<Postgres>, email: &str) -> 
     // - also for the other functions
     sqlx::query!(
         r#"
-            SELECT u.id, first_names, last_name, password_hash, totp_secret, user_role
-            FROM "user" AS u
-            INNER JOIN email ON primary_email = email.id
-            WHERE email.address = $1 AND email.status = 'verified'
+        SELECT
+            u.id,
+            first_names,
+            last_name,
+            password_hash,
+            totp_secret,
+            user_role
+        FROM
+            users AS u
+            INNER JOIN emails ON primary_email = emails.id
+        WHERE
+            emails.address = $1
         "#,
         email
     )
@@ -164,12 +208,20 @@ pub async fn get_user_by_session(
     session_cookie: &str,
 ) -> anyhow::Result<User> {
     let user = sqlx::query!(
-        r#"
-            SELECT u.id, first_names, last_name, password_hash, totp_secret, user_role
-            FROM "user" AS u
-            INNER JOIN session ON u.id = session.of_user
-            WHERE session.token = $1
-        "#,
+        "
+        SELECT
+            u.id,
+            first_names,
+            last_name,
+            password_hash,
+            totp_secret,
+            user_role
+        FROM
+            users AS u
+            INNER JOIN sessions ON u.id = sessions.of_user
+        WHERE
+            sessions.token = $1
+        ",
         session_cookie
     )
     .fetch_one(db_pool)
@@ -204,12 +256,21 @@ pub async fn get_user_by_id(
     current_user_id: Uuid,
 ) -> anyhow::Result<Option<UserWithEmails>> {
     let user = sqlx::query!(
-        r#"
-            SELECT u.id, first_names, last_name, password_hash, totp_secret, user_role, email.address AS "emails: Vec<String>"
-            FROM "user" AS u
-            INNER JOIN email ON primary_email = email.id
-            WHERE u.id = $1
-        "#,
+        "
+        SELECT
+            u.id,
+            first_names,
+            last_name,
+            password_hash,
+            totp_secret,
+            user_role,
+            emails.address AS emails
+        FROM
+            users AS u
+            INNER JOIN emails ON primary_email = emails.id
+        WHERE
+            u.id = $1
+        ",
         current_user_id
     )
     .fetch_one(db_pool)
@@ -220,7 +281,8 @@ pub async fn get_user_by_id(
         last_name: user.last_name.expect("User has no last name").into(),
         password_hash: user.password_hash.into(),
         totp_secret: user.totp_secret.map(|s| s.into()),
-        emails: user.emails.expect("User has no emails").into(),
+        // emails: user.emails.expect("User has no emails"),
+        emails: Arc::new(vec![user.emails.expect("User has no emails")]), // TODO check if this is correct
         user_role: user.user_role,
     });
 
@@ -247,11 +309,18 @@ pub async fn update_user(db_pool: &Pool<Postgres>, user: UserWithEmails) -> anyh
     let db_con = tx.acquire().await?;
 
     sqlx::query!(
-        r#"
-            UPDATE "user"
-            SET first_names = $1, last_name = $2, password_hash = $3, totp_secret = $4, user_role = $5
-            WHERE id = $6
-        "#,
+        "
+        UPDATE
+            users
+        SET
+            first_names = $1,
+            last_name = $2,
+            password_hash = $3,
+            totp_secret = $4,
+            user_role = $5
+        WHERE
+            id = $6
+        ",
         &*first_names,
         &*last_name,
         &*password_hash,

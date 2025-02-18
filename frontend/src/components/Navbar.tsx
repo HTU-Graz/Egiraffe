@@ -110,6 +110,12 @@ export default function Navbar() {
                     <li>
                       <Link href="/settings">Einstellungen</Link>
                     </li>
+                    <Show when={user()!.user_role >= AuthLevel.REGULAR_USER}>
+                      <li>
+                        <Link href="/library">Meine Bibliothek</Link>
+                        {/* <Link href="/library">Meine Inhalte</Link> */}
+                      </li>
+                    </Show>
                     <Show when={user()!.user_role >= AuthLevel.MODERATOR}>
                       <li>
                         <Link href="/moderation">Moderation</Link>

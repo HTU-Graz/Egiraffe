@@ -10,14 +10,16 @@ use axum::{
     Extension, Json, Router,
 };
 use axum_extra::extract::{cookie::Cookie, CookieJar};
-use serde::Deserialize;
+use chrono::NaiveDateTime;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
+use sqlx::prelude::FromRow;
 use tokio_util::io::ReaderStream;
 use uuid::Uuid;
 
 use crate::{
     api::{api_greeting, v1::auth::make_dead_cookie},
-    data::{File, RedactedUser, Upload},
+    data::{File, Purchase, RedactedUser, Upload, UploadType},
     db::{self, DB_POOL},
 };
 
@@ -31,9 +33,10 @@ pub fn routes() -> Router {
         .route("/universities", put(handle_get_universities))
         .route("/me", put(handle_get_me))
         .route("/file", put(handle_get_file))
-        .route("/files", put(handle_get_files))
+        .route("/files-of-upload", put(handle_get_files_of_upload))
         .route("/prof", put(handle_get_prof))
         .route("/my-ecs-balance", put(handle_get_my_ecs))
+        .route("/purchased-uploads", put(handle_get_purchased_uploads))
 }
 
 /// Handles requests to get the user's own current ECs balance
@@ -362,7 +365,7 @@ pub struct GetUploadReq {
     pub upload_id: Uuid,
 }
 
-async fn handle_get_files(
+async fn handle_get_files_of_upload(
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     Json(upload): Json<GetUploadReq>,
 ) -> impl IntoResponse {
@@ -380,7 +383,7 @@ async fn handle_get_files(
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(json!({
                 "success": false,
-                "message": "Failed to get files",
+                "message": "Failed to get files & upload info",
             })),
         );
     };
@@ -402,12 +405,32 @@ async fn handle_get_files(
         .map(|(file, _)| file)
         .collect::<Vec<_>>();
 
+    // Get the upload info
+    let maybe_upload_and_uploader_name = get_upload(&db_pool, upload.upload_id).await;
+
+    let Ok((upload, uploader_name)) = maybe_upload_and_uploader_name else {
+        log::error!(
+            "Failed to get upload: {}",
+            maybe_upload_and_uploader_name.unwrap_err()
+        );
+
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({
+                "success": false,
+                "message": "Failed to get upload",
+            })),
+        );
+    };
+
     (
         StatusCode::OK,
         Json(json!({
             "success": true,
             "files": files,
             "total_files_count": original_files_count,
+            "upload": upload,
+            "uploader_name": uploader_name,
         })),
     )
 }
@@ -470,6 +493,182 @@ async fn handle_get_prof(
         Json(json!({
             "success": true,
             "prof": prof,
+        })),
+    )
+}
+
+async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<(Upload, String)> {
+    // HACK we're re-defining the struct here because we need an extra field
+    #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+    struct UploadAndUploaderName {
+        id: Uuid,
+        name: String,
+        description: String,
+        price: i16,
+        uploader: Uuid,
+        upload_date: NaiveDateTime,
+        last_modified_date: NaiveDateTime,
+        associated_date: Option<NaiveDateTime>,
+        upload_type: UploadType,
+        belongs_to: Uuid,
+        held_by: Option<Uuid>,
+        uploader_name: Option<String>, // This is the only extra field
+    }
+
+    let upload_ext = sqlx::query_as!(
+        UploadAndUploaderName,
+        r#"
+        SELECT
+            uploads.id,
+            upload_name AS name,
+            description,
+            price,
+            uploader,
+            users.nick AS uploader_name,
+            upload_date,
+            last_modified_date,
+            associated_date,
+            upload_type AS "upload_type: _",
+            belongs_to,
+            held_by
+        FROM
+            uploads
+            INNER JOIN users ON uploads.uploader = users.id
+        WHERE
+            uploads.id = $1
+        "#,
+        upload_id,
+    )
+    .fetch_one(db_pool)
+    .await
+    .context("Failed to get upload")?;
+
+    let uploader_name = upload_ext.uploader_name;
+    let upload = Upload {
+        id: upload_ext.id,
+        name: upload_ext.name,
+        description: upload_ext.description,
+        price: upload_ext.price,
+        uploader: upload_ext.uploader,
+        upload_date: upload_ext.upload_date,
+        last_modified_date: upload_ext.last_modified_date,
+        associated_date: upload_ext.associated_date,
+        upload_type: upload_ext.upload_type,
+        belongs_to: upload_ext.belongs_to,
+        held_by: upload_ext.held_by,
+    };
+
+    Ok((upload, uploader_name.unwrap_or_default()))
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+struct PurchaseInfoItem {
+    #[sqlx(flatten)]
+    purchase: Purchase,
+    #[sqlx(flatten)]
+    upload: Upload,
+    // #[sqlx(default)]
+    #[sqlx(flatten)]
+    most_recent_available_file: File,
+}
+
+async fn handle_get_purchased_uploads(
+    Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
+) -> impl IntoResponse {
+    let db_pool = *DB_POOL.get().unwrap();
+
+    log::info!("Get purchased uploads for user {}", current_user_id);
+
+    if current_user_id.is_nil() {
+        log::info!("User is not logged in; resolving purchased uploads requires authentication");
+
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(json!({
+                "success": false,
+                "message": "Resolving purchased uploads requires authentication",
+            })),
+        );
+    }
+
+    let maybe_purchases: anyhow::Result<Vec<PurchaseInfoItem>> = sqlx::query_as(
+        "
+        SELECT
+            p.user_id,
+            p.upload_id,
+            p.ecs_spent,
+            p.purchase_date,
+            p.rating,
+            u.id,
+            u.upload_name,
+            u.description,
+            u.price,
+            u.uploader,
+            u.upload_date,
+            u.last_modified_date,
+            u.belongs_to,
+            u.held_by,
+            f.id,
+            f.name,
+            f.mime_type,
+            f.size,
+            f.revision_at,
+            f.upload_id,
+            f.approval_uploader,
+            f.approval_mod
+        FROM
+            purchases p
+            INNER JOIN uploads u ON p.upload_id = u.id
+            LEFT JOIN LATERAL (
+                SELECT
+                    f.id,
+                    f.name,
+                    f.mime_type,
+                    f.size,
+                    f.revision_at,
+                    f.upload_id,
+                    f.approval_uploader,
+                    f.approval_mod
+                FROM
+                    files f
+                WHERE
+                    f.upload_id = u.id
+                ORDER BY
+                    f.revision_at DESC
+                LIMIT
+                    1
+            ) f ON TRUE
+        WHERE
+            p.user_id = $1
+        ORDER BY
+            p.purchase_date DESC,
+            u.upload_date DESC,
+            u.belongs_to DESC,
+            u.held_by DESC;
+        ",
+    )
+    .bind(&current_user_id)
+    .fetch_all(db_pool)
+    .await
+    .context("Failed to get purchases");
+
+    let Ok(purchases) = maybe_purchases else {
+        log::error!("Failed to get purchases: {}", maybe_purchases.unwrap_err());
+
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({
+                "success": false,
+                "message": "Failed to get purchases",
+            })),
+        );
+    };
+
+    (
+        StatusCode::OK,
+        Json(json!({
+            "success": true,
+            "purchase_info_items": purchases,
         })),
     )
 }

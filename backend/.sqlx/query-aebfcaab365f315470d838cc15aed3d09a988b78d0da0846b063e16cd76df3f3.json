@@ -1,0 +1,143 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            files.id AS file_id,\n            files.name AS file_name,\n            files.mime_type,\n            files.size,\n            files.revision_at,\n            files.approval_uploader,\n            files.approval_mod,\n            uploads.id AS upload_id,\n            uploads.upload_name,\n            uploads.description,\n            uploads.price,\n            uploads.uploader,\n            uploads.upload_date,\n            uploads.last_modified_date,\n            uploads.associated_date,\n            uploads.upload_type AS \"upload_type: _\",\n            uploads.belongs_to,\n            uploads.held_by\n        FROM\n            files\n            INNER JOIN uploads ON files.upload_id = uploads.id\n        WHERE\n            upload_id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "file_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "file_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "mime_type",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "size",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 4,
+        "name": "revision_at",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 5,
+        "name": "approval_uploader",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 6,
+        "name": "approval_mod",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "upload_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 8,
+        "name": "upload_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 9,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 10,
+        "name": "price",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 11,
+        "name": "uploader",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 12,
+        "name": "upload_date",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 13,
+        "name": "last_modified_date",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 14,
+        "name": "associated_date",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 15,
+        "name": "upload_type: _",
+        "type_info": {
+          "Custom": {
+            "name": "upload_type_enum",
+            "kind": {
+              "Enum": [
+                "exam",
+                "exam_prep",
+                "course_summary",
+                "homework",
+                "lecture_notes",
+                "question_collection",
+                "protocol",
+                "other",
+                "script",
+                "presentation",
+                "unknown"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 16,
+        "name": "belongs_to",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 17,
+        "name": "held_by",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "aebfcaab365f315470d838cc15aed3d09a988b78d0da0846b063e16cd76df3f3"
+}

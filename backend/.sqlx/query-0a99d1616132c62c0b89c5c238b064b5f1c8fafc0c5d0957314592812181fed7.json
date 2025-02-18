@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                EXISTS (\n                    SELECT\n                        1\n                    FROM\n                        emails\n                    WHERE\n                        address = $1\n                )\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "exists",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "0a99d1616132c62c0b89c5c238b064b5f1c8fafc0c5d0957314592812181fed7"
+}

@@ -16,7 +16,7 @@ use uuid::Uuid;
 
 use crate::{
     api::api_greeting,
-    data::{File, Purchase, RedactedUser, Upload},
+    data::{File, Purchase, RedactedUser, Upload, UploadType},
     db::{self, user::make_pwd_hash, DB_POOL},
     util::bad_request,
 };
@@ -46,6 +46,10 @@ pub struct DoUploadReq {
 
     /// The ID of the prof that held the course this upload belongs to
     pub held_by: Option<Uuid>,
+
+    // TODO document this
+    pub associated_date: Option<chrono::NaiveDateTime>,
+    pub upload_type: UploadType,
 }
 
 async fn handle_do_upload(
@@ -55,6 +59,8 @@ async fn handle_do_upload(
     let db_pool = *DB_POOL.get().unwrap();
 
     // log::info!("Create/alter upload for course {}", req.belongs_to.unwrap_or("default"));
+
+    dbg!(&req);
 
     // TODO handle updating the description
     // 0. Check if a new upload is being created or an existing one is being modified
@@ -163,7 +169,9 @@ async fn handle_do_upload(
                 description,
                 price,
                 belongs_to,
-                held_by, // This actually is optional
+                held_by,         // This actually is optional
+                associated_date, // This is optional too
+                upload_type,
                 ..
             } = req;
 
@@ -187,6 +195,8 @@ async fn handle_do_upload(
                 uploader: current_user_id,
                 upload_date: now.clone(),
                 last_modified_date: now,
+                associated_date,
+                upload_type,
                 belongs_to,
                 held_by,
             }
@@ -517,22 +527,22 @@ async fn handle_do_purchase(
         );
     };
 
-    // 2. Get the current user from the database
-    let maybe_user = db::user::get_user_by_id(&db_pool, current_user_id).await;
-    let Ok(Some(user)) = maybe_user else {
-        log::error!(
-            "Failed to get user from database: {}",
-            maybe_user.unwrap_err()
-        );
-
-        return (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({
-                "success": false,
-                "message": "Failed to get user from database",
-            })),
-        );
-    };
+    // // 2. Get the current user from the database
+    // let maybe_user = db::user::get_user_by_id(&db_pool, current_user_id).await;
+    // let Ok(Some(user)) = maybe_user else {
+    //     log::error!(
+    //         "Failed to get user from database: {}",
+    //         maybe_user.unwrap_err()
+    //     );
+    //
+    //     return (
+    //         StatusCode::INTERNAL_SERVER_ERROR,
+    //         Json(json!({
+    //             "success": false,
+    //             "message": "Failed to get user from database",
+    //         })),
+    //     );
+    // };
 
     // 3. Check if the user has already purchased this upload
     let maybe_purchase = db::purchase::get_purchase(&db_pool, current_user_id, req.upload_id).await;

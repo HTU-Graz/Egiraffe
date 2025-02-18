@@ -32,7 +32,7 @@ pub async fn handle_get_users() -> impl IntoResponse {
     // let users = sqlx::query_as!(
     let users: anyhow::Result<Vec<RedactedUser>> = sqlx::query_as(
         // RedactedUser,
-        r#"
+        "
             SELECT
                 id,
                 first_names,
@@ -40,8 +40,8 @@ pub async fn handle_get_users() -> impl IntoResponse {
                 true AS totp_enabled,
                 user_role
             FROM
-                "user"
-            "#,
+                users
+            ",
     )
     .fetch_all(&*db_pool)
     .await

@@ -6,17 +6,14 @@
 )]
 
 mod api;
+mod conf;
 mod data;
 mod db;
+mod legacy;
 mod util;
-mod conf;
 mod mail;
 
-use std::{
-    env,
-    fs::canonicalize,
-    net::SocketAddr,
-};
+use std::{env, fs::canonicalize, net::SocketAddr};
 
 use anyhow::Context;
 use axum::Router;
@@ -24,8 +21,8 @@ use sqlx::{Pool, Postgres};
 use tower_http::services::{ServeDir, ServeFile};
 use owo_colors::OwoColorize;
 
-use crate::db::DB_POOL;
 use crate::conf::CONF;
+use crate::db::DB_POOL;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -56,7 +53,8 @@ async fn main() -> anyhow::Result<()> {
         db::debug_insert_default_entries(&db_pool).await?;
     }
 
-    let static_files = ServeDir::new(&CONF.webserver.staticdir).not_found_service(ServeFile::new(&CONF.webserver.indexfile));
+    let static_files = ServeDir::new(&CONF.webserver.staticdir)
+        .not_found_service(ServeFile::new(&CONF.webserver.indexfile));
     log::info!(
         "Serving static files from {}, canonicalized to {}",
         &CONF.webserver.staticdir,
@@ -65,7 +63,7 @@ async fn main() -> anyhow::Result<()> {
 
     let app = Router::new()
         .nest("/api", api::routes())
-        .nest_service("/", static_files);
+        .fallback_service(static_files);
 
     let addr = SocketAddr::from((CONF.webserver.ip, CONF.webserver.port));
 

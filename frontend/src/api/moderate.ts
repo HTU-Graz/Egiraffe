@@ -19,7 +19,7 @@ export async function mod_getAllUploads(): Promise<Upload[]> {
     return response.uploads;
 }
 
-export async function mod_modifyUpload(options: ModifyFileRequest): Promise<Upload> {
+export async function mod_modifyFile(options: ModifyFileRequest): Promise<Upload> {
     const response = await put<ModifyFileRequest>("/api/v1/mod/content/modify-file", options);
     if (!response.success) throw new Error(response.message);
     return response.upload;
@@ -29,4 +29,10 @@ export async function mod_getAllFiles(): Promise<File[][]> {
     const response = await put<Upload[]>("/api/v1/mod/content/get-all-files");
     if (!response.success) throw new Error(response);
     return response.files;
+}
+
+export async function mod_downloadFileAsMod(id: string): Promise<File> {
+    const response = await put<File>("/api/v1/mod/content/download-file-as-mod", { id });
+    if (!response.success) throw new Error(response.message);
+    return response.file;
 }
