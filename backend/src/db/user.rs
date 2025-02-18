@@ -155,9 +155,12 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
     Ok(())
 }
 
-pub async fn get_user_by_email(db_pool: &Pool<Postgres>, email: &str) -> Option<User> {
+pub async fn get_active_user_by_email(db_pool: &Pool<Postgres>, email: &str) -> Option<User> {
+    //TODO: Do we only allow login by primary Mail? Don't we want this:
+    //INNER JOIN email ON u.id = email.belongs_to_user
+    // - also for the other functions
     sqlx::query!(
-        "
+        r#"
         SELECT
             u.id,
             first_names,
@@ -170,7 +173,7 @@ pub async fn get_user_by_email(db_pool: &Pool<Postgres>, email: &str) -> Option<
             INNER JOIN emails ON primary_email = emails.id
         WHERE
             emails.address = $1
-        ",
+        "#,
         email
     )
     .fetch_optional(db_pool)

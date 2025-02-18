@@ -7,11 +7,11 @@
 
 mod api;
 mod conf;
-mod constantes;
 mod data;
 mod db;
 mod legacy;
 mod util;
+mod mail;
 
 use std::{env, fs::canonicalize, net::SocketAddr};
 
@@ -19,9 +19,9 @@ use anyhow::Context;
 use axum::Router;
 use sqlx::{Pool, Postgres};
 use tower_http::services::{ServeDir, ServeFile};
+use owo_colors::OwoColorize;
 
 use crate::conf::CONF;
-use crate::constantes::*;
 use crate::db::DB_POOL;
 
 #[tokio::main]
@@ -32,10 +32,7 @@ async fn main() -> anyhow::Result<()> {
 
     #[cfg(not(feature = "prod"))]
     {
-        println!(
-            "{}DEBUG Mode!{} Never use this in Production!",
-            CLI_COLOR_RED, CLI_COLOR_DEFAULT
-        );
+        println!("{} Never use this in Production!", "DEBUG Mode!".on_red());
         log::warn!("DEBUG Mode! Never use this in Production!");
     }
 
@@ -44,6 +41,9 @@ async fn main() -> anyhow::Result<()> {
     DB_POOL.set(Box::leak(Box::new(db_pool))).unwrap();
     let db_pool = *DB_POOL.get().unwrap();
     log::info!("Connected to database");
+
+    // Prepare Mail system
+    mail::init();
 
     sqlx::migrate!().run(db_pool).await.unwrap();
     log::info!("Database migrations completed");

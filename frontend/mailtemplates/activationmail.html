@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block body %}<p>Hallo {{first_names}},</p>
+
+<p>Du hast dich bei uns angemeldet.<br>
+Um deinen Account verwenden zu k&ouml;nnen musst du ihn noch freischalten indem du diesem Link folgst:<br>
+<a href="{{baseurl}}/v1/auth/activate?token={{activationToken}}">{{baseurl}}/v1/auth/activate?token={{activationToken}}</a><br>
+Dieser Link ist f&uuml;r {{acitvationValidityPeriod}} Tage g&uuml;ltig.
+</p>
+
+<p>Gr&uuml;ße, dein Egiraffe-Team</p>{% endblock %}

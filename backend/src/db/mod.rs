@@ -46,7 +46,6 @@ pub async fn debug_insert_default_entries(db_pool: &Pool<Postgres>) -> anyhow::R
 
     // TODO make sure this works when half ot it is already initialized
     let _res = init::debug_create_universities(db_con).await;
-    let _res = init::debug_create_email_states(db_con).await;
     tx.commit().await?;
 
     let mut tx = db_pool.begin().await?;

@@ -37,7 +37,8 @@ pub fn routes() -> Router {
             Router::new()
                 .route("/login", put(auth::handle_login))
                 .route("/register", put(auth::handle_register))
-                .route("/logout", put(auth::handle_logout)),
+                .route("/logout", put(auth::handle_logout))
+                .route("/activate", put(auth::handle_activate)),
         )
         .nest(
             "/get",

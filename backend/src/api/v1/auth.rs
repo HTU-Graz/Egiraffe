@@ -13,6 +13,7 @@ use crate::{
     api::v1::{AuthLevel, SESSION_COOKIE_NAME},
     data::UserWithEmails,
     db::{self, DB_POOL},
+    mail::{send_activation_mail},
 };
 
 #[derive(Deserialize, Debug)]
@@ -36,6 +37,11 @@ pub struct RegisterReq {
     pub password: String,
 }
 
+#[derive(Deserialize, Debug)]
+pub struct ActivationReq {
+    pub token: String
+}
+
 #[derive(Serialize, Debug)]
 pub struct RegisterRes {
     pub success: bool,
@@ -53,7 +59,7 @@ pub async fn handle_login(
 ) -> impl IntoResponse {
     let db_pool = *DB_POOL.get().unwrap();
 
-    let Some(user) = db::user::get_user_by_email(&db_pool, &login_data.email).await else {
+    let Some(user) = db::user::get_active_user_by_email(&db_pool, &login_data.email).await else {
         log::info!("Login failed: no user with email {}", login_data.email);
         return (
             StatusCode::BAD_REQUEST,
@@ -105,7 +111,7 @@ pub async fn handle_login(
 
     (
         StatusCode::OK,
-        cookie_jar.add(session_cookie),
+        cookie_jar.add(session_cookie), // Good that this forces a new session in case a session already exists :) Otherwise we would have a session fixation vulnerability.
         Json(LoginRes {
             success: true,
             email: login_data.email,
@@ -124,6 +130,10 @@ pub async fn handle_register(Json(register_data): Json<RegisterReq>) -> impl Int
         email, // TODO verify email
         password,
     } = register_data;
+
+    //TODO: Systematically validate all fields, e.g.:
+    // * reasonable size (no DoS)
+    // * that they don't contain possibly malicious characters
 
     // HACK the call to `unwrap` must be replaced with an error handling mechanism (return a 500 error)
     let salt = SaltString::generate(&mut OsRng);
@@ -147,22 +157,32 @@ pub async fn handle_register(Json(register_data): Json<RegisterReq>) -> impl Int
         user_role: AuthLevel::RegularUser,
     };
 
-    let registration_result = db::user::register(&db_pool, user).await;
+    // TODO: I didn't manage yet to get the register()-function to work only with a reference
+    let registration_result = db::user::register(&db_pool, user.clone()).await;
 
     match registration_result {
         Ok(_) => {
             log::info!("Registration successful");
-            (StatusCode::OK, Json(RegisterRes { success: true }))
         }
         Err(e) => {
             log::error!("Registration failed: {:?}", e);
 
-            (
+            return (
                 StatusCode::BAD_REQUEST,
                 Json(RegisterRes { success: false }),
-            )
+            );
         }
     }
+
+//TODO
+//    let mail_result = send_activation_mail(&user.first_names, &user.last_name, &user.emails[0], "TODO: Real token").await;
+
+    (StatusCode::OK, Json(RegisterRes { success: true }))
+
+}
+pub async fn handle_activate(Json(activation_data): Json<ActivationReq>) -> impl IntoResponse {
+    //TODO
+    return (StatusCode::OK, Json(RegisterRes { success: true }));
 }
 
 pub async fn handle_logout(cookie_jar: CookieJar) -> impl IntoResponse {

@@ -20,21 +20,29 @@ CREATE TABLE IF NOT EXISTS users (
     user_role smallint NOT NULL DEFAULT 1
 );
 
--- HACK convert this to an enum
-CREATE TABLE IF NOT EXISTS email_status ("status" character(20) NOT NULL PRIMARY KEY);
+-- Does NOT work: IF NOT EXISTS
+CREATE TYPE email_status AS ENUM ('unverified', 'verified', 'disabled');
 
 CREATE TABLE IF NOT EXISTS emails (
     id uuid PRIMARY KEY,
     address character varying(500),
     belongs_to_user uuid NOT NULL REFERENCES users (id),
     of_university uuid REFERENCES universities (id),
-    "status" character(20) NOT NULL REFERENCES email_status ("status")
+    "status" email_status NOT NULL
+    -- TODO: Add Columns with added and modified timestamp? 
 );
 
 ALTER TABLE
     users
 ADD
     CONSTRAINT "user_primary_email_fkey" FOREIGN KEY (primary_email) REFERENCES emails (id);
+
+CREATE TABLE IF NOT EXISTS email_verification (
+    id uuid PRIMARY KEY,
+    token character(43) NOT NULL,
+    belongs_to_email uuid NOT NULL REFERENCES emails (id),
+    expires_at timestamp without time zone NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS courses (
     id uuid NOT NULL PRIMARY KEY,
@@ -104,6 +112,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     latest_user_agent character varying(275),
     initial_ip inet,
     latest_ip inet
+    -- TODO: Shouldn't there also be timestamps so we can expire sessions?
 );
 
 CREATE TABLE IF NOT EXISTS files (

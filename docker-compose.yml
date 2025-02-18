@@ -15,6 +15,17 @@ services:
     #   - ./design/database/egiraffe-schema-generated.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - 5432:5432
+  #for testing Mails
+  mailpit:
+    image: axllent/mailpit:latest
+    #image: mailhog/mailhog:latest #If I want to test the chaos monkey
+    ports:
+      - 1025:1025 #Fake Mailserver
+      - 8025:8025 #WebUI
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
 #
 #
 # WARNING Again, do not use this file in production. It is only meant for local development.
