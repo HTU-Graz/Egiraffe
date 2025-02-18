@@ -188,6 +188,8 @@ pub struct File {
     pub name: String,
     pub mime_type: String,
     pub size: i64,
+    /// The SHA3-256 digest of the file's contents (it's delicious)
+    pub sha3_256: String,
     // The latest one should match the file's last modified date
     pub revision_at: NaiveDateTime,
     /// The ID of the upload this file belongs to
