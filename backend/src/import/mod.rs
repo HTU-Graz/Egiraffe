@@ -1,4 +1,5 @@
 use anyhow::Context;
+use sqlx::{MySql, Pool, Postgres};
 
 use crate::db::{self, DB_POOL};
 
@@ -23,6 +24,37 @@ pub async fn perform_import() -> anyhow::Result<()> {
         .await
         .context("Import DB connection failed")?;
     log::info!("Connected to import database");
+
+    log::info!("Starting import");
+
+    import_universities(&db_pool, &import_db_pool).await?;
+
+    log::info!("Import done");
+
+    Ok(())
+}
+
+async fn import_universities(
+    target_db: &Pool<Postgres>,
+    source_db: &Pool<MySql>,
+) -> anyhow::Result<()> {
+    log::info!("Importing universities");
+
+    let mut tx = target_db.begin().await?;
+
+    let unis = sqlx::query(
+        r#"
+        SELECT
+            *
+        FROM
+            egiraffe_studium_universities
+        "#,
+    )
+    .fetch_all(source_db)
+    .await
+    .context("Failed to fetch universities")?;
+
+    dbg!(&unis);
 
     Ok(())
 }

@@ -28,10 +28,10 @@ pub async fn connect() -> anyhow::Result<Pool<Postgres>> {
 }
 
 #[cfg(feature = "import")]
-pub async fn connect_import() -> anyhow::Result<Pool<Postgres>> {
-    let pool = PgPoolOptions::new()
+pub async fn connect_import() -> anyhow::Result<Pool<sqlx::MySql>> {
+    let pool = sqlx::mysql::MySqlPoolOptions::new()
         .max_connections(5)
-        .connect(&CONF.database.url)
+        .connect(&CONF.import.url)
         .await?;
 
     Ok(pool)
