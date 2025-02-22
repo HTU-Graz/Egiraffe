@@ -11,7 +11,7 @@ pub async fn get_universities(db_pool: &PgPool) -> anyhow::Result<Vec<OwnedUnive
             name_full,
             name_mid,
             name_short,
-            domain_names
+            email_domain_names
         FROM
             universities
         ",
@@ -26,7 +26,7 @@ pub async fn get_universities(db_pool: &PgPool) -> anyhow::Result<Vec<OwnedUnive
                 full_name: uni.name_full,
                 mid_name: uni.name_mid,
                 short_name: uni.name_short,
-                domain_names: uni.domain_names,
+                email_domain_names: uni.email_domain_names,
             })
             .collect()
     })

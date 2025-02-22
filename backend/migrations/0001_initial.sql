@@ -1,11 +1,22 @@
 -- This was initially hand-edited on 2024-05-04 01:09:50
 -- Once the system goes in production, this file becomes finalized, as it's hash must stay the same.
+
+CREATE TYPE rgb_color AS (
+    r "char",
+    g "char",
+    b "char"
+);
+
 CREATE TABLE IF NOT EXISTS universities (
     id uuid PRIMARY KEY,
-    name_full character varying(100) NOT NULL,
-    name_mid character varying(50) NOT NULL,
-    name_short character varying(50) NOT NULL,
-    domain_names character varying(100) [] NOT NULL
+    name_full character varying(100) NOT NULL UNIQUE,
+    name_mid character varying(50) NOT NULL UNIQUE,
+    name_short character varying(50) NOT NULL UNIQUE,
+    email_domain_names character varying(100) [] NOT NULL,
+    homepage_url character varying(200) NOT NULL,
+    cms_url character varying(200),
+    background_color rgb_color,
+    text_color rgb_color
 );
 
 CREATE TABLE IF NOT EXISTS users (

@@ -93,7 +93,7 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
             FROM
                 universities
             WHERE
-                $1 = ANY (domain_names)
+                $1 = ANY (email_domain_names)
         ),
         new_email AS (
             INSERT INTO

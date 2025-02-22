@@ -5,7 +5,7 @@ export interface University {
   full_name: string;
   mid_name: string;
   short_name: string;
-  domain_names: string[];
+  email_domain_names: string[];
 }
 
 export type GetUniversitiesResponse = ErrorResponse | { success: true; universities: University[] };

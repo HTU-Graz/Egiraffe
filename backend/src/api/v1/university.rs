@@ -27,7 +27,7 @@ pub struct CreateUniversityReq {
     pub full_name: String,
     pub mid_name: String,
     pub short_name: String,
-    pub domain_names: Vec<String>,
+    pub email_domain_names: Vec<String>,
 }
 
 async fn handle_create_university(
@@ -40,7 +40,7 @@ async fn handle_create_university(
         full_name: university.full_name,
         mid_name: university.mid_name,
         short_name: university.short_name,
-        domain_names: university.domain_names,
+        email_domain_names: university.email_domain_names,
     };
 
     let db_action_result = db::university::create_university(&db_pool, university).await;

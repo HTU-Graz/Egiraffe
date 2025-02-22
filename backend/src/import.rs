@@ -1,7 +1,10 @@
 use anyhow::Context;
 use sqlx::{MySql, Pool, Postgres};
 
-use crate::db::{self, DB_POOL};
+use crate::{
+    data::University,
+    db::{self, DB_POOL},
+};
 
 pub async fn perform_import() -> anyhow::Result<()> {
     #[cfg(feature = "prod")]
@@ -42,6 +45,24 @@ async fn import_universities(
 
     let mut tx = target_db.begin().await?;
 
+    #[derive(Debug, sqlx::FromRow)]
+    struct LegacyUniversity {
+        /// Mapped to [`University::short_name`]
+        name_kurz: String,
+        /// Mapped to [`University::full_name`]
+        name_lang: String,
+        /// Mapped to [`University::mid_name``]
+        name_mittel: String,
+        /// Website of the university
+        homepage: String,
+        /// Campus management system homepage
+        cms_homepage: String,
+        /// Background color of the university
+        farbcode: String,
+        /// Text color of the university
+        farbcode_text: String,
+    }
+
     let unis = sqlx::query(
         r#"
         SELECT
@@ -53,6 +74,8 @@ async fn import_universities(
     .fetch_all(source_db)
     .await
     .context("Failed to fetch universities")?;
+
+    let mut unis_new: Vec<University> = Vec::new();
 
     dbg!(&unis);
 

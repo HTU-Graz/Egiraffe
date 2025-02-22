@@ -18,14 +18,14 @@ pub async fn debug_create_universities(db_con: &mut PgConnection) -> anyhow::Res
             full_name: "Technische Universität Graz",
             mid_name: "TU Graz",
             short_name: "TUG",
-            domain_names: &["tugraz.at".to_string(), "student.tugraz.at".to_string()],
+            email_domain_names: &["tugraz.at".to_string(), "student.tugraz.at".to_string()],
         },
         University {
             id: Uuid::new_v4(),
             full_name: "Karl Franzens Universität Graz",
             mid_name: "Uni Graz",
             short_name: "KFU",
-            domain_names: &["uni-graz.at".to_string()],
+            email_domain_names: &["uni-graz.at".to_string()],
         },
     ];
 
@@ -35,7 +35,7 @@ pub async fn debug_create_universities(db_con: &mut PgConnection) -> anyhow::Res
             full_name,
             mid_name,
             short_name,
-            domain_names,
+            email_domain_names,
         } = uni;
 
         sqlx::query!(
@@ -46,7 +46,7 @@ pub async fn debug_create_universities(db_con: &mut PgConnection) -> anyhow::Res
                     name_full,
                     name_mid,
                     name_short,
-                    domain_names
+                    email_domain_names
                 )
             VALUES
                 ($1, $2, $3, $4, $5)
@@ -55,7 +55,7 @@ pub async fn debug_create_universities(db_con: &mut PgConnection) -> anyhow::Res
             full_name,
             mid_name,
             short_name,
-            &domain_names
+            &email_domain_names
         )
         .execute(&mut *db_con)
         .await?;

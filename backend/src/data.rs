@@ -124,7 +124,7 @@ pub struct University<'a> {
     pub full_name: &'static str,
     pub mid_name: &'static str,
     pub short_name: &'static str,
-    pub domain_names: &'a [String],
+    pub email_domain_names: &'a [String],
 }
 
 // HACK this should not exist twice
@@ -134,7 +134,46 @@ pub struct OwnedUniversity {
     pub full_name: String,
     pub mid_name: String,
     pub short_name: String,
-    pub domain_names: Vec<String>,
+    pub email_domain_names: Vec<String>,
+}
+
+/// An RGB color struct as three [`u8`]s, but we have to pretend they're [`i8`]s
+/// because SQLx (and especially Postgres) doesn't support unsigned types
+///
+/// Use [`RgbColor`] instead of this struct, and its [`From`] and [`Into`] implementations
+#[derive(Debug, Serialize, Deserialize, sqlx::Type)]
+#[sqlx(type_name = "rgb_color")]
+pub struct DbRgbColor {
+    r: i8,
+    g: i8,
+    b: i8,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RgbColor {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+}
+
+impl From<DbRgbColor> for RgbColor {
+    fn from(db_color: DbRgbColor) -> Self {
+        Self {
+            r: db_color.r as u8,
+            g: db_color.g as u8,
+            b: db_color.b as u8,
+        }
+    }
+}
+
+impl From<RgbColor> for DbRgbColor {
+    fn from(color: RgbColor) -> Self {
+        Self {
+            r: color.r as i8,
+            g: color.g as i8,
+            b: color.b as i8,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
