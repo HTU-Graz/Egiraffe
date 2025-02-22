@@ -1,19 +1,14 @@
 use anyhow::Context;
 
-use crate::{
-    conf::CONF,
-    db::{self, DB_POOL},
-};
+use crate::db::{self, DB_POOL};
 
 pub async fn perform_import() -> anyhow::Result<()> {
+    #[cfg(feature = "prod")]
+    core::panic!("This is the import feature, which is not available in production");
+
     env_logger::builder()
         .filter_level(log::LevelFilter::Info)
         .init();
-
-    #[cfg(feature = "prod")]
-    {
-        core::panic!("This is the import feature, which is not available in production");
-    }
 
     // Prepare the database
     let db_pool = db::connect().await.context("DB connection failed")?;
@@ -23,8 +18,6 @@ pub async fn perform_import() -> anyhow::Result<()> {
 
     sqlx::migrate!().run(db_pool).await.unwrap();
     log::info!("Database migrations completed");
-
-    db::debug_insert_default_entries(&db_pool).await?;
 
     let import_db_pool = db::connect_import()
         .await
