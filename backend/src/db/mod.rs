@@ -27,6 +27,16 @@ pub async fn connect() -> anyhow::Result<Pool<Postgres>> {
     Ok(pool)
 }
 
+#[cfg(feature = "import")]
+pub async fn connect_import() -> anyhow::Result<Pool<Postgres>> {
+    let pool = PgPoolOptions::new()
+        .max_connections(5)
+        .connect(&CONF.database.url)
+        .await?;
+
+    Ok(pool)
+}
+
 #[derive(sqlx::FromRow)]
 struct SelectExistsTmp {
     exists: Option<bool>,

@@ -8,7 +8,7 @@ license = "AGPL-3.0-or-later"
 
 [features]
 prod = []
-import = []
+import = ["sqlx/mysql"]
 
 [dependencies]
 anyhow = "1.0.75"

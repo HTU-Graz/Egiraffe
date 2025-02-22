@@ -13,12 +13,14 @@ mod legacy;
 mod mail;
 mod util;
 
-use std::{env, fs::canonicalize, net::SocketAddr};
+#[cfg(feature = "import")]
+mod import;
+
+use std::{fs::canonicalize, net::SocketAddr};
 
 use anyhow::Context;
 use axum::Router;
 use owo_colors::OwoColorize;
-use sqlx::{Pool, Postgres};
 use tower_http::services::{ServeDir, ServeFile};
 
 use crate::conf::CONF;
@@ -27,7 +29,12 @@ use crate::db::DB_POOL;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     #[cfg(not(feature = "import"))]
-    server().await
+    {
+        server().await
+    }
+
+    #[cfg(feature = "import")]
+    import::perform_import().await
 }
 
 async fn server() -> anyhow::Result<()> {

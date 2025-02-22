@@ -14,7 +14,16 @@ pub struct Config {
     pub webserver: WebServerConfig,
 
     pub baseurl: String,
-    pub acitvationlinkvalidityperiod: i8 //in days
+    pub acitvationlinkvalidityperiod: i8, //in days
+
+    #[cfg(feature = "import")]
+    pub import: ImportConfig,
+}
+
+#[cfg(feature = "import")]
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ImportConfig {
+    pub url: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -55,8 +64,7 @@ pub struct WebServerConfig {
 pub static CONF: Lazy<Config> = Lazy::new(|| Config::load());
 
 impl Config {
-pub fn load() -> Self {
-
+    pub fn load() -> Self {
         let defaults: Config;
         //Production defaults
         #[cfg(feature = "prod")]
@@ -86,7 +94,7 @@ pub fn load() -> Self {
                 },
 
                 baseurl: "https://egiraffe.at".into(),
-                acitvationlinkvalidityperiod: 3
+                acitvationlinkvalidityperiod: 3,
             };
         }
 
@@ -119,7 +127,11 @@ pub fn load() -> Self {
                     port: 42002,
                 },
                 baseurl: "http://localhost:42002".into(),
-                acitvationlinkvalidityperiod: 3
+                acitvationlinkvalidityperiod: 3,
+                #[cfg(feature = "import")]
+                import: ImportConfig {
+                    url: "mysql://root:hunter2@localhost:3306/eg_old".into(),
+                },
             };
         }
 

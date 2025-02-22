@@ -29,5 +29,8 @@
     ],
     "[sql]": {
         "editor.formatOnSave": false
-    }
+    },
+    "rust-analyzer.cargo.features": [
+        "import"
+    ]
 }
