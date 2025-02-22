@@ -10,22 +10,27 @@ mod conf;
 mod data;
 mod db;
 mod legacy;
-mod util;
 mod mail;
+mod util;
 
 use std::{env, fs::canonicalize, net::SocketAddr};
 
 use anyhow::Context;
 use axum::Router;
+use owo_colors::OwoColorize;
 use sqlx::{Pool, Postgres};
 use tower_http::services::{ServeDir, ServeFile};
-use owo_colors::OwoColorize;
 
 use crate::conf::CONF;
 use crate::db::DB_POOL;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    #[cfg(not(feature = "import"))]
+    server().await
+}
+
+async fn server() -> anyhow::Result<()> {
     env_logger::builder()
         .filter_level(log::LevelFilter::Info)
         .init();
