@@ -32,5 +32,6 @@
     },
     "rust-analyzer.cargo.features": [
         "import"
-    ]
+    ],
+    "rust-analyzer.checkOnSave": false
 }

@@ -141,7 +141,7 @@ impl Config {
             .extract()
             .unwrap();
 
-        println!("config: {:#?}", config);
+        // println!("config: {:#?}", config);
 
         // Validate some default values
         Config::validate(&config);

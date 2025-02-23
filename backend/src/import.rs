@@ -4,6 +4,7 @@ use sqlx::{MySql, PgTransaction, Pool, Postgres};
 use crate::{
     data::{OwnedUniversity, RgbColor, University},
     db::{self, DB_POOL},
+    legacy::{self, LegacyTable},
 };
 
 pub async fn perform_import() -> anyhow::Result<()> {
@@ -48,6 +49,7 @@ async fn import_universities(
 
     #[derive(Debug, sqlx::FromRow)]
     struct LegacyUniversity {
+        id: i32,
         /// Mapped to [`University::short_name`]
         name_kurz: String,
         /// Mapped to [`University::full_name`]
@@ -67,6 +69,7 @@ async fn import_universities(
     let unis: Vec<LegacyUniversity> = sqlx::query_as(
         r#"
         SELECT
+            id,
             name_kurz,
             name_lang,
             name_mittel,
@@ -96,8 +99,13 @@ async fn import_universities(
         let background_color = hex_to_rgb(&uni.farbcode)?;
         let text_color = hex_to_rgb(&uni.farbcode_text)?;
 
+        let id = legacy::LegacyId {
+            id: uni.id,
+            table: LegacyTable::University,
+        };
+
         unis_new.push(OwnedUniversity {
-            id: uuid::Uuid::nil(), // This will be set by the database
+            id: id.try_into()?,
             full_name: uni.name_lang,
             mid_name: uni.name_mittel,
             short_name: uni.name_kurz,
@@ -114,7 +122,7 @@ async fn import_universities(
             uni.short_name = "UI".to_string();
         }
 
-        db::university::create_university(&mut target_db, uni).await?;
+        db::university::create_university_with_id(&mut target_db, uni).await?;
     }
 
     Ok(())

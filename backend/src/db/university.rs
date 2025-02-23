@@ -41,13 +41,16 @@ pub async fn get_universities(db_pool: &PgPool) -> anyhow::Result<Vec<OwnedUnive
     })
 }
 
+/// Create a university, returning its ID, ignoring the ID in the input
 pub async fn create_university(
     tx: &mut PgTransaction<'_>,
     university: OwnedUniversity,
 ) -> anyhow::Result<Uuid> {
     #[derive(Debug, sqlx::Type)]
-    struct Oida { id: Uuid };
-    
+    struct Oida {
+        id: Uuid,
+    };
+
     let id = sqlx::query_as!(
         Oida,
         r#"
@@ -87,6 +90,52 @@ pub async fn create_university(
     .await
     .context("Failed to create university")?;
 
-
     Ok(id.id)
+}
+
+/// Create a university with a specific ID
+pub async fn create_university_with_id(
+    tx: &mut PgTransaction<'_>,
+    university: OwnedUniversity,
+) -> anyhow::Result<()> {
+    sqlx::query(
+        r#"
+        INSERT INTO universities (
+            id,
+            name_full,
+            name_mid,
+            name_short,
+            email_domain_names,
+            homepage_url,
+            cms_url,
+            background_color,
+            text_color
+        )
+        VALUES (
+            $1,
+            $2,
+            $3,
+            $4,
+            $5,
+            $6,
+            $7,
+            $8,
+            $9
+        )
+        "#,
+    )
+    .bind(university.id)
+    .bind(university.full_name)
+    .bind(university.mid_name)
+    .bind(university.short_name)
+    .bind(&university.email_domain_names)
+    .bind(university.homepage_url)
+    .bind(university.cms_url)
+    .bind(DbRgbColor::from(university.background_color))
+    .bind(DbRgbColor::from(university.text_color))
+    .execute(&mut **tx)
+    .await
+    .context("Failed to create university")?;
+
+    Ok(())
 }
