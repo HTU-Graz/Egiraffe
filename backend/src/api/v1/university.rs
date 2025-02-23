@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 use crate::{
     api::api_greeting,
-    data::{Course, OwnedUniversity},
+    data::{Course, OwnedUniversity, RgbColor},
     db::{self, DB_POOL},
 };
 
@@ -28,6 +28,10 @@ pub struct CreateUniversityReq {
     pub mid_name: String,
     pub short_name: String,
     pub email_domain_names: Vec<String>,
+    pub homepage_url: String,
+    pub cms_url: String,
+    pub background_color: RgbColor,
+    pub text_color: RgbColor,
 }
 
 async fn handle_create_university(
@@ -36,14 +40,20 @@ async fn handle_create_university(
     let db_pool = *DB_POOL.get().unwrap();
 
     let university = OwnedUniversity {
-        id: Uuid::new_v4(),
+        id: Uuid::nil(), // This will be set by the database
         full_name: university.full_name,
         mid_name: university.mid_name,
         short_name: university.short_name,
         email_domain_names: university.email_domain_names,
+        homepage_url: university.homepage_url,
+        cms_url: university.cms_url,
+        background_color: university.background_color,
+        text_color: university.text_color,
     };
 
-    let db_action_result = db::university::create_university(&db_pool, university).await;
+    let mut tx = db_pool.begin().await.unwrap();
+    let db_action_result = db::university::create_university(&mut tx, university).await;
+    tx.commit().await.unwrap();
 
     if let Err(error) = db_action_result {
         return (
@@ -55,7 +65,9 @@ async fn handle_create_university(
         );
     }
 
-    (StatusCode::OK, Json(json!({ "success": true })))
+    let id = db_action_result.unwrap();
+
+    (StatusCode::OK, Json(json!({ "success": true, "id": id })))
 }
 
 async fn handle_replace_university(Json(course): Json<Course>) -> impl IntoResponse {

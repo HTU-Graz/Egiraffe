@@ -8,19 +8,19 @@ CREATE TYPE rgb_color AS (
 );
 
 CREATE TABLE IF NOT EXISTS universities (
-    id uuid PRIMARY KEY,
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     name_full character varying(100) NOT NULL UNIQUE,
     name_mid character varying(50) NOT NULL UNIQUE,
     name_short character varying(50) NOT NULL UNIQUE,
     email_domain_names character varying(100) [] NOT NULL,
     homepage_url character varying(200) NOT NULL,
-    cms_url character varying(200),
-    background_color rgb_color,
-    text_color rgb_color
+    cms_url character varying(200) NOT NULL,
+    background_color rgb_color NOT NULL,
+    text_color rgb_color NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS users (
-    id uuid PRIMARY KEY,
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     first_names character varying(200),
     last_name character varying(200),
     -- REFERENCES emails (id):
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TYPE email_status AS ENUM ('unverified', 'verified', 'disabled');
 
 CREATE TABLE IF NOT EXISTS emails (
-    id uuid PRIMARY KEY,
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     address character varying(500),
     belongs_to_user uuid NOT NULL REFERENCES users (id),
     of_university uuid REFERENCES universities (id),
@@ -48,7 +48,7 @@ ADD
     CONSTRAINT "user_primary_email_fkey" FOREIGN KEY (primary_email) REFERENCES emails (id);
 
 CREATE TABLE IF NOT EXISTS email_verification (
-    id uuid PRIMARY KEY,
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     token character(43) NOT NULL,
     belongs_to_email uuid NOT NULL REFERENCES emails (id),
     expires_at timestamp without time zone NOT NULL
@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS courses (
 );
 
 CREATE TABLE IF NOT EXISTS profs (
-    id uuid PRIMARY KEY,
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     prof_name character varying(500) NOT NULL
 );
 
@@ -80,7 +80,7 @@ CREATE TYPE upload_type_enum AS enum (
 );
 
 CREATE TABLE IF NOT EXISTS uploads (
-    id uuid PRIMARY KEY,
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     upload_name character varying(200) NOT NULL,
     description text NOT NULL,
     price smallint NOT NULL,
@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS system_ec_transactions (
 );
 
 CREATE TABLE IF NOT EXISTS sessions (
-    id uuid PRIMARY KEY,
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     of_user uuid REFERENCES users (id),
     token character(43) NOT NULL,
     initial_user_agent character varying(275),
@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 
 CREATE TABLE IF NOT EXISTS files (
-    id uuid PRIMARY KEY,
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     name character varying(255) NOT NULL,
     mime_type character varying(200) NOT NULL,
     size bigint NOT NULL,

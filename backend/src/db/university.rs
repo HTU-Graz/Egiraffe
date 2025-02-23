@@ -1,20 +1,25 @@
 use anyhow::Context;
-use sqlx::PgPool;
+use sqlx::{PgPool, PgTransaction};
+use uuid::Uuid;
 
-use crate::data::OwnedUniversity;
+use crate::data::{DbRgbColor, OwnedUniversity, RgbColor};
 
 pub async fn get_universities(db_pool: &PgPool) -> anyhow::Result<Vec<OwnedUniversity>> {
     sqlx::query!(
-        "
+        r#"
         SELECT
             id,
             name_full,
             name_mid,
             name_short,
-            email_domain_names
+            email_domain_names,
+            homepage_url,
+            cms_url,
+            background_color AS "background_color: DbRgbColor",
+            text_color AS "text_color: DbRgbColor"
         FROM
             universities
-        ",
+        "#,
     )
     .fetch_all(db_pool)
     .await
@@ -27,14 +32,61 @@ pub async fn get_universities(db_pool: &PgPool) -> anyhow::Result<Vec<OwnedUnive
                 mid_name: uni.name_mid,
                 short_name: uni.name_short,
                 email_domain_names: uni.email_domain_names,
+                homepage_url: uni.homepage_url,
+                cms_url: uni.cms_url,
+                background_color: uni.background_color.into(),
+                text_color: uni.text_color.into(),
             })
             .collect()
     })
 }
 
-pub(crate) async fn create_university(
-    db_pool: &&sqlx::Pool<sqlx::Postgres>,
+pub async fn create_university(
+    tx: &mut PgTransaction<'_>,
     university: OwnedUniversity,
-) -> anyhow::Result<()> {
-    todo!()
+) -> anyhow::Result<Uuid> {
+    #[derive(Debug, sqlx::Type)]
+    struct Oida { id: Uuid };
+    
+    let id = sqlx::query_as!(
+        Oida,
+        r#"
+        INSERT INTO universities (
+            name_full,
+            name_mid,
+            name_short,
+            email_domain_names,
+            homepage_url,
+            cms_url,
+            background_color,
+            text_color
+        )
+        VALUES (
+            $1,
+            $2,
+            $3,
+            $4,
+            $5,
+            $6,
+            $7,
+            $8
+        )
+        RETURNING
+            id
+        "#,
+        university.full_name,
+        university.mid_name,
+        university.short_name,
+        &university.email_domain_names,
+        university.homepage_url,
+        university.cms_url,
+        DbRgbColor::from(university.background_color) as _,
+        DbRgbColor::from(university.text_color) as _,
+    )
+    .fetch_one(&mut **tx)
+    .await
+    .context("Failed to create university")?;
+
+
+    Ok(id.id)
 }

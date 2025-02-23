@@ -135,13 +135,17 @@ pub struct OwnedUniversity {
     pub mid_name: String,
     pub short_name: String,
     pub email_domain_names: Vec<String>,
+    pub homepage_url: String,
+    pub cms_url: String,
+    pub background_color: RgbColor,
+    pub text_color: RgbColor,
 }
 
 /// An RGB color struct as three [`u8`]s, but we have to pretend they're [`i8`]s
 /// because SQLx (and especially Postgres) doesn't support unsigned types
 ///
 /// Use [`RgbColor`] instead of this struct, and its [`From`] and [`Into`] implementations
-#[derive(Debug, Serialize, Deserialize, sqlx::Type)]
+#[derive(Debug, sqlx::Type)]
 #[sqlx(type_name = "rgb_color")]
 pub struct DbRgbColor {
     r: i8,

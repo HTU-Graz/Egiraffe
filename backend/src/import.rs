@@ -1,8 +1,8 @@
 use anyhow::Context;
-use sqlx::{MySql, Pool, Postgres};
+use sqlx::{MySql, PgTransaction, Pool, Postgres};
 
 use crate::{
-    data::University,
+    data::{OwnedUniversity, RgbColor, University},
     db::{self, DB_POOL},
 };
 
@@ -30,20 +30,21 @@ pub async fn perform_import() -> anyhow::Result<()> {
 
     log::info!("Starting import");
 
-    import_universities(&db_pool, &import_db_pool).await?;
+    let mut tx = db_pool.begin().await?;
 
+    import_universities(&mut tx, &import_db_pool).await?;
+
+    tx.commit().await?;
     log::info!("Import done");
 
     Ok(())
 }
 
 async fn import_universities(
-    target_db: &Pool<Postgres>,
+    mut target_db: &mut PgTransaction<'_>,
     source_db: &Pool<MySql>,
 ) -> anyhow::Result<()> {
     log::info!("Importing universities");
-
-    let mut tx = target_db.begin().await?;
 
     #[derive(Debug, sqlx::FromRow)]
     struct LegacyUniversity {
@@ -63,10 +64,16 @@ async fn import_universities(
         farbcode_text: String,
     }
 
-    let unis = sqlx::query(
+    let unis: Vec<LegacyUniversity> = sqlx::query_as(
         r#"
         SELECT
-            *
+            name_kurz,
+            name_lang,
+            name_mittel,
+            homepage,
+            cms_homepage,
+            farbcode,
+            farbcode_text
         FROM
             egiraffe_studium_universities
         "#,
@@ -75,9 +82,40 @@ async fn import_universities(
     .await
     .context("Failed to fetch universities")?;
 
-    let mut unis_new: Vec<University> = Vec::new();
+    let mut unis_new: Vec<OwnedUniversity> = Vec::with_capacity(unis.len());
 
-    dbg!(&unis);
+    fn hex_to_rgb(hex: &str) -> anyhow::Result<RgbColor> {
+        let r = u8::from_str_radix(&hex[0..2], 16)?;
+        let g = u8::from_str_radix(&hex[2..4], 16)?;
+        let b = u8::from_str_radix(&hex[4..6], 16)?;
+
+        Ok(RgbColor { r, g, b })
+    }
+
+    for uni in unis {
+        let background_color = hex_to_rgb(&uni.farbcode)?;
+        let text_color = hex_to_rgb(&uni.farbcode_text)?;
+
+        unis_new.push(OwnedUniversity {
+            id: uuid::Uuid::nil(), // This will be set by the database
+            full_name: uni.name_lang,
+            mid_name: uni.name_mittel,
+            short_name: uni.name_kurz,
+            email_domain_names: Vec::new(),
+            homepage_url: uni.homepage,
+            cms_url: uni.cms_homepage,
+            background_color,
+            text_color,
+        });
+    }
+
+    for mut uni in unis_new {
+        if uni.mid_name == "Uni Innsbruck" {
+            uni.short_name = "UI".to_string();
+        }
+
+        db::university::create_university(&mut target_db, uni).await?;
+    }
 
     Ok(())
 }
