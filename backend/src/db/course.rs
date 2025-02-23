@@ -1,9 +1,9 @@
 use anyhow::Context;
-use sqlx::PgPool;
+use sqlx::{PgPool, PgTransaction};
 
 use crate::data::Course;
 
-pub async fn create_course(db_pool: &PgPool, course: &Course) -> anyhow::Result<()> {
+pub async fn create_course(tx: &mut PgTransaction<'_>, course: &Course) -> anyhow::Result<()> {
     sqlx::query!(
         "
         INSERT INTO
@@ -15,7 +15,7 @@ pub async fn create_course(db_pool: &PgPool, course: &Course) -> anyhow::Result<
         course.held_at,
         course.name,
     )
-    .execute(db_pool)
+    .execute(&mut **tx)
     .await
     .context("Failed to create course")?;
 

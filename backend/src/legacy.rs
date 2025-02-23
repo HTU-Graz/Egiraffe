@@ -4,7 +4,7 @@ use anyhow::ensure;
 use uuid::Uuid;
 
 pub struct LegacyId {
-    pub id: i32,
+    pub id: u32,
     pub table: LegacyTable,
 }
 
@@ -57,7 +57,7 @@ impl TryFrom<Uuid> for LegacyId {
         let table = LegacyTable::try_from(bytes[5])?;
 
         // The last 4 octets are the legacy id, as a big-endian u32
-        let id = i32::from_be_bytes([bytes[12], bytes[13], bytes[14], bytes[15]]);
+        let id = u32::from_be_bytes([bytes[12], bytes[13], bytes[14], bytes[15]]);
 
         Ok(Self { id, table })
     }

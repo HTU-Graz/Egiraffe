@@ -2,7 +2,7 @@ use anyhow::Context;
 use sqlx::{MySql, PgTransaction, Pool, Postgres};
 
 use crate::{
-    data::{OwnedUniversity, RgbColor, University},
+    data::{Course, OwnedUniversity, RgbColor, University},
     db::{self, DB_POOL},
     legacy::{self, LegacyTable},
 };
@@ -34,6 +34,7 @@ pub async fn perform_import() -> anyhow::Result<()> {
     let mut tx = db_pool.begin().await?;
 
     import_universities(&mut tx, &import_db_pool).await?;
+    import_courses(&mut tx, &import_db_pool).await?;
 
     tx.commit().await?;
     log::info!("Import done");
@@ -100,7 +101,7 @@ async fn import_universities(
         let text_color = hex_to_rgb(&uni.farbcode_text)?;
 
         let id = legacy::LegacyId {
-            id: uni.id,
+            id: uni.id.try_into()?,
             table: LegacyTable::University,
         };
 
@@ -123,6 +124,56 @@ async fn import_universities(
         }
 
         db::university::create_university_with_id(&mut target_db, uni).await?;
+    }
+
+    Ok(())
+}
+
+async fn import_courses(
+    mut target_db: &mut PgTransaction<'_>,
+    source_db: &Pool<MySql>,
+) -> anyhow::Result<()> {
+    log::info!("Importing courses");
+
+    #[derive(Debug, sqlx::FromRow)]
+    struct LegacyCourse {
+        id: u32,
+        university: i32,
+        titel: String,
+    }
+
+    let courses: Vec<LegacyCourse> = sqlx::query_as(
+        r#"
+        SELECT
+            id,
+            university,
+            titel
+        FROM
+            egiraffe_studium_faecher
+        "#,
+    )
+    .fetch_all(source_db)
+    .await
+    .context("Failed to fetch courses")?;
+
+    for course in courses {
+        let id = legacy::LegacyId {
+            id: course.id,
+            table: LegacyTable::Course,
+        };
+
+        let university_id = legacy::LegacyId {
+            id: course.university.try_into()?,
+            table: LegacyTable::University,
+        };
+
+        let course = &Course {
+            id: id.try_into()?,
+            held_at: university_id.try_into()?,
+            name: course.titel,
+        };
+
+        db::course::create_course(&mut target_db, course).await?;
     }
 
     Ok(())

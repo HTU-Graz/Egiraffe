@@ -39,7 +39,9 @@ async fn handle_create_course(Json(course): Json<CreateCourseReq>) -> impl IntoR
         held_at: course.held_at,
     };
 
-    let db_action_result = db::course::create_course(&db_pool, &course).await;
+    let mut tx = db_pool.begin().await.unwrap();
+    let db_action_result = db::course::create_course(&mut tx, &course).await;
+    tx.commit().await.unwrap();
 
     if let Err(error) = db_action_result {
         return (
