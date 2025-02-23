@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS users (
     primary_email uuid NOT NULL,
     password_hash character varying(250) NOT NULL,
     totp_secret character varying(50),
-    nick character varying(100),
+    nick character varying(100) UNIQUE,
     user_role smallint NOT NULL DEFAULT 1
 );
 

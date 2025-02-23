@@ -5,7 +5,7 @@ use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
 use email_address::EmailAddress;
 use justerror::Error;
 use rand::rngs::OsRng;
-use sqlx::{self, Acquire, Pool, Postgres};
+use sqlx::{self, Acquire, PgTransaction, Pool, Postgres};
 use uuid::Uuid;
 
 use crate::{
@@ -34,7 +34,10 @@ pub enum UserError {
 /// # Panics
 ///
 /// This function panics if the database connection pool is full.
-pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<(), UserError> {
+pub async fn register(
+    mut tx: &mut PgTransaction<'_>,
+    user: UserWithEmails,
+) -> Result<(), UserError> {
     let UserWithEmails {
         id,
         first_names,
@@ -43,17 +46,14 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
         totp_secret,
         emails,
         user_role,
+        nick,
     } = user;
-
-    let mut tx = db_pool.begin().await.map_err(UserError::QueryError)?;
 
     // TODO make this parallel
     for email in emails.iter() {
         if !EmailAddress::is_valid(email) {
             return Err(UserError::EmailInvalid(Arc::from(email.as_str())));
         }
-
-        let db_con = tx.acquire().await.map_err(UserError::QueryError)?;
 
         let email_taken = sqlx::query_as!(
             SelectExistsTmp,
@@ -70,7 +70,7 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
             ",
             email
         )
-        .fetch_one(db_con)
+        .fetch_one(&mut **tx)
         .await
         .map_err(UserError::QueryError)
         .map(|tmp| SelectExists::from(tmp).0)?;
@@ -80,11 +80,10 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
         }
     }
 
-    let db_con = tx.acquire().await.map_err(UserError::QueryError)?;
-
     let mail_uuid = Uuid::new_v4();
     let email_address = EmailAddress::from_str(&emails[0]).unwrap(); // We validated this earlier
 
+    // HACK the email domain verification has been disabled for now
     sqlx::query!(
         "
         WITH matching_university AS (
@@ -92,8 +91,10 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
                 id
             FROM
                 universities
-            WHERE
+             WHERE
                 $1 = ANY (email_domain_names)
+                OR true
+            LIMIT 1
         ),
         new_email AS (
             INSERT INTO
@@ -126,10 +127,11 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
                 primary_email,
                 password_hash,
                 totp_secret,
-                user_role
+                user_role,
+                nick
             )
         VALUES
-            ($5, $6, $7, $8, $9, $10, $11)
+            ($5, $6, $7, $8, $9, $10, $11, $12)
         ",
         // University
         email_address.domain(),
@@ -145,12 +147,11 @@ pub async fn register(db_pool: &Pool<Postgres>, user: UserWithEmails) -> Result<
         &*password_hash,
         totp_secret.as_deref(),
         user_role,
+        nick,
     )
-    .execute(db_con)
+    .execute(&mut **tx)
     .await
     .map_err(UserError::QueryError)?;
-
-    tx.commit().await.map_err(UserError::QueryError)?;
 
     Ok(())
 }
@@ -264,7 +265,8 @@ pub async fn get_user_by_id(
             password_hash,
             totp_secret,
             user_role,
-            emails.address AS emails
+            emails.address AS emails,
+            nick
         FROM
             users AS u
             INNER JOIN emails ON primary_email = emails.id
@@ -284,6 +286,7 @@ pub async fn get_user_by_id(
         // emails: user.emails.expect("User has no emails"),
         emails: Arc::new(vec![user.emails.expect("User has no emails")]), // TODO check if this is correct
         user_role: user.user_role,
+        nick: user.nick,
     });
 
     Ok(Some(user?))

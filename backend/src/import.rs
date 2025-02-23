@@ -1,8 +1,9 @@
 use anyhow::Context;
+use indicatif::ProgressBar;
 use sqlx::{MySql, PgTransaction, Pool, Postgres};
 
 use crate::{
-    data::{Course, OwnedUniversity, RgbColor, University},
+    data::{Course, OwnedUniversity, RgbColor, University, User, UserWithEmails},
     db::{self, DB_POOL},
     legacy::{self, LegacyTable},
 };
@@ -35,6 +36,7 @@ pub async fn perform_import() -> anyhow::Result<()> {
 
     import_universities(&mut tx, &import_db_pool).await?;
     import_courses(&mut tx, &import_db_pool).await?;
+    import_users(&mut tx, &import_db_pool).await?;
 
     tx.commit().await?;
     log::info!("Import done");
@@ -175,6 +177,66 @@ async fn import_courses(
 
         db::course::create_course(&mut target_db, course).await?;
     }
+
+    Ok(())
+}
+
+async fn import_users(
+    mut target_db: &mut PgTransaction<'_>,
+    source_db: &Pool<MySql>,
+) -> anyhow::Result<()> {
+    log::info!("Importing users");
+
+    #[derive(Debug, sqlx::FromRow)]
+    struct LegacyUser {
+        user_id: i32,
+        user_name: String,
+        user_email: String,
+        // TODO handle user_email_domain_id
+        user_password: String,
+        // TODO handle user_registration_time
+    }
+
+    let users: Vec<LegacyUser> = sqlx::query_as(
+        r#"
+        SELECT
+            user_id,
+            user_name,
+            user_email,
+            user_password
+        FROM
+            egiraffe_users
+        "#,
+    )
+    .fetch_all(source_db)
+    .await
+    .context("Failed to fetch users")?;
+
+    let bar = ProgressBar::new(users.len() as u64);
+
+    for user in users {
+        let id = legacy::LegacyId {
+            id: user.user_id.try_into()?,
+            table: LegacyTable::User,
+        };
+
+        let user = UserWithEmails {
+            id: id.try_into()?,
+            first_names: String::new().into(),
+            last_name: String::new().into(),
+            password_hash: user.user_password.into(), // We have support for the old password hash format
+            totp_secret: None,
+            emails: vec![user.user_email].into(),
+            user_role: 1, // Default role
+            nick: Some(user.user_name),
+        };
+
+        // HACK handle errors (this is to IGNORE duplicate emails)
+        let _ = db::user::register(&mut target_db, user).await;
+
+        bar.inc(1);
+    }
+    bar.finish();
 
     Ok(())
 }

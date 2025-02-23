@@ -102,6 +102,7 @@ pub struct UserWithEmails {
     /// An `enum` would be better, but it's not supported by SQLx,
     /// at least not in a meaningful/simple way.
     pub user_role: i16,
+    pub nick: Option<String>,
 }
 
 /// A token is a 256-bit (32-byte) value of random data.

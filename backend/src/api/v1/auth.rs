@@ -13,7 +13,7 @@ use crate::{
     api::v1::{AuthLevel, SESSION_COOKIE_NAME},
     data::UserWithEmails,
     db::{self, DB_POOL},
-    mail::{send_activation_mail},
+    mail::send_activation_mail,
 };
 
 #[derive(Deserialize, Debug)]
@@ -35,11 +35,12 @@ pub struct RegisterReq {
     pub last_name: String,
     pub email: String,
     pub password: String,
+    pub nick: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct ActivationReq {
-    pub token: String
+    pub token: String,
 }
 
 #[derive(Serialize, Debug)]
@@ -129,6 +130,7 @@ pub async fn handle_register(Json(register_data): Json<RegisterReq>) -> impl Int
         last_name,
         email, // TODO verify email
         password,
+        nick,
     } = register_data;
 
     //TODO: Systematically validate all fields, e.g.:
@@ -155,10 +157,13 @@ pub async fn handle_register(Json(register_data): Json<RegisterReq>) -> impl Int
         totp_secret: None,
         emails: Arc::new(vec![email]),
         user_role: AuthLevel::RegularUser,
+        nick,
     };
 
     // TODO: I didn't manage yet to get the register()-function to work only with a reference
-    let registration_result = db::user::register(&db_pool, user.clone()).await;
+    let mut tx = db_pool.begin().await.unwrap();
+    let registration_result = db::user::register(&mut tx, user.clone()).await;
+    tx.commit().await.unwrap();
 
     match registration_result {
         Ok(_) => {
@@ -174,11 +179,10 @@ pub async fn handle_register(Json(register_data): Json<RegisterReq>) -> impl Int
         }
     }
 
-//TODO
-//    let mail_result = send_activation_mail(&user.first_names, &user.last_name, &user.emails[0], "TODO: Real token").await;
+    //TODO
+    //    let mail_result = send_activation_mail(&user.first_names, &user.last_name, &user.emails[0], "TODO: Real token").await;
 
     (StatusCode::OK, Json(RegisterRes { success: true }))
-
 }
 pub async fn handle_activate(Json(activation_data): Json<ActivationReq>) -> impl IntoResponse {
     //TODO

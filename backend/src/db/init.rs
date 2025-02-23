@@ -76,6 +76,7 @@ pub async fn debug_create_admin_users(db_pool: &Pool<Postgres>) -> anyhow::Resul
             totp_secret: None,
             emails: vec!["admin@tugraz.at".to_string()].into(),
             user_role: AuthLevel::Admin,
+            nick: Some("admin".to_string()),
         },
         UserWithEmails {
             id: Uuid::new_v4(),
@@ -85,6 +86,7 @@ pub async fn debug_create_admin_users(db_pool: &Pool<Postgres>) -> anyhow::Resul
             totp_secret: None,
             emails: vec!["mod@tugraz.at".to_string()].into(),
             user_role: AuthLevel::Moderator,
+            nick: Some("mod".to_string()),
         },
         UserWithEmails {
             id: Uuid::new_v4(),
@@ -94,19 +96,23 @@ pub async fn debug_create_admin_users(db_pool: &Pool<Postgres>) -> anyhow::Resul
             totp_secret: None,
             emails: vec!["user@tugraz.at".to_string()].into(),
             user_role: AuthLevel::RegularUser,
+            nick: Some("test_user".to_string()),
         },
     ];
 
-    let mut join_set = JoinSet::new();
+    // let mut join_set = JoinSet::new();
+
+    let mut tx = db_pool.begin().await?;
 
     for user in users {
-        let db_pool = db_pool.clone();
-        join_set.spawn(async move { crate::db::user::register(&db_pool, user).await });
+        crate::db::user::register(&mut tx, user).await;
+        // join_set.spawn(async move { crate::db::user::register(&mut tx, user).await });
     }
 
-    while let Some(res) = join_set.join_next().await {
-        res??;
-    }
+    // while let Some(res) = join_set.join_next().await {
+    //     res??;
+    // }
+    tx.commit().await?;
 
     Ok(())
 }
