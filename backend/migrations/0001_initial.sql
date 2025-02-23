@@ -146,6 +146,44 @@ CREATE INDEX idx_purchase_upload_id ON purchases(upload_id);
 
 CREATE INDEX idx_system_ec_transaction_affected_user ON system_ec_transactions(affected_user);
 
+-- Handle the nil user in the uploads
+CREATE OR REPLACE FUNCTION set_nil_uploader()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Check if the user exists
+    IF NOT EXISTS (SELECT 1 FROM users WHERE id = NEW.uploader) THEN
+        -- Set uploader to the nil user
+        NEW.uploader := '00000000-0000-0000-0000-000000000000'; -- Replace with the nil user UUID
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER before_insert_upload
+BEFORE INSERT ON uploads
+FOR EACH ROW
+EXECUTE FUNCTION set_nil_uploader();
+
+-- Handle the nil course in the uploads
+CREATE OR REPLACE FUNCTION set_nil_belongs_to()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Check if the course exists
+    IF NOT EXISTS (SELECT 1 FROM courses WHERE id = NEW.belongs_to) THEN
+        -- Set belongs_to to nil course
+        NEW.belongs_to := '00000000-0000-0000-0000-000000000000'; -- Replace with your nil course UUID
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER before_insert_upload_belongs_to
+BEFORE INSERT ON uploads
+FOR EACH ROW
+EXECUTE FUNCTION set_nil_belongs_to();
+
+
+
 -- ---------------------------------------------------------
 -- 
 -- Audit logs

@@ -1,6 +1,7 @@
 use anyhow::Context;
 use indicatif::ProgressBar;
 use sqlx::{MySql, PgTransaction, Pool, Postgres};
+use uuid::Uuid;
 
 use crate::{
     data::{
@@ -36,13 +37,64 @@ pub async fn perform_import() -> anyhow::Result<()> {
 
     let mut tx = db_pool.begin().await?;
 
+    insert_deleted_entries(&mut tx, &import_db_pool).await?;
     import_universities(&mut tx, &import_db_pool).await?;
     import_courses(&mut tx, &import_db_pool).await?;
     import_users(&mut tx, &import_db_pool).await?;
+
+    tx.commit().await?;
+    let mut tx = db_pool.begin().await?;
+
     import_uploads(&mut tx, &import_db_pool).await?;
 
     tx.commit().await?;
     log::info!("Import done");
+
+    Ok(())
+}
+
+async fn insert_deleted_entries(
+    mut tx: &mut PgTransaction<'_>,
+    source_db: &Pool<MySql>,
+) -> anyhow::Result<()> {
+    let user = UserWithEmails {
+        id: Uuid::nil(),
+        first_names: "Deleted".into(),
+        last_name: "User".into(),
+        password_hash: "420".into(),
+        totp_secret: None,
+        emails: vec!["deleted-user@student.tugraz.at".into()].into(),
+        user_role: 0,
+        nick: "deleted_user".to_string().into(),
+    };
+
+    db::user::register(&mut tx, user).await?;
+
+    let uni = OwnedUniversity {
+        id: Uuid::nil(),
+        full_name: "Unknown University".into(),
+        mid_name: "Unknown University".into(),
+        short_name: "NA".into(),
+        email_domain_names: Vec::new().into(),
+        homepage_url: Default::default(),
+        cms_url: Default::default(),
+        background_color: RgbColor {
+            r: 255,
+            g: 255,
+            b: 255,
+        },
+        text_color: RgbColor { r: 0, g: 0, b: 0 },
+    };
+
+    db::university::create_university_with_id(&mut tx, uni).await?;
+
+    let course = Course {
+        id: Uuid::nil(),
+        held_at: Uuid::nil(),
+        name: "Deleted Course".into(),
+    };
+
+    db::course::create_course(&mut tx, &course).await?;
 
     Ok(())
 }
@@ -250,18 +302,18 @@ async fn import_uploads(
 ) -> anyhow::Result<()> {
     log::info!("Importing uploads");
 
-    #[derive(Debug, sqlx::FromRow)]
+    #[derive(Debug, sqlx::FromRow, Clone)]
     struct LegacyUpload {
         id: u32,
         filename: String,
         fileending: String,
         size: u32,
         uploader: i32,
-        fach: i32,
-        beschreibung: String,
+        fach: u16,
+        beschreibung: Option<String>,
         time_upload_unix: i64,
-        preis: u32,
-        filetype: u32,
+        preis: i32,
+        filetype: i32,
     }
 
     let uploads: Vec<LegacyUpload> = sqlx::query_as(
@@ -279,13 +331,13 @@ async fn import_uploads(
             filetype
         FROM
             egiraffe_studium_files
-        LIMIT
-            100
         "#,
     )
     .fetch_all(source_db)
     .await
     .context("Failed to fetch uploads")?;
+
+    let bar = ProgressBar::new(uploads.len() as u64);
 
     for upload in uploads {
         let id = legacy::LegacyId {
@@ -303,10 +355,12 @@ async fn import_uploads(
             table: LegacyTable::Course,
         };
 
-        let upload = Upload {
+        let old_upload = upload.clone();
+
+        let new_upload = Upload {
             id: id.try_into()?,
             name: upload.filename,
-            description: upload.beschreibung,
+            description: upload.beschreibung.unwrap_or_default(),
             price: upload.preis.try_into()?,
             uploader: uploader_id.try_into()?,
             upload_date: chrono::NaiveDateTime::from_timestamp(upload.time_upload_unix, 0),
@@ -318,8 +372,16 @@ async fn import_uploads(
             held_by: None,
         };
 
-        db::upload::create_upload(&mut tx, &upload).await?;
+        let res = db::upload::create_upload(&mut tx, &new_upload).await;
+        if let Err(e) = res {
+            dbg!(&old_upload, &new_upload);
+            return Err(e);
+        }
+
+        bar.inc(1);
     }
+
+    bar.finish();
 
     Ok(())
 }
