@@ -25,7 +25,7 @@ pub fn routes() -> Router {
 }
 
 pub async fn handle_get_users() -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     // Select totp_secret as totp_enabled (check if it's null or if the string has length > 0)
     // TODO consider going back to a macro for this one
@@ -43,7 +43,7 @@ pub async fn handle_get_users() -> impl IntoResponse {
                 users
             ",
     )
-    .fetch_all(&*db_pool)
+    .fetch_all(&mut *tx)
     .await
     .context("Failed to fetch users");
 
@@ -53,6 +53,8 @@ pub async fn handle_get_users() -> impl IntoResponse {
             Json(json!({ "success": false, "message": "Failed to fetch users" })),
         );
     };
+
+    tx.commit().await.unwrap(); // TODO check if we really need a transaction here
 
     return (
         StatusCode::OK,

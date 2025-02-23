@@ -156,7 +156,7 @@ pub async fn register(
     Ok(())
 }
 
-pub async fn get_active_user_by_email(db_pool: &Pool<Postgres>, email: &str) -> Option<User> {
+pub async fn get_active_user_by_email(mut tx: &mut PgTransaction<'_>, email: &str) -> Option<User> {
     //TODO: Do we only allow login by primary Mail? Don't we want this:
     //INNER JOIN email ON u.id = email.belongs_to_user
     // - also for the other functions
@@ -177,7 +177,7 @@ pub async fn get_active_user_by_email(db_pool: &Pool<Postgres>, email: &str) -> 
         "#,
         email
     )
-    .fetch_optional(db_pool)
+    .fetch_optional(&mut **tx)
     .await
     .expect("Failed to query user")
     .map(|user| User {
@@ -205,7 +205,7 @@ pub fn make_pwd_hash(pwd: &str) -> String {
 }
 
 pub async fn get_user_by_session(
-    db_pool: &Pool<Postgres>,
+    mut tx: &mut PgTransaction<'_>,
     session_cookie: &str,
 ) -> anyhow::Result<User> {
     let user = sqlx::query!(
@@ -225,7 +225,7 @@ pub async fn get_user_by_session(
         ",
         session_cookie
     )
-    .fetch_one(db_pool)
+    .fetch_one(&mut **tx)
     .await?;
 
     Ok(User {
@@ -241,7 +241,7 @@ pub async fn get_user_by_session(
 // TODO remove this?
 // /// Update first_names, last_name, and password (gets hashed) for a user
 // pub async fn update_user_safe(
-//     db_pool: &Pool<Postgres>,
+//     mut tx: &mut PgTransaction<'_>,
 //     user: DoMeReq,
 // ) -> anyhow::Result<UserWithEmails> {
 //     let DoMeReq {
@@ -253,7 +253,7 @@ pub async fn get_user_by_session(
 // }
 
 pub async fn get_user_by_id(
-    db_pool: &Pool<Postgres>,
+    mut tx: &mut PgTransaction<'_>,
     current_user_id: Uuid,
 ) -> anyhow::Result<Option<UserWithEmails>> {
     let user = sqlx::query!(
@@ -275,7 +275,7 @@ pub async fn get_user_by_id(
         ",
         current_user_id
     )
-    .fetch_one(db_pool)
+    .fetch_one(&mut **tx)
     .await
     .map(|user| UserWithEmails {
         id: user.id,
@@ -293,7 +293,10 @@ pub async fn get_user_by_id(
 }
 
 /// Update an existing user in the database.
-pub async fn update_user(db_pool: &Pool<Postgres>, user: UserWithEmails) -> anyhow::Result<()> {
+pub async fn update_user(
+    mut tx: &mut PgTransaction<'_>,
+    user: UserWithEmails,
+) -> anyhow::Result<()> {
     let UserWithEmails {
         id,
         first_names,
@@ -304,8 +307,6 @@ pub async fn update_user(db_pool: &Pool<Postgres>, user: UserWithEmails) -> anyh
         user_role,
         ..
     } = user;
-
-    let mut tx = db_pool.begin().await?;
 
     // TODO handle email updates
 
@@ -333,8 +334,6 @@ pub async fn update_user(db_pool: &Pool<Postgres>, user: UserWithEmails) -> anyh
     )
     .execute(db_con)
     .await?;
-
-    tx.commit().await?;
 
     Ok(())
 }

@@ -58,8 +58,7 @@ async fn handle_do_upload(
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     Json(req): Json<DoUploadReq>,
 ) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
-    let mut tx = db_pool.begin().await.unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     // log::info!("Create/alter upload for course {}", req.belongs_to.unwrap_or("default"));
 
@@ -211,6 +210,8 @@ async fn handle_do_upload(
         if create_result.is_ok() {
             log::info!("Upload created successfully, id: {}", upload.id);
 
+            tx.commit().await.unwrap();
+
             (
                 StatusCode::OK,
                 Json(json!({
@@ -251,10 +252,10 @@ async fn handle_do_me(
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     Json(req): Json<DoMeReq>,
 ) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     // 1. Get the user from the database
-    let maybe_user = db::user::get_user_by_id(&db_pool, current_user_id).await;
+    let maybe_user = db::user::get_user_by_id(&mut tx, current_user_id).await;
     let Ok(user) = maybe_user else {
         log::error!(
             "Failed to get user from database: {}",
@@ -297,7 +298,7 @@ async fn handle_do_me(
     }
 
     // 3. Update the user in the database
-    let update_result = db::user::update_user(&db_pool, user.clone()).await;
+    let update_result = db::user::update_user(&mut tx, user.clone()).await;
 
     if update_result.is_ok() {
         log::info!("User updated successfully, id: {}", user.id);
@@ -312,6 +313,8 @@ async fn handle_do_me(
             })),
         );
     }
+
+    tx.commit().await.unwrap();
 
     // 4. Return the updated user
     (
@@ -571,7 +574,7 @@ async fn handle_do_purchase(
     };
 
     // // 2. Get the current user from the database
-    // let maybe_user = db::user::get_user_by_id(&db_pool, current_user_id).await;
+    // let maybe_user = db::user::get_user_by_id(&mut tx, current_user_id).await;
     // let Ok(Some(user)) = maybe_user else {
     //     log::error!(
     //         "Failed to get user from database: {}",

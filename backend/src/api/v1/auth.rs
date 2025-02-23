@@ -58,9 +58,9 @@ pub async fn handle_login(
     cookie_jar: CookieJar,
     Json(login_data): Json<LoginReq>,
 ) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
-    let Some(user) = db::user::get_active_user_by_email(&db_pool, &login_data.email).await else {
+    let Some(user) = db::user::get_active_user_by_email(&mut tx, &login_data.email).await else {
         log::info!("Login failed: no user with email {}", login_data.email);
         return (
             StatusCode::BAD_REQUEST,
@@ -101,9 +101,11 @@ pub async fn handle_login(
         );
     }
 
-    let token = db::session::create_session(&db_pool, user.id).await;
+    let token = db::session::create_session(&mut tx, user.id).await;
 
     log::info!("Login successful for email {}", login_data.email);
+
+    tx.commit().await.unwrap();
 
     let mut session_cookie = Cookie::new(SESSION_COOKIE_NAME, token);
     session_cookie.make_permanent();
@@ -121,7 +123,7 @@ pub async fn handle_login(
 }
 
 pub async fn handle_register(Json(register_data): Json<RegisterReq>) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     log::info!("Register attempt for email {}", register_data.email);
 
@@ -161,7 +163,6 @@ pub async fn handle_register(Json(register_data): Json<RegisterReq>) -> impl Int
     };
 
     // TODO: I didn't manage yet to get the register()-function to work only with a reference
-    let mut tx = db_pool.begin().await.unwrap();
     let registration_result = db::user::register(&mut tx, user.clone()).await;
     tx.commit().await.unwrap();
 
@@ -190,7 +191,7 @@ pub async fn handle_activate(Json(activation_data): Json<ActivationReq>) -> impl
 }
 
 pub async fn handle_logout(cookie_jar: CookieJar) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     let Some(cookie) = cookie_jar.get(SESSION_COOKIE_NAME) else {
         log::info!("Logout failed: no session cookie");
@@ -201,11 +202,13 @@ pub async fn handle_logout(cookie_jar: CookieJar) -> impl IntoResponse {
         );
     };
 
-    let db_session_deletion_status = db::session::delete_session(&db_pool, cookie.value()).await;
+    let db_session_deletion_status = db::session::delete_session(&mut tx, cookie.value()).await;
 
     if db_session_deletion_status.is_err() {
         log::error!("Failed to delete session from database");
     }
+
+    tx.commit().await.unwrap();
 
     log::info!("Logout");
 

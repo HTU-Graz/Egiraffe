@@ -9,7 +9,7 @@ use axum::{
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use sqlx::PgPool;
+use sqlx::{PgPool, PgTransaction};
 use uuid::Uuid;
 
 use crate::{
@@ -29,9 +29,12 @@ pub fn routes() -> Router {
 }
 
 pub async fn handle_get_user_balance(Json(user_id): Json<Uuid>) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
-    let balance = db::ecs::calculate_available_funds(&db_pool, user_id).await;
+    let balance = db::ecs::calculate_available_funds(&mut tx, user_id).await;
+
+    tx.commit().await.unwrap(); // TODO check if we really need a transaction here
+
     match balance {
         Ok(balance) => (
             StatusCode::OK,
@@ -54,7 +57,7 @@ pub struct CreateSystemTransactionRequest {
 pub async fn handle_create_system_transaction(
     Json(req): Json<CreateSystemTransactionRequest>,
 ) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     log::info!("Creating system transaction: {:?}", req);
 
@@ -65,7 +68,10 @@ pub async fn handle_create_system_transaction(
         reason: req.reason,
     };
 
-    let result = create_system_transaction(&db_pool, transaction).await;
+    let result = create_system_transaction(&mut tx, transaction).await;
+
+    tx.commit().await.unwrap(); // TODO check if we really need a transaction here
+
     match result {
         Ok(_) => (StatusCode::OK, Json(json!({ "success": true }))),
         Err(e) => (
@@ -86,7 +92,7 @@ pub struct SystemTransaction {
 }
 
 pub async fn create_system_transaction(
-    db_pool: &PgPool,
+    mut tx: &mut PgTransaction<'_>,
     transaction: SystemTransaction,
 ) -> anyhow::Result<()> {
     sqlx::query!(
@@ -106,7 +112,7 @@ pub async fn create_system_transaction(
         transaction.delta_ec,
         transaction.reason,
     )
-    .execute(db_pool)
+    .execute(&mut **tx)
     .await
     .context("Failed to create system transaction")?;
 

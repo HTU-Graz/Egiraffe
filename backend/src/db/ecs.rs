@@ -1,5 +1,5 @@
 use anyhow::Context;
-use sqlx::PgPool;
+use sqlx::PgTransaction;
 use uuid::Uuid;
 
 /// Calculates the amount of ECS the user has available to spend
@@ -10,12 +10,12 @@ use uuid::Uuid;
 /// - When a user has spent ECS on a purchase
 /// - When the system has given/taken ECS from the user (see table `system_ec_transaction`)
 pub async fn calculate_available_funds(
-    db_pool: &sqlx::Pool<sqlx::Postgres>,
+    mut tx: &mut PgTransaction<'_>,
     user_id: Uuid,
 ) -> anyhow::Result<f64> {
     // FIXME figure out what data type should be returned for this query
     // sqlx::query_file!("src/db/sql/get_available_ecs.sql", user_id,)
-    //     .fetch_one(db_pool)
+    //     .fetch_one(&mut **tx)
     //     .await
     //     .map(|row| row.ecs_available)
     //     .context("Failed to calculate available funds")

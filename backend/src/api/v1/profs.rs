@@ -28,14 +28,16 @@ pub struct CreateProfReq {
 }
 
 async fn handle_create_prof(Json(prof): Json<CreateProfReq>) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     let prof = Prof {
         id: Uuid::new_v4(),
         name: prof.name,
     };
 
-    let db_action_result = db::prof::create_prof(&db_pool, &prof).await;
+    let db_action_result = db::prof::create_prof(&mut tx, &prof).await;
+
+    tx.commit().await.unwrap(); // TODO check if we really need a transaction here
 
     if let Err(error) = db_action_result {
         return (
@@ -54,9 +56,9 @@ async fn handle_create_prof(Json(prof): Json<CreateProfReq>) -> impl IntoRespons
 }
 
 async fn handle_replace_prof(Json(prof): Json<Prof>) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
-    let db_action_result = db::prof::update_prof(&db_pool, &prof).await;
+    let db_action_result = db::prof::update_prof(&mut tx, &prof).await;
 
     if let Err(error) = db_action_result {
         return (
@@ -67,6 +69,8 @@ async fn handle_replace_prof(Json(prof): Json<Prof>) -> impl IntoResponse {
             })),
         );
     }
+
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     (StatusCode::OK, Json(json!({ "success": true })))
 }

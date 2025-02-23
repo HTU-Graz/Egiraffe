@@ -51,7 +51,7 @@ pub struct ModifyUploadRequest {
 }
 
 pub async fn handle_modify_upload(Json(request): Json<ModifyUploadRequest>) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     (
         StatusCode::INTERNAL_SERVER_ERROR,
@@ -72,9 +72,7 @@ pub struct ModifyFileRequest {
 }
 
 pub async fn handle_modify_file(Json(request): Json<ModifyFileRequest>) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
-
-    let mut tx = db_pool.begin().await.unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     let file = sqlx::query_as!(
         File,
@@ -137,9 +135,11 @@ pub async fn handle_modify_file(Json(request): Json<ModifyFileRequest>) -> impl 
 }
 
 pub async fn handle_get_all_uploads() -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
-    let uploads = db::upload::get_all_uploads(&db_pool, None).await.unwrap();
+    let uploads = db::upload::get_all_uploads(&mut tx, None).await.unwrap();
+
+    tx.commit().await.unwrap();
 
     (
         StatusCode::OK,

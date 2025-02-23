@@ -13,7 +13,9 @@ use crate::conf::CONF;
 use anyhow::Context;
 use once_cell::sync::OnceCell;
 use serde::Deserialize;
-use sqlx::{postgres::PgPoolOptions, Acquire, Executor, PgConnection, Pool, Postgres};
+use sqlx::{
+    postgres::PgPoolOptions, Acquire, Executor, PgConnection, PgTransaction, Pool, Postgres,
+};
 use tokio::fs::read_to_string;
 
 pub static DB_POOL: OnceCell<&'static sqlx::PgPool> = OnceCell::new();
@@ -50,18 +52,11 @@ impl From<SelectExistsTmp> for SelectExists {
     }
 }
 
-pub async fn debug_insert_default_entries(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
-    let mut tx = db_pool.begin().await?;
-    let db_con = tx.acquire().await?;
-
+pub async fn debug_insert_default_entries(mut tx: &mut PgTransaction<'_>) -> anyhow::Result<()> {
     // TODO make sure this works when half ot it is already initialized
-    let _res = init::debug_create_universities(db_con).await;
-    tx.commit().await?;
+    init::debug_create_universities(&mut tx).await;
 
-    let mut tx = db_pool.begin().await?;
-    let db_con = tx.acquire().await?;
-    let _res = init::debug_create_admin_users(db_pool).await;
-    tx.commit().await?;
+    init::debug_create_admin_users(&mut tx).await;
 
     log::info!("Database reset and initialized");
 

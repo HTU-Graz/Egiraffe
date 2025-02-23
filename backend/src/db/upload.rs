@@ -32,7 +32,7 @@ impl Default for Sorting {
 }
 
 pub async fn get_uploads_of_course(
-    db_pool: &PgPool,
+    mut tx: &mut PgTransaction<'_>,
     course_id: Uuid,
     sorting: Option<Sorting>,
 ) -> anyhow::Result<Vec<Upload>> {
@@ -62,13 +62,13 @@ pub async fn get_uploads_of_course(
         "#,
         course_id,
     )
-    .fetch_all(db_pool)
+    .fetch_all(&mut **tx)
     .await
     .context("Failed to get courses")
 }
 
 pub async fn get_all_uploads(
-    db_pool: &PgPool,
+    mut tx: &mut PgTransaction<'_>,
     sorting: Option<Sorting>,
 ) -> anyhow::Result<Vec<Upload>> {
     // TODO: implement sorting
@@ -94,7 +94,7 @@ pub async fn get_all_uploads(
             INNER JOIN courses ON uploads.belongs_to = courses.id
         "#,
     )
-    .fetch_all(db_pool)
+    .fetch_all(&mut **tx)
     .await
     .context("Failed to get courses")
 }
@@ -125,13 +125,13 @@ pub async fn get_upload_by_id(
         "#,
         upload_id,
     )
-    .fetch_optional(db_pool)
+    .fetch_optional(&mut **tx)
     .await
     .context("Failed to get upload by ID")
 }
 
 pub async fn get_upload_by_id_and_join_course(
-    db_pool: &PgPool,
+    mut tx: &mut PgTransaction<'_>,
     upload_id: Uuid,
 ) -> anyhow::Result<Option<(Upload, String)>> {
     #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
@@ -182,7 +182,7 @@ pub async fn get_upload_by_id_and_join_course(
         "#,
         upload_id,
     )
-    .fetch_optional(db_pool)
+    .fetch_optional(&mut **tx)
     .await
     .context("Failed to get upload by ID");
 

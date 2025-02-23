@@ -62,7 +62,9 @@ async fn server() -> anyhow::Result<()> {
 
     #[cfg(not(feature = "prod"))]
     if CONF.database.debugdefaultentries {
-        db::debug_insert_default_entries(&db_pool).await?;
+        let mut tx = db_pool.begin().await?;
+        db::debug_insert_default_entries(&mut tx).await?;
+        tx.commit().await?;
     }
 
     let static_files = ServeDir::new(&CONF.webserver.staticdir)

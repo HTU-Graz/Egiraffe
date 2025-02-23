@@ -31,7 +31,7 @@ pub struct CreateCourseReq {
 }
 
 async fn handle_create_course(Json(course): Json<CreateCourseReq>) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     let course = Course {
         id: Uuid::new_v4(),
@@ -39,7 +39,6 @@ async fn handle_create_course(Json(course): Json<CreateCourseReq>) -> impl IntoR
         held_at: course.held_at,
     };
 
-    let mut tx = db_pool.begin().await.unwrap();
     let db_action_result = db::course::create_course(&mut tx, &course).await;
     tx.commit().await.unwrap();
 
@@ -60,9 +59,9 @@ async fn handle_create_course(Json(course): Json<CreateCourseReq>) -> impl IntoR
 }
 
 async fn handle_replace_course(Json(course): Json<Course>) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
-    let db_action_result = db::course::replace_course(&db_pool, course).await;
+    let db_action_result = db::course::replace_course(&mut tx, course).await;
 
     if let Err(error) = db_action_result {
         return (
@@ -73,6 +72,8 @@ async fn handle_replace_course(Json(course): Json<Course>) -> impl IntoResponse 
             })),
         );
     }
+
+    tx.commit().await.unwrap();
 
     (StatusCode::OK, Json(json!({ "success": true })))
 }

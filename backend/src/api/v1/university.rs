@@ -37,7 +37,7 @@ pub struct CreateUniversityReq {
 async fn handle_create_university(
     Json(university): Json<CreateUniversityReq>,
 ) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     let university = OwnedUniversity {
         id: Uuid::nil(), // This will be set by the database
@@ -51,9 +51,7 @@ async fn handle_create_university(
         text_color: university.text_color,
     };
 
-    let mut tx = db_pool.begin().await.unwrap();
     let db_action_result = db::university::create_university(&mut tx, university).await;
-    tx.commit().await.unwrap();
 
     if let Err(error) = db_action_result {
         return (
@@ -66,14 +64,15 @@ async fn handle_create_university(
     }
 
     let id = db_action_result.unwrap();
+    tx.commit().await.unwrap();
 
     (StatusCode::OK, Json(json!({ "success": true, "id": id })))
 }
 
 async fn handle_replace_university(Json(course): Json<Course>) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
-    let db_action_result = db::course::replace_course(&db_pool, course).await;
+    let db_action_result = db::course::replace_course(&mut tx, course).await;
 
     if let Err(error) = db_action_result {
         return (
@@ -84,6 +83,8 @@ async fn handle_replace_university(Json(course): Json<Course>) -> impl IntoRespo
             })),
         );
     }
+
+    tx.commit().await.unwrap();
 
     (StatusCode::OK, Json(json!({ "success": true })))
 }

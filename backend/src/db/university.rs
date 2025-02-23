@@ -1,10 +1,12 @@
 use anyhow::Context;
-use sqlx::{PgPool, PgTransaction};
+use sqlx::PgTransaction;
 use uuid::Uuid;
 
 use crate::data::{DbRgbColor, OwnedUniversity, RgbColor};
 
-pub async fn get_universities(db_pool: &PgPool) -> anyhow::Result<Vec<OwnedUniversity>> {
+pub async fn get_universities(
+    mut tx: &mut PgTransaction<'_>,
+) -> anyhow::Result<Vec<OwnedUniversity>> {
     sqlx::query!(
         r#"
         SELECT
@@ -21,7 +23,7 @@ pub async fn get_universities(db_pool: &PgPool) -> anyhow::Result<Vec<OwnedUnive
             universities
         "#,
     )
-    .fetch_all(db_pool)
+    .fetch_all(&mut **tx)
     .await
     .context("Failed to get courses")
     .map(|unis| {

@@ -13,7 +13,7 @@ use axum_extra::extract::{cookie::Cookie, CookieJar};
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use sqlx::prelude::FromRow;
+use sqlx::{prelude::FromRow, PgTransaction};
 use tokio_util::io::ReaderStream;
 use uuid::Uuid;
 
@@ -43,7 +43,7 @@ pub fn routes() -> Router {
 async fn handle_get_my_ecs(
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
 ) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     // Most `/get` endpoints do not require authentication; this one does
     if current_user_id.is_nil() {
@@ -59,7 +59,7 @@ async fn handle_get_my_ecs(
     let maybe_ecs: anyhow::Result<(f64,)> =
         sqlx::query_as(include_str!("../../db/sql/get_available_ecs.sql"))
             .bind(&current_user_id)
-            .fetch_one(&*&mut **tx)
+            .fetch_one(&mut *tx)
             .await
             .context("Failed to get ECs");
 
@@ -74,6 +74,8 @@ async fn handle_get_my_ecs(
             })),
         );
     };
+
+    tx.commit().await.unwrap();
 
     (
         StatusCode::OK,
@@ -91,9 +93,9 @@ pub struct GetUploadsReq {
 }
 
 async fn handle_get_courses() -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
-    let maybe_courses = db::course::get_courses(&&mut **tx).await;
+    let maybe_courses = db::course::get_courses(&mut tx).await;
 
     let Ok(courses) = maybe_courses else {
         log::error!("Failed to get courses: {}", maybe_courses.unwrap_err());
@@ -109,6 +111,8 @@ async fn handle_get_courses() -> impl IntoResponse {
 
     // TODO add some kind of upload approval status
 
+    tx.commit().await.unwrap();
+
     (
         StatusCode::OK,
         Json(json!({
@@ -119,12 +123,12 @@ async fn handle_get_courses() -> impl IntoResponse {
 }
 
 async fn handle_get_uploads(Json(course): Json<GetUploadsReq>) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     log::info!("Get uploads for course {}", course.course_id);
 
     let maybe_uploads =
-        db::upload::get_uploads_of_course(&db_pool, course.course_id, course.sorting).await;
+        db::upload::get_uploads_of_course(&mut tx, course.course_id, course.sorting).await;
 
     let Ok(uploads) = maybe_uploads else {
         log::error!("Failed to get courses: {}", maybe_uploads.unwrap_err());
@@ -139,6 +143,8 @@ async fn handle_get_uploads(Json(course): Json<GetUploadsReq>) -> impl IntoRespo
         );
     };
 
+    tx.commit().await.unwrap();
+
     (
         StatusCode::OK,
         Json(json!({
@@ -149,9 +155,9 @@ async fn handle_get_uploads(Json(course): Json<GetUploadsReq>) -> impl IntoRespo
 }
 
 async fn handle_get_universities() -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
-    let maybe_universities = db::university::get_universities(&&mut **tx).await;
+    let maybe_universities = db::university::get_universities(&mut tx).await;
 
     let Ok(universities) = maybe_universities else {
         log::error!(
@@ -168,6 +174,8 @@ async fn handle_get_universities() -> impl IntoResponse {
         );
     };
 
+    tx.commit().await.unwrap();
+
     (
         StatusCode::OK,
         Json(json!({
@@ -178,7 +186,7 @@ async fn handle_get_universities() -> impl IntoResponse {
 }
 
 async fn handle_get_me(cookie_jar: CookieJar) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     // We return a generic error response if the user is not logged in
     //  to avoid leaking private information
@@ -200,7 +208,7 @@ async fn handle_get_me(cookie_jar: CookieJar) -> impl IntoResponse {
     };
 
     // Get the user from the database
-    let maybe_user = db::user::get_user_by_session(&db_pool, session_cookie.value()).await;
+    let maybe_user = db::user::get_user_by_session(&mut tx, session_cookie.value()).await;
     let Ok(user) = maybe_user else {
         log::error!(
             "Failed to get user, removing session cookie: {}",
@@ -213,6 +221,8 @@ async fn handle_get_me(cookie_jar: CookieJar) -> impl IntoResponse {
             Json(generic_error_response),
         );
     };
+
+    tx.commit().await.unwrap();
 
     return (
         StatusCode::OK,
@@ -281,7 +291,7 @@ async fn handle_get_file(
         ));
     };
 
-    let Ok(upload) = db::file::get_upload_of_file(&db_pool, file.id).await else {
+    let Ok(upload) = db::file::get_upload_of_file(&mut tx, file.id).await else {
         log::error!("Failed to get upload of file: {}", file.id);
 
         return Err((
@@ -323,7 +333,7 @@ async fn handle_get_file(
     }
 
     // Check if there is a valid purchase for this file
-    let maybe_purchase = db::purchase::get_purchase(&db_pool, current_user_id, file.id).await;
+    let maybe_purchase = db::purchase::get_purchase(&mut tx, current_user_id, file.id).await;
     let Ok(purchase) = maybe_purchase else {
         log::error!("Failed to get purchase: {}", maybe_purchase.unwrap_err());
 
@@ -446,7 +456,7 @@ async fn handle_get_prof(
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     Json(prof_req): Json<GetProfReq>,
 ) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     log::info!("Get details for prof {}", prof_req.prof_id);
 
@@ -462,7 +472,7 @@ async fn handle_get_prof(
         );
     }
 
-    let maybe_prof = db::prof::get_prof(&db_pool, prof_req.prof_id).await;
+    let maybe_prof = db::prof::get_prof(&mut tx, prof_req.prof_id).await;
 
     let Ok(prof) = maybe_prof else {
         log::error!("Failed to get prof: {}", maybe_prof.unwrap_err());
@@ -489,6 +499,8 @@ async fn handle_get_prof(
             })),
         );
     };
+
+    tx.commit().await.unwrap();
 
     (
         StatusCode::OK,
@@ -580,7 +592,7 @@ struct PurchaseInfoItem {
 async fn handle_get_purchased_uploads(
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
 ) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     log::info!("Get purchased uploads for user {}", current_user_id);
 
@@ -653,7 +665,7 @@ async fn handle_get_purchased_uploads(
         ",
     )
     .bind(&current_user_id)
-    .fetch_all(&mut **tx)
+    .fetch_all(&mut *tx)
     .await
     .context("Failed to get purchases");
 
@@ -668,6 +680,8 @@ async fn handle_get_purchased_uploads(
             })),
         );
     };
+
+    tx.commit().await.unwrap();
 
     (
         StatusCode::OK,

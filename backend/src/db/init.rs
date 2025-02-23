@@ -1,4 +1,4 @@
-use sqlx::{self, PgConnection, Pool, Postgres};
+use sqlx::{self, PgConnection, PgTransaction, Pool, Postgres};
 use tokio::task::JoinSet;
 use uuid::Uuid;
 
@@ -64,7 +64,7 @@ pub async fn debug_create_universities(db_con: &mut PgConnection) -> anyhow::Res
     Ok(())
 }
 
-pub async fn debug_create_admin_users(db_pool: &Pool<Postgres>) -> anyhow::Result<()> {
+pub async fn debug_create_admin_users(mut tx: &mut PgTransaction<'_>) -> anyhow::Result<()> {
     log::info!("Creating admin users");
 
     let users = [
@@ -102,8 +102,6 @@ pub async fn debug_create_admin_users(db_pool: &Pool<Postgres>) -> anyhow::Resul
 
     // let mut join_set = JoinSet::new();
 
-    let mut tx = db_pool.begin().await?;
-
     for user in users {
         crate::db::user::register(&mut tx, user).await;
         // join_set.spawn(async move { crate::db::user::register(&mut tx, user).await });
@@ -112,7 +110,6 @@ pub async fn debug_create_admin_users(db_pool: &Pool<Postgres>) -> anyhow::Resul
     // while let Some(res) = join_set.join_next().await {
     //     res??;
     // }
-    tx.commit().await?;
 
     Ok(())
 }

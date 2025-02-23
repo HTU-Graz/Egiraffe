@@ -1,6 +1,6 @@
 use anyhow::Context;
 use base64::{engine::general_purpose, Engine as _};
-use sqlx::{Pool, Postgres};
+use sqlx::{PgTransaction, Pool, Postgres};
 use uuid::Uuid;
 
 use crate::data::Token;
@@ -10,9 +10,9 @@ pub enum ValidationResult {
     Invalid,
 }
 
-// pub async fn validate_session(db_pool: &Pool<Postgres>, token: &Token) -> ValidationResult {
+// pub async fn validate_session(mut tx: &mut PgTransaction, token: &Token) -> ValidationResult {
 //     let token: String = general_purpose::STANDARD_NO_PAD.encode(token);
-pub async fn validate_session(db_pool: &Pool<Postgres>, token: &String) -> ValidationResult {
+pub async fn validate_session(mut tx: &mut PgTransaction<'_>, token: &String) -> ValidationResult {
     log::info!("Validating session with a token");
 
     let session = sqlx::query!(
@@ -28,7 +28,7 @@ pub async fn validate_session(db_pool: &Pool<Postgres>, token: &String) -> Valid
         ",
         token
     )
-    .fetch_optional(db_pool)
+    .fetch_optional(&mut **tx)
     .await
     .expect("Failed to query session")
     .map(|session| (session.of_user, session.auth_level));
@@ -45,8 +45,8 @@ pub async fn validate_session(db_pool: &Pool<Postgres>, token: &String) -> Valid
     }
 }
 
-// pub async fn create_session(db_pool: &Pool<Postgres>, user_id: Uuid) -> Token {
-pub async fn create_session(db_pool: &Pool<Postgres>, user_id: Uuid) -> String {
+// pub async fn create_session(mut tx: &mut PgTransaction, user_id: Uuid) -> Token {
+pub async fn create_session(mut tx: &mut PgTransaction<'_>, user_id: Uuid) -> String {
     // 32 bytes of random data
     let token: Token = rand::random();
 
@@ -63,14 +63,14 @@ pub async fn create_session(db_pool: &Pool<Postgres>, user_id: Uuid) -> String {
         token,
         user_id
     )
-    .execute(db_pool)
+    .execute(&mut **tx)
     .await
     .expect("Failed to create session");
 
     token
 }
 
-pub async fn delete_session(db_pool: &Pool<Postgres>, value: &str) -> anyhow::Result<()> {
+pub async fn delete_session(mut tx: &mut PgTransaction<'_>, value: &str) -> anyhow::Result<()> {
     log::info!("Deleting a session");
 
     sqlx::query!(
@@ -82,7 +82,7 @@ pub async fn delete_session(db_pool: &Pool<Postgres>, value: &str) -> anyhow::Re
         ",
         value
     )
-    .execute(db_pool)
+    .execute(&mut **tx)
     .await
     .context("Failed to delete session")?;
 

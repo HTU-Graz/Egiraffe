@@ -92,7 +92,7 @@ async fn auth<const REQUIRED_AUTH_LEVEL: i16>(
     mut request: Request,
     next: Next,
 ) -> Result<Response, (StatusCode, Json<serde_json::Value>)> {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     assert!(
         REQUIRED_AUTH_LEVEL >= AuthLevel::Anyone && REQUIRED_AUTH_LEVEL <= AuthLevel::Admin,
@@ -117,7 +117,7 @@ async fn auth<const REQUIRED_AUTH_LEVEL: i16>(
         }
     };
 
-    match db::session::validate_session(&db_pool, &session_cookie.value().to_string()).await {
+    match db::session::validate_session(&mut tx, &session_cookie.value().to_string()).await {
         ValidationResult::Valid {
             auth_level,
             user_id,
@@ -135,4 +135,6 @@ async fn auth<const REQUIRED_AUTH_LEVEL: i16>(
             Err(unauthorized)
         }
     }
+
+    // We don't commit the transaction because we don't need to write anything
 }
