@@ -59,6 +59,7 @@ async fn handle_do_upload(
     Json(req): Json<DoUploadReq>,
 ) -> impl IntoResponse {
     let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = db_pool.begin().await.unwrap();
 
     // log::info!("Create/alter upload for course {}", req.belongs_to.unwrap_or("default"));
 
@@ -68,7 +69,7 @@ async fn handle_do_upload(
     // 0. Check if a new upload is being created or an existing one is being modified
     if let Some(id) = req.id {
         // 1. Get the upload from the database
-        let maybe_upload = db::upload::get_upload_by_id(&db_pool, id).await;
+        let maybe_upload = db::upload::get_upload_by_id(&mut tx, id).await;
         let Ok(upload) = maybe_upload else {
             log::error!(
                 "Failed to get upload from database: {}",
@@ -138,7 +139,7 @@ async fn handle_do_upload(
         upload.last_modified_date = chrono::Utc::now().naive_utc();
 
         // 4. Update the upload in the database
-        let update_result = db::upload::update_upload(&db_pool, &upload).await;
+        let update_result = db::upload::update_upload(&mut tx, &upload).await;
 
         if update_result.is_ok() {
             log::info!("Upload updated successfully, id: {}", upload.id);
@@ -205,7 +206,7 @@ async fn handle_do_upload(
         };
 
         // 2. Insert the upload into the database
-        let create_result = db::upload::create_upload(&db_pool, &upload).await;
+        let create_result = db::upload::create_upload(&mut tx, &upload).await;
 
         if create_result.is_ok() {
             log::info!("Upload created successfully, id: {}", upload.id);
@@ -339,7 +340,7 @@ async fn handle_do_file(
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     mut multipart: Multipart,
 ) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     // 0. Get the form fields
     // 0.a. Get the upload ID
@@ -389,7 +390,7 @@ async fn handle_do_file(
     let file_writing_future = tokio::io::copy(&mut body_reader, &mut fs_file);
 
     // 1. Get the upload from the database
-    let maybe_upload = db::upload::get_upload_by_id(&db_pool, upload_req.upload_id).await;
+    let maybe_upload = db::upload::get_upload_by_id(&mut tx, upload_req.upload_id).await;
     let Ok(upload) = maybe_upload else {
         log::error!(
             "Failed to get upload from database: {}",
@@ -474,7 +475,7 @@ async fn handle_do_file(
     };
 
     // 5. Persist the file in the database
-    let maybe_file = db::file::create_file(&db_pool, &file).await;
+    let maybe_file = db::file::create_file(&mut tx, &file).await;
     if maybe_file.is_err() {
         log::error!("Failed to create file: {}", maybe_file.unwrap_err());
 
@@ -515,6 +516,8 @@ async fn handle_do_file(
     // named_temp_file.persist(&path).unwrap(); // We can't do that as it's cross-device
     // dbg!("File persisted");
 
+    tx.commit().await.unwrap();
+
     // 7. Respond with the file metadata
     (
         StatusCode::OK,
@@ -536,10 +539,10 @@ async fn handle_do_purchase(
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     Json(req): Json<DoPurchaseReq>,
 ) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     // 1. Get the upload from the database
-    let maybe_upload = db::upload::get_upload_by_id(&db_pool, req.upload_id).await;
+    let maybe_upload = db::upload::get_upload_by_id(&mut tx, req.upload_id).await;
     let Ok(upload) = maybe_upload else {
         log::error!(
             "Failed to get upload from database: {}",
@@ -585,7 +588,7 @@ async fn handle_do_purchase(
     // };
 
     // 3. Check if the user has already purchased this upload
-    let maybe_purchase = db::purchase::get_purchase(&db_pool, current_user_id, req.upload_id).await;
+    let maybe_purchase = db::purchase::get_purchase(&mut tx, current_user_id, req.upload_id).await;
     let Ok(purchase) = maybe_purchase else {
         log::error!(
             "Failed to get purchase from database: {}",
@@ -628,7 +631,7 @@ async fn handle_do_purchase(
     };
 
     // 6. Persist the purchase in the database
-    let create_result = db::purchase::create_purchase(&db_pool, &purchase).await;
+    let create_result = db::purchase::create_purchase(&mut tx, &purchase).await;
     if create_result.is_err() {
         log::error!("Failed to create purchase: {}", create_result.unwrap_err());
 

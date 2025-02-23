@@ -1,11 +1,11 @@
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
-use sqlx::FromRow;
+use sqlx::{FromRow, PgTransaction};
 use uuid::Uuid;
 
 use crate::data::{File, Upload, UploadType};
 
-pub async fn create_file(db_pool: &sqlx::Pool<sqlx::Postgres>, file: &File) -> anyhow::Result<()> {
+pub async fn create_file(mut tx: &mut PgTransaction<'_>, file: &File) -> anyhow::Result<()> {
     sqlx::query!(
         "
         INSERT INTO
@@ -33,7 +33,7 @@ pub async fn create_file(db_pool: &sqlx::Pool<sqlx::Postgres>, file: &File) -> a
         file.approval_uploader,
         file.approval_mod
     )
-    .execute(db_pool)
+    .execute(&mut **tx)
     .await
     // .unwrap();
     // .context("Failed to create file")?;
@@ -42,7 +42,7 @@ pub async fn create_file(db_pool: &sqlx::Pool<sqlx::Postgres>, file: &File) -> a
     Ok(())
 }
 
-pub async fn get_file(db_pool: &sqlx::Pool<sqlx::Postgres>, id: Uuid) -> anyhow::Result<File> {
+pub async fn get_file(mut tx: &mut PgTransaction<'_>, id: Uuid) -> anyhow::Result<File> {
     let file = sqlx::query_as!(
         File,
         "
@@ -63,7 +63,7 @@ pub async fn get_file(db_pool: &sqlx::Pool<sqlx::Postgres>, id: Uuid) -> anyhow:
         ",
         id
     )
-    .fetch_one(db_pool)
+    .fetch_one(&mut **tx)
     .await
     // .unwrap();
     // .context("Failed to get file")?;
@@ -73,7 +73,7 @@ pub async fn get_file(db_pool: &sqlx::Pool<sqlx::Postgres>, id: Uuid) -> anyhow:
 }
 
 pub async fn get_files_of_upload(
-    db_pool: &sqlx::Pool<sqlx::Postgres>,
+    mut tx: &mut PgTransaction<'_>,
     upload_id: Uuid,
 ) -> anyhow::Result<Vec<File>> {
     let files = sqlx::query_as!(
@@ -96,7 +96,7 @@ pub async fn get_files_of_upload(
         ",
         upload_id
     )
-    .fetch_all(db_pool)
+    .fetch_all(&mut **tx)
     .await
     // .unwrap();
     // .context("Failed to get files of upload")?;
@@ -106,7 +106,7 @@ pub async fn get_files_of_upload(
 }
 
 pub async fn get_files_and_join_upload(
-    db_pool: &sqlx::Pool<sqlx::Postgres>,
+    mut tx: &mut PgTransaction<'_>,
     upload_id: Uuid,
 ) -> anyhow::Result<Vec<(File, Upload)>> {
     let file_upload_joins: Vec<FileUpload> = sqlx::query_as!(
@@ -140,7 +140,7 @@ pub async fn get_files_and_join_upload(
         "#,
         upload_id
     )
-    .fetch_all(db_pool)
+    .fetch_all(&mut **tx)
     .await?;
 
     let file_upload_joins = file_upload_joins
@@ -179,7 +179,7 @@ pub async fn get_files_and_join_upload(
 }
 
 pub async fn get_all_files_and_join_upload(
-    db_pool: &sqlx::Pool<sqlx::Postgres>,
+    mut tx: &mut PgTransaction<'_>,
 ) -> anyhow::Result<Vec<(File, Upload)>> {
     let file_upload_joins = sqlx::query_as!(
         FileUpload,
@@ -209,7 +209,7 @@ pub async fn get_all_files_and_join_upload(
             INNER JOIN uploads ON files.upload_id = uploads.id
         "#,
     )
-    .fetch_all(db_pool)
+    .fetch_all(&mut **tx)
     .await?
     .into_iter()
     .map(|row| {
@@ -246,7 +246,7 @@ pub async fn get_all_files_and_join_upload(
 }
 
 pub async fn get_upload_of_file(
-    db_pool: &sqlx::Pool<sqlx::Postgres>,
+    mut tx: &mut PgTransaction<'_>,
     file_id: Uuid,
 ) -> anyhow::Result<Upload> {
     let upload = sqlx::query_as!(
@@ -278,7 +278,7 @@ pub async fn get_upload_of_file(
         "#,
         file_id
     )
-    .fetch_one(db_pool)
+    .fetch_one(&mut **tx)
     .await
     // .unwrap();
     // .context("Failed to get upload of file")?;

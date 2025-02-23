@@ -276,3 +276,19 @@ impl UploadType {
         }
     }
 }
+
+// Full texts
+// 	ID 	Bezeichnung 	Farbe
+// 	Edit Edit 	Copy Copy 	Delete Delete 	0 	kein Typ 	#FFFFFF
+// 	Edit Edit 	Copy Copy 	Delete Delete 	1 	Sonstiges 	#777777
+// 	Edit Edit 	Copy Copy 	Delete Delete 	2 	Klausurangabe 	#FF0000
+// 	Edit Edit 	Copy Copy 	Delete Delete 	3 	Fragensammlung 	#ab2486
+// 	Edit Edit 	Copy Copy 	Delete Delete 	4 	Prüfungsfragenausarbeitung 	#00FFFF
+// 	Edit Edit 	Copy Copy 	Delete Delete 	5 	Mitschrift 	#0000FF
+// 	Edit Edit 	Copy Copy 	Delete Delete 	6 	Stoffzusammenfassung 	#FF00FF
+// 	Edit Edit 	Copy Copy 	Delete Delete 	7 	Protokoll 	#000000
+// 	Edit Edit 	Copy Copy 	Delete Delete 	8 	Skriptum 	#AA9955
+// 	Edit Edit 	Copy Copy 	Delete Delete 	9 	Hausübung 	#3388FF
+// 	Edit Edit 	Copy Copy 	Delete Delete 	10 	Präsentation 	#33FF33
+
+// impl

@@ -1,7 +1,7 @@
 use anyhow::Context;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, PgPool};
+use sqlx::{FromRow, PgPool, PgTransaction};
 use uuid::Uuid;
 
 use crate::data::{Upload, UploadType};
@@ -99,7 +99,10 @@ pub async fn get_all_uploads(
     .context("Failed to get courses")
 }
 
-pub async fn get_upload_by_id(db_pool: &PgPool, upload_id: Uuid) -> anyhow::Result<Option<Upload>> {
+pub async fn get_upload_by_id(
+    mut tx: &mut PgTransaction<'_>,
+    upload_id: Uuid,
+) -> anyhow::Result<Option<Upload>> {
     sqlx::query_as!(
         Upload,
         r#"
@@ -205,10 +208,7 @@ pub async fn get_upload_by_id_and_join_course(
     }
 }
 
-pub async fn update_upload(
-    db_pool: &sqlx::Pool<sqlx::Postgres>,
-    upload: &Upload,
-) -> anyhow::Result<()> {
+pub async fn update_upload(mut tx: &mut PgTransaction<'_>, upload: &Upload) -> anyhow::Result<()> {
     // FIXME impl upload_type
     sqlx::query!(
         "
@@ -228,17 +228,14 @@ pub async fn update_upload(
         upload.last_modified_date,
         upload.id,
     )
-    .execute(db_pool)
+    .execute(&mut **tx)
     .await
     .context("Failed to update upload")?;
 
     Ok(())
 }
 
-pub async fn create_upload(
-    db_pool: &sqlx::Pool<sqlx::Postgres>,
-    upload: &Upload,
-) -> anyhow::Result<()> {
+pub async fn create_upload(mut tx: &mut PgTransaction<'_>, upload: &Upload) -> anyhow::Result<()> {
     sqlx::query!(
         "
         INSERT INTO
@@ -270,7 +267,7 @@ pub async fn create_upload(
         upload.belongs_to,
         upload.held_by,
     )
-    .execute(db_pool)
+    .execute(&mut **tx)
     .await
     .context("Failed to insert upload")?;
 

@@ -1,10 +1,11 @@
 use anyhow::Context;
+use sqlx::PgTransaction;
 use uuid::Uuid;
 
 use crate::data::Purchase;
 
 pub async fn get_purchase(
-    db_pool: &sqlx::Pool<sqlx::Postgres>,
+    mut tx: &mut PgTransaction<'_>,
     user_id: Uuid,
     upload_id: Uuid,
 ) -> anyhow::Result<Option<Purchase>> {
@@ -26,13 +27,13 @@ pub async fn get_purchase(
         user_id,
         upload_id,
     )
-    .fetch_optional(db_pool)
+    .fetch_optional(&mut **tx)
     .await
     .context("Failed to get purchase")
 }
 
 pub async fn create_purchase(
-    db_pool: &sqlx::Pool<sqlx::Postgres>,
+    mut tx: &mut PgTransaction<'_>,
     purchase: &Purchase,
 ) -> anyhow::Result<()> {
     sqlx::query!(
@@ -54,7 +55,7 @@ pub async fn create_purchase(
         purchase.purchase_date,
         purchase.rating,
     )
-    .execute(db_pool)
+    .execute(&mut **tx)
     .await
     .context("Failed to create purchase")?;
 

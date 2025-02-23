@@ -3,7 +3,9 @@ use indicatif::ProgressBar;
 use sqlx::{MySql, PgTransaction, Pool, Postgres};
 
 use crate::{
-    data::{Course, OwnedUniversity, RgbColor, University, User, UserWithEmails},
+    data::{
+        Course, OwnedUniversity, RgbColor, University, Upload, UploadType, User, UserWithEmails,
+    },
     db::{self, DB_POOL},
     legacy::{self, LegacyTable},
 };
@@ -37,6 +39,7 @@ pub async fn perform_import() -> anyhow::Result<()> {
     import_universities(&mut tx, &import_db_pool).await?;
     import_courses(&mut tx, &import_db_pool).await?;
     import_users(&mut tx, &import_db_pool).await?;
+    import_uploads(&mut tx, &import_db_pool).await?;
 
     tx.commit().await?;
     log::info!("Import done");
@@ -45,7 +48,7 @@ pub async fn perform_import() -> anyhow::Result<()> {
 }
 
 async fn import_universities(
-    mut target_db: &mut PgTransaction<'_>,
+    mut tx: &mut PgTransaction<'_>,
     source_db: &Pool<MySql>,
 ) -> anyhow::Result<()> {
     log::info!("Importing universities");
@@ -125,14 +128,14 @@ async fn import_universities(
             uni.short_name = "UI".to_string();
         }
 
-        db::university::create_university_with_id(&mut target_db, uni).await?;
+        db::university::create_university_with_id(&mut tx, uni).await?;
     }
 
     Ok(())
 }
 
 async fn import_courses(
-    mut target_db: &mut PgTransaction<'_>,
+    mut tx: &mut PgTransaction<'_>,
     source_db: &Pool<MySql>,
 ) -> anyhow::Result<()> {
     log::info!("Importing courses");
@@ -175,14 +178,14 @@ async fn import_courses(
             name: course.titel,
         };
 
-        db::course::create_course(&mut target_db, course).await?;
+        db::course::create_course(&mut tx, course).await?;
     }
 
     Ok(())
 }
 
 async fn import_users(
-    mut target_db: &mut PgTransaction<'_>,
+    mut tx: &mut PgTransaction<'_>,
     source_db: &Pool<MySql>,
 ) -> anyhow::Result<()> {
     log::info!("Importing users");
@@ -232,11 +235,91 @@ async fn import_users(
         };
 
         // HACK handle errors (this is to IGNORE duplicate emails)
-        let _ = db::user::register(&mut target_db, user).await;
+        let _ = db::user::register(&mut tx, user).await;
 
         bar.inc(1);
     }
     bar.finish();
+
+    Ok(())
+}
+
+async fn import_uploads(
+    mut tx: &mut PgTransaction<'_>,
+    source_db: &Pool<MySql>,
+) -> anyhow::Result<()> {
+    log::info!("Importing uploads");
+
+    #[derive(Debug, sqlx::FromRow)]
+    struct LegacyUpload {
+        id: u32,
+        filename: String,
+        fileending: String,
+        size: u32,
+        uploader: i32,
+        fach: i32,
+        beschreibung: String,
+        time_upload_unix: i64,
+        preis: u32,
+        filetype: u32,
+    }
+
+    let uploads: Vec<LegacyUpload> = sqlx::query_as(
+        r#"
+        SELECT
+            id,
+            filename,
+            fileending,
+            size,
+            uploader,
+            fach,
+            beschreibung,
+            time_upload_unix,
+            preis,
+            filetype
+        FROM
+            egiraffe_studium_files
+        LIMIT
+            100
+        "#,
+    )
+    .fetch_all(source_db)
+    .await
+    .context("Failed to fetch uploads")?;
+
+    for upload in uploads {
+        let id = legacy::LegacyId {
+            id: upload.id,
+            table: LegacyTable::Upload,
+        };
+
+        let uploader_id = legacy::LegacyId {
+            id: upload.uploader.try_into()?,
+            table: LegacyTable::User,
+        };
+
+        let course_id = legacy::LegacyId {
+            id: upload.fach.try_into()?,
+            table: LegacyTable::Course,
+        };
+
+        let upload = Upload {
+            id: id.try_into()?,
+            name: upload.filename,
+            description: upload.beschreibung,
+            price: upload.preis.try_into()?,
+            uploader: uploader_id.try_into()?,
+            upload_date: chrono::NaiveDateTime::from_timestamp(upload.time_upload_unix, 0),
+            last_modified_date: chrono::NaiveDateTime::from_timestamp(upload.time_upload_unix, 0),
+            associated_date: None,
+            // upload_type: upload.filetype.try_into()?,
+            upload_type: UploadType::Other, // TODO handle upload types
+            belongs_to: course_id.try_into()?,
+            held_by: None,
+        };
+
+        db::upload::create_upload(&mut tx, &upload).await?;
+    }
 
     Ok(())
 }

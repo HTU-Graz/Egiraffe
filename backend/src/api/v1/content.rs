@@ -151,11 +151,13 @@ pub async fn handle_get_all_uploads() -> impl IntoResponse {
 }
 
 pub async fn handle_get_all_files() -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
-    let files = db::file::get_all_files_and_join_upload(&db_pool)
+    let files = db::file::get_all_files_and_join_upload(&mut tx)
         .await
         .unwrap();
+
+    tx.commit().await.unwrap();
 
     (
         StatusCode::OK,
@@ -176,9 +178,9 @@ async fn download_file_as_mod(
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     Json(req): Json<GetFileAsModReq>,
 ) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
-    let maybe_file = db::file::get_file(&db_pool, req.file_id).await;
+    let maybe_file = db::file::get_file(&mut tx, req.file_id).await;
 
     let Ok(file) = maybe_file else {
         log::error!("Failed to get file: {}", maybe_file.unwrap_err());
@@ -239,6 +241,8 @@ async fn download_file_as_mod(
         "Moderator {current_user_id} is authorized (mod) to access file {}",
         file.id
     );
+
+    tx.commit().await.unwrap();
 
     do_download_to_user.await
 }

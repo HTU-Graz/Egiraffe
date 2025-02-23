@@ -54,12 +54,12 @@ async fn handle_get_my_ecs(
     }
 
     // let maybe_ecs = sqlx::query_file_as!(i32, "src/db/sql/get_available_ecs.sql", current_user_id)
-    //     .fetch_one(&*db_pool)
+    //     .fetch_one(&*&mut **tx)
     //     .await;
     let maybe_ecs: anyhow::Result<(f64,)> =
         sqlx::query_as(include_str!("../../db/sql/get_available_ecs.sql"))
             .bind(&current_user_id)
-            .fetch_one(&*db_pool)
+            .fetch_one(&*&mut **tx)
             .await
             .context("Failed to get ECs");
 
@@ -93,7 +93,7 @@ pub struct GetUploadsReq {
 async fn handle_get_courses() -> impl IntoResponse {
     let db_pool = *DB_POOL.get().unwrap();
 
-    let maybe_courses = db::course::get_courses(&db_pool).await;
+    let maybe_courses = db::course::get_courses(&&mut **tx).await;
 
     let Ok(courses) = maybe_courses else {
         log::error!("Failed to get courses: {}", maybe_courses.unwrap_err());
@@ -151,7 +151,7 @@ async fn handle_get_uploads(Json(course): Json<GetUploadsReq>) -> impl IntoRespo
 async fn handle_get_universities() -> impl IntoResponse {
     let db_pool = *DB_POOL.get().unwrap();
 
-    let maybe_universities = db::university::get_universities(&db_pool).await;
+    let maybe_universities = db::university::get_universities(&&mut **tx).await;
 
     let Ok(universities) = maybe_universities else {
         log::error!(
@@ -234,7 +234,7 @@ async fn handle_get_file(
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     Json(req): Json<GetFileReq>,
 ) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     // Most `/get` endpoints do not require authentication; this one does
     if current_user_id.is_nil() {
@@ -244,7 +244,7 @@ async fn handle_get_file(
         ));
     }
 
-    let maybe_file = db::file::get_file(&db_pool, req.file_id).await;
+    let maybe_file = db::file::get_file(&mut tx, req.file_id).await;
 
     let Ok(file) = maybe_file else {
         log::error!("Failed to get file: {}", maybe_file.unwrap_err());
@@ -369,11 +369,11 @@ async fn handle_get_files_of_upload(
     Extension(current_user_id): Extension<Uuid>, // Get the user ID from the session
     Json(upload): Json<GetUploadReq>,
 ) -> impl IntoResponse {
-    let db_pool = *DB_POOL.get().unwrap();
+    let mut tx = (*DB_POOL.get().unwrap()).begin().await.unwrap();
 
     log::info!("Get details for upload {}", upload.upload_id);
 
-    let maybe_files = db::file::get_files_and_join_upload(&db_pool, upload.upload_id).await;
+    let maybe_files = db::file::get_files_and_join_upload(&mut tx, upload.upload_id).await;
 
     let Ok(files) = maybe_files else {
         log::error!("Failed to get files: {}", maybe_files.unwrap_err());
@@ -406,7 +406,7 @@ async fn handle_get_files_of_upload(
         .collect::<Vec<_>>();
 
     // Get the upload info
-    let maybe_upload_and_uploader_name = get_upload(&db_pool, upload.upload_id).await;
+    let maybe_upload_and_uploader_name = get_upload(&mut tx, upload.upload_id).await;
 
     let Ok((upload, uploader_name)) = maybe_upload_and_uploader_name else {
         log::error!(
@@ -422,6 +422,8 @@ async fn handle_get_files_of_upload(
             })),
         );
     };
+
+    tx.commit().await.unwrap();
 
     (
         StatusCode::OK,
@@ -497,7 +499,10 @@ async fn handle_get_prof(
     )
 }
 
-async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<(Upload, String)> {
+async fn get_upload(
+    mut tx: &mut PgTransaction<'_>,
+    upload_id: Uuid,
+) -> anyhow::Result<(Upload, String)> {
     // HACK we're re-defining the struct here because we need an extra field
     #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
     struct UploadAndUploaderName {
@@ -539,7 +544,7 @@ async fn get_upload(db_pool: &sqlx::PgPool, upload_id: Uuid) -> anyhow::Result<(
         "#,
         upload_id,
     )
-    .fetch_one(db_pool)
+    .fetch_one(&mut **tx)
     .await
     .context("Failed to get upload")?;
 
@@ -648,7 +653,7 @@ async fn handle_get_purchased_uploads(
         ",
     )
     .bind(&current_user_id)
-    .fetch_all(db_pool)
+    .fetch_all(&mut **tx)
     .await
     .context("Failed to get purchases");
 
