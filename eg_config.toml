@@ -1,0 +1,26 @@
+[database]
+url = "postgresql://egiraffe:hunter2@localhost:5432/egiraffe?sslmode=disable"
+debugdefaultentries = true
+
+[mail]
+encryption = "None"
+hostname = "localhost"
+username = "dummyuser"
+password = "dummypassword"
+senderemail = "debugdummy@localhost"
+sendername = "Egiraffe Debug Sendername"
+templatepath = "./frontend/mailtemplates/"
+activated = false
+port = 1025
+
+[webserver]
+ip = "127.0.0.42"
+staticdir = "../frontend/dist"
+indexfile = "../frontend/dist/index.html"
+port = 42002
+
+baseurl = "http://localhost:42002"
+acitvationlinkvalidityperiod = 3
+
+[import]
+url = "mysql://root:hunter2@localhost:3306/eg_old"

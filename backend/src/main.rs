@@ -67,13 +67,14 @@ async fn server() -> anyhow::Result<()> {
         tx.commit().await?;
     }
 
-    let static_files = ServeDir::new(&CONF.webserver.staticdir)
-        .not_found_service(ServeFile::new(&CONF.webserver.indexfile));
     log::info!(
         "Serving static files from {}, canonicalized to {}",
         &CONF.webserver.staticdir,
         canonicalize(&CONF.webserver.staticdir)?.display()
     );
+
+    let static_files = ServeDir::new(&CONF.webserver.staticdir)
+        .not_found_service(ServeFile::new(&CONF.webserver.indexfile));
 
     let app = Router::new()
         .nest("/api", api::routes())

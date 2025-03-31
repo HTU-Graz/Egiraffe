@@ -136,7 +136,7 @@ impl Config {
         }
 
         let config: Config = Figment::from(Serialized::defaults(defaults))
-            .merge(Toml::file("conf.toml"))
+            .merge(Toml::file("eg_config.toml"))
             .merge(Env::prefixed("EGIRAFFE_").split("_"))
             .extract()
             .unwrap();
