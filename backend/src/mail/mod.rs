@@ -3,10 +3,12 @@ use lettre::{message::{header::{self, ContentType}, Mailbox, MultiPart, SinglePa
 use crate::conf::CONF;
 use crate::conf;
 use once_cell::sync::OnceCell;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc};
 use std::str::FromStr;
 use std::fmt::format;
 use justerror::Error;
+use tokio::task;
+use tokio::sync::Mutex;
 
 pub static MAILER: OnceCell<Arc<Mutex<AsyncSmtpTransport<Tokio1Executor>>>> = OnceCell::new(); //Not sure if an arc is necessary here.
 static ENV: OnceCell<Environment<'static>> = OnceCell::new();
@@ -89,8 +91,9 @@ pub async fn send_activation_mail(first_names: &str, last_name: &str, email: &st
         .expect("failed to build email");
 
     // Send the email
-    let mailer = MAILER.get().unwrap().lock().unwrap();
-    mailer.send(email).await.expect("Error sending Mail");
-
+    tokio::spawn(async move {
+        let mailer = MAILER.get().unwrap().lock().await;
+        mailer.send(email).await.expect("Error sending Mail");
+    });
     Ok(())
 }

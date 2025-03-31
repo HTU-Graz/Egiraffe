@@ -83,7 +83,7 @@ impl Config {
                     encryption: EncryptionType::StartTLS,
                     senderemail: "".into(),
                     sendername: "".into(),
-                    templatepath: "./frontend/mailtemplates/".into(),
+                    templatepath: "../frontend/mailtemplates/".into(),
                 },
                 webserver: WebServerConfig {
                     // Make sure to build the frontend first!
@@ -117,7 +117,7 @@ impl Config {
                     encryption: EncryptionType::None,
                     senderemail: "debugdummy@localhost".into(),
                     sendername: "Egiraffe Debug Sendername".into(),
-                    templatepath: "./frontend/mailtemplates/".into(),
+                    templatepath: "../frontend/mailtemplates/".into(),
                 },
                 webserver: WebServerConfig {
                     // Make sure to build the frontend first!

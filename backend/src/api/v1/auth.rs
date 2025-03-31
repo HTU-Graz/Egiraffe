@@ -3,6 +3,7 @@ use std::sync::Arc;
 use argon2::{password_hash::SaltString, Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use axum_extra::extract::{cookie::Cookie, CookieJar};
+use tokio::task;
 use rand::rngs::OsRng;
 use serde::{Deserialize, Serialize};
 use sha_crypt::sha512_check; //For legacy logins
@@ -180,8 +181,7 @@ pub async fn handle_register(Json(register_data): Json<RegisterReq>) -> impl Int
         }
     }
 
-    //TODO
-    //    let mail_result = send_activation_mail(&user.first_names, &user.last_name, &user.emails[0], "TODO: Real token").await;
+    let mail_result = send_activation_mail(&user.first_names, &user.last_name, &user.emails[0], "TODO: Real token").await;
 
     (StatusCode::OK, Json(RegisterRes { success: true }))
 }
