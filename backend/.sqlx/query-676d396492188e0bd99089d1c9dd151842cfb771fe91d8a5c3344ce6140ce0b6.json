@@ -1,0 +1,108 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            id,\n            name_full,\n            name_mid,\n            name_short,\n            email_domain_names,\n            homepage_url,\n            cms_url,\n            background_color AS \"background_color: DbRgbColor\",\n            text_color AS \"text_color: DbRgbColor\"\n        FROM\n            universities\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "name_full",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "name_mid",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "name_short",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "email_domain_names",
+        "type_info": "VarcharArray"
+      },
+      {
+        "ordinal": 5,
+        "name": "homepage_url",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "cms_url",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 7,
+        "name": "background_color: DbRgbColor",
+        "type_info": {
+          "Custom": {
+            "name": "rgb_color",
+            "kind": {
+              "Composite": [
+                [
+                  "r",
+                  "Char"
+                ],
+                [
+                  "g",
+                  "Char"
+                ],
+                [
+                  "b",
+                  "Char"
+                ]
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "text_color: DbRgbColor",
+        "type_info": {
+          "Custom": {
+            "name": "rgb_color",
+            "kind": {
+              "Composite": [
+                [
+                  "r",
+                  "Char"
+                ],
+                [
+                  "g",
+                  "Char"
+                ],
+                [
+                  "b",
+                  "Char"
+                ]
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "676d396492188e0bd99089d1c9dd151842cfb771fe91d8a5c3344ce6140ce0b6"
+}

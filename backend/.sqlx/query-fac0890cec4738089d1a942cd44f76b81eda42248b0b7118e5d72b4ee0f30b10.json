@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO\n                universities (\n                    id,\n                    name_full,\n                    name_mid,\n                    name_short,\n                    email_domain_names\n                )\n            VALUES\n                ($1, $2, $3, $4, $5)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "VarcharArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "fac0890cec4738089d1a942cd44f76b81eda42248b0b7118e5d72b4ee0f30b10"
+}

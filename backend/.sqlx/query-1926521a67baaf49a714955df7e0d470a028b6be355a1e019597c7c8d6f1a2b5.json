@@ -1,0 +1,69 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO universities (\n            name_full,\n            name_mid,\n            name_short,\n            email_domain_names,\n            homepage_url,\n            cms_url,\n            background_color,\n            text_color\n        )\n        VALUES (\n            $1,\n            $2,\n            $3,\n            $4,\n            $5,\n            $6,\n            $7,\n            $8\n        )\n        RETURNING\n            id\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "VarcharArray",
+        "Varchar",
+        "Varchar",
+        {
+          "Custom": {
+            "name": "rgb_color",
+            "kind": {
+              "Composite": [
+                [
+                  "r",
+                  "Char"
+                ],
+                [
+                  "g",
+                  "Char"
+                ],
+                [
+                  "b",
+                  "Char"
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "rgb_color",
+            "kind": {
+              "Composite": [
+                [
+                  "r",
+                  "Char"
+                ],
+                [
+                  "g",
+                  "Char"
+                ],
+                [
+                  "b",
+                  "Char"
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "1926521a67baaf49a714955df7e0d470a028b6be355a1e019597c7c8d6f1a2b5"
+}
