@@ -1,0 +1,25 @@
+services:
+  server:
+    image: 61caa0d31ca189533946da20be6fcf55b0936d60ba4a14bf0b237ef17a02f236
+    container_name: egiraffe
+    volumes:
+      - /mnt/egiraffe-ng/uploads:/srv/egiraffe/user_uploads
+    ports:
+      - 0.0.0.0:42002:42002
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=egiraffe
+      - POSTGRES_PASSWORD=hunter2
+      - POSTGRES_DB=egiraffe
+    volumes:
+      - /mnt/egiraffe-ng/db:/var/lib/postgresql/data
+    ports:
+      - 127.0.0.1:5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "egiraffe"]
+      interval: 1s

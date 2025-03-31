@@ -5,3 +5,4 @@ dist
 .env
 backend/uploads
 result*
+docker/**/*.tar
