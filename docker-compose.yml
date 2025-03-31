@@ -39,7 +39,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: admin@example.com # Default email for pgAdmin
       PGADMIN_DEFAULT_PASSWORD: admin # Default password for pgAdmin
     ports:
-      - "8049:80" # Access pgAdmin at http://localhost:8049
+      - "127.0.0.1:8049:80" # Access pgAdmin at http://localhost:8049
 
 #
 #
