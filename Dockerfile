@@ -13,5 +13,7 @@ FROM debian:bookworm-slim
 RUN apt-get update & apt-get install -y extra-runtime-dependencies & rm -rf /var/lib/apt/lists/*
 COPY --from=backend_builder /usr/local/cargo/bin/egiraffe /usr/local/bin/egiraffe
 COPY --from=frontend_builder /frontend/dist /usr/local/frontend/dist
+COPY ./backend/eg_config.toml /etc/eg_config.toml
 EXPOSE 42002
-CMD ["egiraffe"]
+VOLUME [ "/srv/egiraffe/user_uploads" ]
+CMD [ "egiraffe", "/etc/eg_config.toml" ]

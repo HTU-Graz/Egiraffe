@@ -15,8 +15,8 @@ port = 1025
 
 [webserver]
 ip = "127.0.0.42"
-staticdir = "/srv/egiraffe/frontend_dist"
-indexfile = "/srv/egiraffe/frontend_dist/index.html"
+staticdir = "/usr/local/frontend/dist"
+indexfile = "/usr/local/frontend/dist/index.html"
 port = 42002
 
 baseurl = "http://localhost:42002"
