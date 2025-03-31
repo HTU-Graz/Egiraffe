@@ -15,6 +15,7 @@ pub struct Config {
 
     pub baseurl: String,
     pub acitvationlinkvalidityperiod: i8, //in days
+    pub upload_dir: String,
 
     #[cfg(feature = "import")]
     pub import: ImportConfig,
@@ -95,6 +96,7 @@ impl Config {
 
                 baseurl: "https://egiraffe.at".into(),
                 acitvationlinkvalidityperiod: 3,
+                upload_dir: "uploads".into(),
             };
         }
 
@@ -128,6 +130,7 @@ impl Config {
                 },
                 baseurl: "http://localhost:42002".into(),
                 acitvationlinkvalidityperiod: 3,
+                upload_dir: "uploads".into(),
                 #[cfg(feature = "import")]
                 import: ImportConfig {
                     url: "mysql://root:hunter2@localhost:3306/eg_old".into(),

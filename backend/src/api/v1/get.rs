@@ -19,6 +19,7 @@ use uuid::Uuid;
 
 use crate::{
     api::{api_greeting, v1::auth::make_dead_cookie},
+    conf::CONF,
     data::{File, Purchase, RedactedUser, Upload, UploadType},
     db::{self, DB_POOL},
 };
@@ -271,7 +272,7 @@ async fn handle_get_file(
     // Prepare the download logic
     let do_download_to_user = async {
         let fs_file =
-            tokio::fs::File::open(PathBuf::from("uploads").join(file.id.to_string())).await;
+            tokio::fs::File::open(PathBuf::from(&CONF.upload_dir).join(file.id.to_string())).await;
 
         let fs_file = fs_file.unwrap(); // TODO handle error
 

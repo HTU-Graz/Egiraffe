@@ -15,12 +15,13 @@ port = 1025
 
 [webserver]
 ip = "127.0.0.42"
-staticdir = "../frontend/dist"
-indexfile = "../frontend/dist/index.html"
+staticdir = "/srv/egiraffe/frontend_dist"
+indexfile = "/srv/egiraffe/frontend_dist/index.html"
 port = 42002
 
 baseurl = "http://localhost:42002"
 acitvationlinkvalidityperiod = 3
+upload_dir = "/srv/egiraffe/user_uploads"
 
 [import]
 url = "mysql://root:hunter2@localhost:3306/eg_old"

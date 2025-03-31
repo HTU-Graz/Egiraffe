@@ -18,6 +18,7 @@ use uuid::Uuid;
 
 use crate::{
     api::api_greeting,
+    conf::CONF,
     data::{File, Purchase, RedactedUser, Upload, UploadType},
     db::{self, user::make_pwd_hash, DB_POOL},
     util::bad_request,
@@ -377,8 +378,8 @@ async fn handle_do_file(
     let file_id = Uuid::new_v4();
 
     // 3. Write the file to disk & check for collisions
-    std::fs::create_dir_all("uploads").unwrap();
-    // let path = PathBuf::from("uploads").join(file_id.to_string());
+    std::fs::create_dir_all(&CONF.upload_dir).unwrap();
+    // let path = PathBuf::from(&CONF.upload_dir).join(file_id.to_string());
 
     let named_temp_file = NamedTempFile::new().unwrap();
     let tmp_path = named_temp_file.path();
@@ -495,10 +496,10 @@ async fn handle_do_file(
     };
 
     // 6. Move the file to the correct location (from the temporary location)
-    // let path = PathBuf::from("uploads").join(file_id.to_string());
+    // let path = PathBuf::from(&CONF.upload_dir).join(file_id.to_string());
 
     // To reduce the number of inodes in one directory, we can create a subdirectory for each byte of the hash
-    let target_folder = PathBuf::from("uploads").join(&file.sha3_256[..2]);
+    let target_folder = PathBuf::from(&CONF.upload_dir).join(&file.sha3_256[..2]);
     std::fs::create_dir_all(&target_folder).unwrap();
 
     let path = target_folder.join(&file.sha3_256);

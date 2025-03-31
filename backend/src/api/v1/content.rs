@@ -19,6 +19,7 @@ use uuid::Uuid;
 
 use crate::{
     api::api_greeting,
+    conf::CONF,
     data::File,
     db::{self, DB_POOL},
 };
@@ -213,7 +214,7 @@ async fn download_file_as_mod(
     // Prepare the download logic
     let do_download_to_user = async {
         let fs_file = tokio::fs::File::open(
-            PathBuf::from("uploads")
+            PathBuf::from(&CONF.upload_dir)
                 .join(&file.sha3_256[..2])
                 .join(&file.sha3_256),
         )
