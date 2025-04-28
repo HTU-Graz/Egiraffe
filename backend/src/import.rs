@@ -19,6 +19,25 @@ pub async fn perform_import() -> anyhow::Result<()> {
         .filter_level(log::LevelFilter::Info)
         .init();
 
+    let which = std::env::args().nth(1);
+
+    match which.map(String::as_str) {
+        Some("fs") => perform_fs_import().await,
+        Some("db") => perform_db_import().await,
+        Some(_) => {
+            log::error!("Unknown import type: {which}",);
+            Err(anyhow::anyhow!("Unknown import type"))
+        }
+        None => {
+            log::info!("Please specify 'fs' or 'db' as the first argument");
+            Err(anyhow::anyhow!("No import type specified"))
+        }
+    }
+}
+
+pub async fn perform_fs_import() -> anyhow::Result<()> {}
+
+pub async fn perform_db_import() -> anyhow::Result<()> {
     // Prepare the database
     let db_pool = db::connect().await.context("DB connection failed")?;
     DB_POOL.set(Box::leak(Box::new(db_pool))).unwrap();
