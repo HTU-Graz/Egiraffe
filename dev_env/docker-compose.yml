@@ -1,4 +1,7 @@
 # WARNING This file is only meant to be used for local development. It is not used in production.
+name: egiraffe-dev
+volumes:
+  egiraffe-dev:
 
 services:
   db:
@@ -15,6 +18,8 @@ services:
     #   - ./design/database/egiraffe-schema-generated.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - 127.0.0.1:5432:5432
+    volumes:
+      - egiraffe-dev:/var/lib/postgresql/data # Persist data to the host
   #for testing Mails
   mailpit:
     image: axllent/mailpit:latest
