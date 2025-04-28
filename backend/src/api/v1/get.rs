@@ -271,8 +271,12 @@ async fn handle_get_file(
 
     // Prepare the download logic
     let do_download_to_user = async {
-        let fs_file =
-            tokio::fs::File::open(PathBuf::from(&CONF.upload_dir).join(file.id.to_string())).await;
+        let fs_file = tokio::fs::File::open(
+            PathBuf::from(&CONF.upload_dir)
+                .join(&file.sha3_256[..2])
+                .join(&file.sha3_256),
+        )
+        .await;
 
         let fs_file = fs_file.unwrap(); // TODO handle error
 
