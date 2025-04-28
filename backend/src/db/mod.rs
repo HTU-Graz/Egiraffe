@@ -21,6 +21,8 @@ use tokio::fs::read_to_string;
 pub static DB_POOL: OnceCell<&'static sqlx::PgPool> = OnceCell::new();
 
 pub async fn connect() -> anyhow::Result<Pool<Postgres>> {
+    log::info!("Connecting to database at {}", CONF.database.url);
+
     let pool = PgPoolOptions::new()
         .max_connections(5)
         .connect(&CONF.database.url)
