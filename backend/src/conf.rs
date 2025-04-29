@@ -97,6 +97,9 @@ impl Config {
                 baseurl: "https://egiraffe.at".into(),
                 acitvationlinkvalidityperiod: 3,
                 upload_dir: "uploads".into(),
+
+                #[cfg(feature = "import")]
+                import: panic!("Import feature is not supported in production"),
             };
         }
 
